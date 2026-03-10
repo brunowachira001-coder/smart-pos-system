@@ -3,20 +3,22 @@ import { supabaseAdmin } from '@/lib/supabase'
 
 export async function GET() {
   try {
+    const client = supabaseAdmin()
+    
     // Get total sales
-    const { data: transactions } = await supabaseAdmin
+    const { data: transactions } = await client
       .from('transactions')
       .select('total')
 
     const totalSales = transactions?.reduce((sum, t) => sum + (t.total || 0), 0) || 0
 
     // Get transaction count
-    const { count: totalTransactions } = await supabaseAdmin
+    const { count: totalTransactions } = await client
       .from('transactions')
       .select('*', { count: 'exact', head: true })
 
     // Get product count
-    const { count: totalProducts } = await supabaseAdmin
+    const { count: totalProducts } = await client
       .from('products')
       .select('*', { count: 'exact', head: true })
 

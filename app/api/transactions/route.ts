@@ -3,7 +3,8 @@ import { supabaseAdmin } from '@/lib/supabase'
 
 export async function GET() {
   try {
-    const { data, error } = await supabaseAdmin
+    const client = supabaseAdmin()
+    const { data, error } = await client
       .from('transactions')
       .select('*')
       .order('created_at', { ascending: false })
@@ -20,8 +21,9 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json()
+    const client = supabaseAdmin()
     
-    const { data: transaction, error: txError } = await supabaseAdmin
+    const { data: transaction, error: txError } = await client
       .from('transactions')
       .insert([{
         total: body.total,
