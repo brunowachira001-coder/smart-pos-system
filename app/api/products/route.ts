@@ -1,19 +1,36 @@
 import { NextResponse } from 'next/server'
+import { supabaseAdmin } from '@/lib/supabase'
 
 export async function GET() {
-  // TODO: Replace with actual database queries
-  const products = [
-    { id: '1', name: 'Product A', price: 29.99, quantity: 100 },
-    { id: '2', name: 'Product B', price: 49.99, quantity: 50 },
-    { id: '3', name: 'Product C', price: 19.99, quantity: 200 },
-  ]
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('products')
+      .select('*')
+      .order('created_at', { ascending: false })
 
-  return NextResponse.json(products)
+    if (error) throw error
+
+    return NextResponse.json(data || [])
+  } catch (error) {
+    console.error('Error fetching products:', error)
+    return NextResponse.json({ error: 'Failed to fetch products' }, { status: 500 })
+  }
 }
 
 export async function POST(request: Request) {
-  // TODO: Add product to database
-  const body = await request.json()
-  
-  return NextResponse.json({ success: true, data: body }, { status: 201 })
+  try {
+    const body = await request.json()
+    
+    const { data, error } = await supabaseAdmin
+      .from('products')
+      .insert([body])
+      .select()
+
+    if (error) throw error
+
+    return NextResponse.json(data?.[0], { status: 201 })
+  } catch (error) {
+    console.error('Error creating product:', error)
+    return NextResponse.json({ error: 'Failed to create product' }, { status: 500 })
+  }
 }

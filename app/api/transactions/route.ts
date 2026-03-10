@@ -1,22 +1,42 @@
 import { NextResponse } from 'next/server'
+import { supabaseAdmin } from '@/lib/supabase'
 
 export async function GET() {
-  // TODO: Replace with actual database queries
-  const transactions = [
-    { id: 'TXN001', date: '2024-03-10', items: 3, amount: 125.50 },
-    { id: 'TXN002', date: '2024-03-10', items: 2, amount: 89.99 },
-    { id: 'TXN003', date: '2024-03-09', items: 5, amount: 245.75 },
-  ]
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('transactions')
+      .select('*')
+      .order('created_at', { ascending: false })
 
-  return NextResponse.json(transactions)
+    if (error) throw error
+
+    return NextResponse.json(data || [])
+  } catch (error) {
+    console.error('Error fetching transactions:', error)
+    return NextResponse.json({ error: 'Failed to fetch transactions' }, { status: 500 })
+  }
 }
 
 export async function POST(request: Request) {
-  // TODO: Save transaction to database
-  const body = await request.json()
-  
-  // TODO: Save body to database
-  console.log('Transaction received:', body)
-  
-  return NextResponse.json({ success: true, transactionId: 'TXN' + Date.now() }, { status: 201 })
+  try {
+    const body = await request.json()
+    
+    const { data: transaction, error: txError } = await supabaseAdmin
+      .from('transactions')
+      .insert([{
+        total: body.total,
+        items_count: body.items?.length || 0,
+      }])
+      .select()
+
+    if (txError) throw txError
+
+    return NextResponse.json({ 
+      success: true, 
+      transactionId: transaction?.[0]?.id 
+    }, { status: 201 })
+  } catch (error) {
+    console.error('Error creating transaction:', error)
+    return NextResponse.json({ error: 'Failed to create transaction' }, { status: 500 })
+  }
 }
