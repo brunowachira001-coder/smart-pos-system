@@ -4,7 +4,7 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-gray-100">
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-4xl font-bold text-gray-900 mb-8">Welcome to POS System</h1>
+        <h1 className="text-4xl font-bold text-gray-900 mb-8">Welcome to POS System v2</h1>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <Link href="/dashboard" className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition">
