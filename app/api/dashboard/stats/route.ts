@@ -3,6 +3,15 @@ import { supabaseAdmin } from '@/lib/supabase'
 
 export async function GET() {
   try {
+    // Check if environment variables are available
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      return NextResponse.json({ 
+        totalSales: 0, 
+        totalTransactions: 0, 
+        totalProducts: 0 
+      })
+    }
+
     const client = supabaseAdmin()
     
     // Get total sales
