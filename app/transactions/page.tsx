@@ -19,9 +19,16 @@ export default function Transactions() {
       try {
         const response = await fetch('/api/transactions')
         const data = await response.json()
-        setTransactions(data)
+        
+        // Check if data is an array, if not set empty array
+        if (Array.isArray(data)) {
+          setTransactions(data)
+        } else {
+          setTransactions([])
+        }
       } catch (error) {
         console.error('Failed to fetch transactions:', error)
+        setTransactions([])
       } finally {
         setLoading(false)
       }

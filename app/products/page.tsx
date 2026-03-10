@@ -19,9 +19,16 @@ export default function Products() {
       try {
         const response = await fetch('/api/products')
         const data = await response.json()
-        setProducts(data)
+        
+        // Check if data is an array, if not set empty array
+        if (Array.isArray(data)) {
+          setProducts(data)
+        } else {
+          setProducts([])
+        }
       } catch (error) {
         console.error('Failed to fetch products:', error)
+        setProducts([])
       } finally {
         setLoading(false)
       }
