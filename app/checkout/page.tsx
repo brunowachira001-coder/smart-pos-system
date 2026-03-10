@@ -14,15 +14,6 @@ export default function Checkout() {
   const [cart, setCart] = useState<CartItem[]>([])
   const [total, setTotal] = useState(0)
 
-  const addToCart = (item: CartItem) => {
-    const existing = cart.find(c => c.id === item.id)
-    if (existing) {
-      setCart(cart.map(c => c.id === item.id ? { ...c, quantity: c.quantity + 1 } : c))
-    } else {
-      setCart([...cart, item])
-    }
-  }
-
   const removeFromCart = (id: string) => {
     setCart(cart.filter(c => c.id !== id))
   }
