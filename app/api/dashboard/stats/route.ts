@@ -19,7 +19,7 @@ export async function GET() {
       .from('transactions')
       .select('total')
 
-    const totalSales = transactions?.reduce((sum, t) => sum + (t.total || 0), 0) || 0
+    const totalSales = transactions?.reduce((sum: number, t: any) => sum + (t.total || 0), 0) || 0
 
     // Get transaction count
     const { count: totalTransactions } = await client
