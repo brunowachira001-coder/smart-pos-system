@@ -10,7 +10,7 @@ async function setupDatabase() {
     console.log('Setting up database tables...')
 
     // Create products table
-    const { error: productsError } = await supabase.rpc('exec', {
+    await supabase.rpc('exec', {
       sql: `
         CREATE TABLE IF NOT EXISTS products (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -21,10 +21,10 @@ async function setupDatabase() {
           updated_at TIMESTAMP DEFAULT NOW()
         );
       `,
-    }).catch(() => ({ error: null }))
+    }).catch(() => null)
 
     // Create transactions table
-    const { error: transactionsError } = await supabase.rpc('exec', {
+    await supabase.rpc('exec', {
       sql: `
         CREATE TABLE IF NOT EXISTS transactions (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -33,10 +33,10 @@ async function setupDatabase() {
           created_at TIMESTAMP DEFAULT NOW()
         );
       `,
-    }).catch(() => ({ error: null }))
+    }).catch(() => null)
 
     // Create transaction_items table
-    const { error: itemsError } = await supabase.rpc('exec', {
+    await supabase.rpc('exec', {
       sql: `
         CREATE TABLE IF NOT EXISTS transaction_items (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -47,7 +47,7 @@ async function setupDatabase() {
           created_at TIMESTAMP DEFAULT NOW()
         );
       `,
-    }).catch(() => ({ error: null }))
+    }).catch(() => null)
 
     console.log('Database setup complete!')
   } catch (error) {
