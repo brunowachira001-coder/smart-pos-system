@@ -12,8 +12,6 @@ export default function Home() {
       <Header isDark={isDark} onThemeToggle={setIsDark} />
       <main className={isDark ? 'min-h-screen bg-gray-900' : 'min-h-screen bg-gray-50'}>
         <div className="container mx-auto px-4 py-8">
-          <h1 className={`text-4xl font-bold mb-8 ${isDark ? 'text-white' : 'text-gray-900'}`}>Welcome to POS System v2</h1>
-          
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <Link href="/dashboard" className={`p-6 rounded-lg shadow hover:shadow-lg transition ${isDark ? 'bg-gray-800 hover:bg-gray-700' : 'bg-white hover:bg-gray-50'}`}>
               <h2 className={`text-2xl font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>Dashboard</h2>
