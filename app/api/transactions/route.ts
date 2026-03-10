@@ -15,5 +15,8 @@ export async function POST(request: Request) {
   // TODO: Save transaction to database
   const body = await request.json()
   
+  // TODO: Save body to database
+  console.log('Transaction received:', body)
+  
   return NextResponse.json({ success: true, transactionId: 'TXN' + Date.now() }, { status: 201 })
 }
