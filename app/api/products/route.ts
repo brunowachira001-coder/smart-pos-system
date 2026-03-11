@@ -29,10 +29,13 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      console.error('Missing Supabase env vars')
       return NextResponse.json({ error: 'Database not configured' }, { status: 500 })
     }
 
     const body = await request.json()
+    console.log('Adding product:', body)
+    
     const client = supabaseAdmin()
     
     const { data, error } = await client
@@ -41,13 +44,14 @@ export async function POST(request: Request) {
       .select()
 
     if (error) {
-      console.error('Supabase error:', error)
-      return NextResponse.json({ error: 'Failed to create product' }, { status: 500 })
+      console.error('Supabase insert error:', error)
+      return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
+    console.log('Product added successfully:', data)
     return NextResponse.json(data?.[0], { status: 201 })
   } catch (error) {
     console.error('Error creating product:', error)
-    return NextResponse.json({ error: 'Failed to create product' }, { status: 500 })
+    return NextResponse.json({ error: String(error) }, { status: 500 })
   }
 }
