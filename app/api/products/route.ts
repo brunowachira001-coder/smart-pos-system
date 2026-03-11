@@ -1,15 +1,17 @@
 import { NextResponse } from 'next/server'
-import { supabaseAdmin } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
 
 export async function GET() {
   try {
-    // Check if environment variables are available
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+    if (!supabaseUrl || !supabaseKey) {
       return NextResponse.json([])
     }
 
-    const client = supabaseAdmin()
-    const { data, error } = await client
+    const supabase = createClient(supabaseUrl, supabaseKey)
+    const { data, error } = await supabase
       .from('products')
       .select('*')
       .order('created_at', { ascending: false })
@@ -28,27 +30,26 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
-      console.error('Missing Supabase env vars')
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+    if (!supabaseUrl || !supabaseKey) {
       return NextResponse.json({ error: 'Database not configured' }, { status: 500 })
     }
 
     const body = await request.json()
-    console.log('Adding product:', body)
+    const supabase = createClient(supabaseUrl, supabaseKey)
     
-    const client = supabaseAdmin()
-    
-    const { data, error } = await client
+    const { data, error } = await supabase
       .from('products')
       .insert([body])
       .select()
 
     if (error) {
-      console.error('Supabase insert error:', error)
+      console.error('Supabase error:', error)
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    console.log('Product added successfully:', data)
     return NextResponse.json(data?.[0], { status: 201 })
   } catch (error) {
     console.error('Error creating product:', error)
