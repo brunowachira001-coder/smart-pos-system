@@ -11,12 +11,21 @@ interface InventoryItem {
   price: number
 }
 
+interface StockAdjustment {
+  type: 'add' | 'remove' | 'return'
+  quantity: number
+  reason: string
+}
+
 export default function Inventory() {
   const [isDark, setIsDark] = useState(true)
   const [items, setItems] = useState<InventoryItem[]>([])
   const [loading, setLoading] = useState(true)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editQuantity, setEditQuantity] = useState('')
+  const [showAdjustModal, setShowAdjustModal] = useState(false)
+  const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null)
+  const [adjustment, setAdjustment] = useState<StockAdjustment>({ type: 'add', quantity: 0, reason: '' })
 
   useEffect(() => {
     fetchInventory()
@@ -59,6 +68,48 @@ export default function Inventory() {
     } catch (error) {
       console.error('Error updating quantity:', error)
       alert('Error updating quantity')
+    }
+  }
+
+  const handleAdjustStock = async () => {
+    if (!selectedItem || adjustment.quantity <= 0) {
+      alert('Please enter a valid quantity')
+      return
+    }
+
+    try {
+      let newQuantity = selectedItem.quantity
+
+      if (adjustment.type === 'add') {
+        newQuantity += adjustment.quantity
+      } else if (adjustment.type === 'remove') {
+        newQuantity -= adjustment.quantity
+        if (newQuantity < 0) {
+          alert('Cannot remove more than available stock')
+          return
+        }
+      } else if (adjustment.type === 'return') {
+        newQuantity += adjustment.quantity
+      }
+
+      const response = await fetch(`/api/products/${selectedItem.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ quantity: newQuantity }),
+      })
+
+      if (response.ok) {
+        setShowAdjustModal(false)
+        setSelectedItem(null)
+        setAdjustment({ type: 'add', quantity: 0, reason: '' })
+        await fetchInventory()
+        alert(`Stock ${adjustment.type === 'add' ? 'added' : adjustment.type === 'remove' ? 'removed' : 'returned'} successfully!`)
+      } else {
+        alert('Failed to adjust stock')
+      }
+    } catch (error) {
+      console.error('Error adjusting stock:', error)
+      alert('Error adjusting stock')
     }
   }
 
@@ -135,39 +186,37 @@ export default function Inventory() {
                           {item.quantity <= 5 ? 'Low Stock' : item.quantity <= 10 ? 'Medium' : 'In Stock'}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-sm">
-                        {editingId === item.id ? (
-                          <div className="flex gap-2">
-                            <input
-                              type="number"
-                              value={editQuantity}
-                              onChange={(e) => setEditQuantity(e.target.value)}
-                              className={`w-16 px-2 py-1 border rounded ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
-                            />
-                            <button
-                              onClick={() => handleUpdateQuantity(item.id)}
-                              className="text-green-400 hover:text-green-300 text-xs"
-                            >
-                              Save
-                            </button>
-                            <button
-                              onClick={() => setEditingId(null)}
-                              className="text-gray-400 hover:text-gray-300 text-xs"
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        ) : (
-                          <button
-                            onClick={() => {
-                              setEditingId(item.id)
-                              setEditQuantity(item.quantity.toString())
-                            }}
-                            className="text-blue-400 hover:text-blue-300"
-                          >
-                            Edit
-                          </button>
-                        )}
+                      <td className="px-6 py-4 text-sm space-x-2">
+                        <button
+                          onClick={() => {
+                            setSelectedItem(item)
+                            setAdjustment({ type: 'add', quantity: 0, reason: '' })
+                            setShowAdjustModal(true)
+                          }}
+                          className="text-green-400 hover:text-green-300 text-xs"
+                        >
+                          Add Stock
+                        </button>
+                        <button
+                          onClick={() => {
+                            setSelectedItem(item)
+                            setAdjustment({ type: 'remove', quantity: 0, reason: '' })
+                            setShowAdjustModal(true)
+                          }}
+                          className="text-orange-400 hover:text-orange-300 text-xs"
+                        >
+                          Remove
+                        </button>
+                        <button
+                          onClick={() => {
+                            setSelectedItem(item)
+                            setAdjustment({ type: 'return', quantity: 0, reason: '' })
+                            setShowAdjustModal(true)
+                          }}
+                          className="text-blue-400 hover:text-blue-300 text-xs"
+                        >
+                          Return
+                        </button>
                       </td>
                     </tr>
                   ))
@@ -176,6 +225,77 @@ export default function Inventory() {
             </table>
           </div>
         </div>
+
+        {showAdjustModal && selectedItem && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className={`${isDark ? 'bg-gray-800' : 'bg-white'} rounded-lg p-6 max-w-md w-full`}>
+              <h2 className={`text-2xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                {adjustment.type === 'add' ? 'Add Stock' : adjustment.type === 'remove' ? 'Remove Stock' : 'Process Return'}
+              </h2>
+              
+              <div className={`mb-4 p-3 rounded ${isDark ? 'bg-gray-700' : 'bg-gray-50'}`}>
+                <p className={isDark ? 'text-gray-300' : 'text-gray-700'}>Product: <span className="font-semibold">{selectedItem.name}</span></p>
+                <p className={isDark ? 'text-gray-300' : 'text-gray-700'}>Current Stock: <span className="font-semibold">{selectedItem.quantity}</span></p>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Quantity</label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={adjustment.quantity}
+                    onChange={(e) => setAdjustment({ ...adjustment, quantity: parseInt(e.target.value) || 0 })}
+                    className={`w-full px-3 py-2 border rounded ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
+                  />
+                </div>
+
+                <div>
+                  <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Reason</label>
+                  <input
+                    type="text"
+                    placeholder={adjustment.type === 'add' ? 'e.g., New purchase' : adjustment.type === 'remove' ? 'e.g., Damaged, Lost' : 'e.g., Customer return, Defective'}
+                    value={adjustment.reason}
+                    onChange={(e) => setAdjustment({ ...adjustment, reason: e.target.value })}
+                    className={`w-full px-3 py-2 border rounded ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
+                  />
+                </div>
+
+                <div className={`p-3 rounded ${isDark ? 'bg-gray-700' : 'bg-gray-50'}`}>
+                  <p className={isDark ? 'text-gray-300' : 'text-gray-700'}>
+                    New Stock: <span className="font-semibold">
+                      {adjustment.type === 'add' 
+                        ? selectedItem.quantity + adjustment.quantity
+                        : adjustment.type === 'remove'
+                        ? Math.max(0, selectedItem.quantity - adjustment.quantity)
+                        : selectedItem.quantity + adjustment.quantity
+                      }
+                    </span>
+                  </p>
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <button
+                    onClick={handleAdjustStock}
+                    className="flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
+                  >
+                    Confirm
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowAdjustModal(false)
+                      setSelectedItem(null)
+                      setAdjustment({ type: 'add', quantity: 0, reason: '' })
+                    }}
+                    className={`flex-1 py-2 rounded ${isDark ? 'bg-gray-700 text-white hover:bg-gray-600' : 'bg-gray-200 text-gray-900 hover:bg-gray-300'}`}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </>
   )
