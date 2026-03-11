@@ -25,6 +25,8 @@ export async function GET() {
     return NextResponse.json([])
   }
 }
+
+export async function POST(request: Request) {
   try {
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
       console.error('Missing Supabase env vars')
