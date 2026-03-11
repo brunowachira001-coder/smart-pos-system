@@ -112,7 +112,7 @@ export default function Products() {
                   products.map((product) => (
                     <tr key={product.id} className={isDark ? 'border-b border-gray-700 hover:bg-gray-700' : 'border-b border-gray-200 hover:bg-gray-50'}>
                       <td className={`px-6 py-4 text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>{product.name}</td>
-                      <td className={`px-6 py-4 text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>${product.price.toFixed(2)}</td>
+            <td className={`px-6 py-4 text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>KES {product.price.toFixed(2)}</td>
                       <td className={`px-6 py-4 text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>{product.quantity}</td>
                       <td className="px-6 py-4 text-sm">
                         <button className="text-blue-400 hover:text-blue-300 mr-4">Edit</button>

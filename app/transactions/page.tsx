@@ -70,7 +70,7 @@ export default function Transactions() {
                     <td className="px-6 py-4 text-sm text-white">{transaction.id}</td>
                     <td className="px-6 py-4 text-sm text-white">{transaction.date}</td>
                     <td className="px-6 py-4 text-sm text-white">{transaction.items}</td>
-                    <td className="px-6 py-4 text-sm text-white">${transaction.amount.toFixed(2)}</td>
+                    <td className="px-6 py-4 text-sm text-white">KES {transaction.amount.toFixed(2)}</td>
                   </tr>
                 ))
               )}

@@ -36,7 +36,7 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="bg-gray-800 p-6 rounded-lg shadow">
             <h3 className="text-gray-400 text-sm font-medium mb-2">Total Sales</h3>
-            <p className="text-3xl font-bold text-white">${stats.totalSales.toFixed(2)}</p>
+            <p className="text-3xl font-bold text-white">KES {stats.totalSales.toFixed(2)}</p>
           </div>
           
           <div className="bg-gray-800 p-6 rounded-lg shadow">

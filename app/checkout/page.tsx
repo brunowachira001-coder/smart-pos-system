@@ -60,7 +60,7 @@ export default function Checkout() {
                         <p className="text-sm text-gray-400">Qty: {item.quantity}</p>
                       </div>
                       <div className="flex items-center gap-4">
-                        <p className="font-semibold text-white">${(item.price * item.quantity).toFixed(2)}</p>
+                        <p className="font-semibold text-white">KES {(item.price * item.quantity).toFixed(2)}</p>
                         <button
                           onClick={() => removeFromCart(item.id)}
                           className="text-red-400 hover:text-red-300"
@@ -80,15 +80,15 @@ export default function Checkout() {
             <div className="space-y-3 mb-6">
               <div className="flex justify-between text-gray-400">
                 <span>Subtotal</span>
-                <span>${cartTotal.toFixed(2)}</span>
+                <span>KES {cartTotal.toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-gray-400">
                 <span>Tax</span>
-                <span>${(cartTotal * 0.1).toFixed(2)}</span>
+                <span>KES {(cartTotal * 0.1).toFixed(2)}</span>
               </div>
               <div className="border-t border-gray-700 pt-3 flex justify-between font-semibold text-white">
                 <span>Total</span>
-                <span>${(cartTotal * 1.1).toFixed(2)}</span>
+                <span>KES {(cartTotal * 1.1).toFixed(2)}</span>
               </div>
             </div>
             <button
