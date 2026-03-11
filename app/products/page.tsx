@@ -56,17 +56,20 @@ export default function Products() {
         }),
       })
 
+      const data = await response.json()
+
       if (response.ok) {
         setFormData({ name: '', price: '', quantity: '' })
         setShowModal(false)
         await fetchProducts()
         alert('Product added successfully!')
       } else {
-        alert('Failed to add product')
+        console.error('API error:', data)
+        alert(`Failed to add product: ${data.error || 'Unknown error'}`)
       }
     } catch (error) {
       console.error('Error adding product:', error)
-      alert('Error adding product')
+      alert(`Error adding product: ${error}`)
     } finally {
       setSubmitting(false)
     }
