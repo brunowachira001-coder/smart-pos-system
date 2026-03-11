@@ -33,6 +33,11 @@ export default function Home() {
               <p className={isDark ? 'text-gray-400' : 'text-gray-600'}>Process new sales</p>
             </Link>
             
+            <Link href="/inventory" className={`p-6 rounded-lg shadow hover:shadow-lg transition ${isDark ? 'bg-gray-800 hover:bg-gray-700' : 'bg-white hover:bg-gray-50'}`}>
+              <h2 className={`text-2xl font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>Inventory</h2>
+              <p className={isDark ? 'text-gray-400' : 'text-gray-600'}>Manage stock levels</p>
+            </Link>
+            
             <Link href="/reports" className={`p-6 rounded-lg shadow hover:shadow-lg transition ${isDark ? 'bg-gray-800 hover:bg-gray-700' : 'bg-white hover:bg-gray-50'}`}>
               <h2 className={`text-2xl font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>Reports</h2>
               <p className={isDark ? 'text-gray-400' : 'text-gray-600'}>Generate sales reports</p>

@@ -29,6 +29,9 @@ export default function Header({ isDark, onThemeToggle }: HeaderProps) {
             <Link href="/checkout" className={isDark ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'}>
               Checkout
             </Link>
+            <Link href="/inventory" className={isDark ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'}>
+              Inventory
+            </Link>
             <Link href="/transactions" className={isDark ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'}>
               Transactions
             </Link>
@@ -67,6 +70,9 @@ export default function Header({ isDark, onThemeToggle }: HeaderProps) {
           </Link>
           <Link href="/checkout" className={`block ${isDark ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}>
             Checkout
+          </Link>
+          <Link href="/inventory" className={`block ${isDark ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}>
+            Inventory
           </Link>
           <Link href="/transactions" className={`block ${isDark ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}>
             Transactions
