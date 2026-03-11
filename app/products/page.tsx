@@ -15,29 +15,62 @@ export default function Products() {
   const [isDark, setIsDark] = useState(true)
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
+  const [showModal, setShowModal] = useState(false)
+  const [formData, setFormData] = useState({ name: '', price: '', quantity: '' })
+  const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const response = await fetch('/api/products')
-        const data = await response.json()
-        
-        // Check if data is an array, if not set empty array
-        if (Array.isArray(data)) {
-          setProducts(data)
-        } else {
-          setProducts([])
-        }
-      } catch (error) {
-        console.error('Failed to fetch products:', error)
-        setProducts([])
-      } finally {
-        setLoading(false)
-      }
-    }
-
     fetchProducts()
   }, [])
+
+  const fetchProducts = async () => {
+    try {
+      const response = await fetch('/api/products')
+      const data = await response.json()
+      
+      if (Array.isArray(data)) {
+        setProducts(data)
+      } else {
+        setProducts([])
+      }
+    } catch (error) {
+      console.error('Failed to fetch products:', error)
+      setProducts([])
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleAddProduct = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setSubmitting(true)
+
+    try {
+      const response = await fetch('/api/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.name,
+          price: parseFloat(formData.price),
+          quantity: parseInt(formData.quantity),
+        }),
+      })
+
+      if (response.ok) {
+        setFormData({ name: '', price: '', quantity: '' })
+        setShowModal(false)
+        await fetchProducts()
+        alert('Product added successfully!')
+      } else {
+        alert('Failed to add product')
+      }
+    } catch (error) {
+      console.error('Error adding product:', error)
+      alert('Error adding product')
+    } finally {
+      setSubmitting(false)
+    }
+  }
 
   return (
     <>
@@ -49,7 +82,10 @@ export default function Products() {
             <Link href="/" className="text-blue-400 hover:text-blue-300">Back to Home</Link>
           </div>
 
-          <button className="bg-blue-600 text-white px-4 py-2 rounded mb-6 hover:bg-blue-700">
+          <button 
+            onClick={() => setShowModal(true)}
+            className="bg-blue-600 text-white px-4 py-2 rounded mb-6 hover:bg-blue-700"
+          >
             Add Product
           </button>
 
@@ -89,6 +125,67 @@ export default function Products() {
             </table>
           </div>
         </div>
+
+        {showModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className={`${isDark ? 'bg-gray-800' : 'bg-white'} rounded-lg p-6 max-w-md w-full`}>
+              <h2 className={`text-2xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>Add Product</h2>
+              
+              <form onSubmit={handleAddProduct} className="space-y-4">
+                <div>
+                  <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Product Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    className={`w-full px-3 py-2 border rounded ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
+                  />
+                </div>
+
+                <div>
+                  <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Price</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    required
+                    value={formData.price}
+                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                    className={`w-full px-3 py-2 border rounded ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
+                  />
+                </div>
+
+                <div>
+                  <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Quantity</label>
+                  <input
+                    type="number"
+                    required
+                    value={formData.quantity}
+                    onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
+                    className={`w-full px-3 py-2 border rounded ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
+                  />
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:bg-gray-500"
+                  >
+                    {submitting ? 'Adding...' : 'Add Product'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowModal(false)}
+                    className={`flex-1 py-2 rounded ${isDark ? 'bg-gray-700 text-white hover:bg-gray-600' : 'bg-gray-200 text-gray-900 hover:bg-gray-300'}`}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
     </>
   )
