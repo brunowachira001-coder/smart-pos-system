@@ -1,0 +1,528 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============ USERS & AUTHENTICATION ============
+model User {
+  id                    BigInt      @id @default(autoincrement())
+  username              String      @unique
+  email                 String      @unique
+  passwordHash          String
+  firstName             String?
+  lastName              String?
+  phone                 String?
+  status                String      @default("ACTIVE")
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+  
+  roles                 UserRole[]
+  sessions              UserSession[]
+  mfaSettings           MFASettings?
+  loginHistory          LoginHistory[]
+  auditLogs             AuditLog[]
+  transactions          Transaction[]
+  
+  @@index([username])
+  @@index([email])
+}
+
+model Role {
+  id                    Int         @id @default(autoincrement())
+  roleName              String      @unique
+  description           String?
+  isSystemRole          Boolean     @default(false)
+  createdAt             DateTime    @default(now())
+  
+  permissions           RolePermission[]
+  userRoles             UserRole[]
+}
+
+model Permission {
+  id                    Int         @id @default(autoincrement())
+  permissionName        String      @unique
+  entityType            String?
+  operation             String?
+  description           String?
+  
+  rolePermissions       RolePermission[]
+}
+
+model UserRole {
+  id                    Int         @id @default(autoincrement())
+  userId                BigInt
+  roleId                Int
+  assignedBy            BigInt?
+  assignedAt            DateTime    @default(now())
+  expiresAt             DateTime?
+  
+  user                  User        @relation(fields: [userId], references: [id])
+  role                  Role        @relation(fields: [roleId], references: [id])
+  
+  @@unique([userId, roleId])
+  @@index([userId])
+}
+
+model RolePermission {
+  id                    Int         @id @default(autoincrement())
+  roleId                Int
+  permissionId          Int
+  
+  role                  Role        @relation(fields: [roleId], references: [id])
+  permission            Permission  @relation(fields: [permissionId], references: [id])
+  
+  @@unique([roleId, permissionId])
+}
+
+model UserSession {
+  id                    BigInt      @id @default(autoincrement())
+  userId                BigInt
+  sessionToken          String      @unique
+  refreshToken          String      @unique
+  deviceFingerprint     String?
+  ipAddress             String?
+  userAgent             String?
+  createdAt             DateTime    @default(now())
+  expiresAt             DateTime
+  lastActivity          DateTime    @default(now())
+  isActive              Boolean     @default(true)
+  
+  user                  User        @relation(fields: [userId], references: [id])
+  
+  @@index([userId])
+  @@index([sessionToken])
+}
+
+model MFASettings {
+  id                    Int         @id @default(autoincrement())
+  userId                BigInt      @unique
+  mfaType               String?
+  mfaSecret             String?
+  backupCodes           String[]
+  enabled               Boolean     @default(false)
+  createdAt             DateTime    @default(now())
+  lastUsed              DateTime?
+  
+  user                  User        @relation(fields: [userId], references: [id])
+}
+
+model LoginHistory {
+  id                    BigInt      @id @default(autoincrement())
+  userId                BigInt
+  loginTime             DateTime    @default(now())
+  logoutTime            DateTime?
+  ipAddress             String?
+  deviceFingerprint     String?
+  mfaUsed               Boolean     @default(false)
+  success               Boolean     @default(true)
+  
+  user                  User        @relation(fields: [userId], references: [id])
+  
+  @@index([userId])
+  @@index([loginTime])
+}
+
+// ============ BRANCHES ============
+model Branch {
+  id                    Int         @id @default(autoincrement())
+  branchCode            String      @unique
+  branchName            String
+  regionId              Int?
+  zoneId                Int?
+  address               String?
+  city                  String?
+  country               String?
+  phone                 String?
+  email                 String?
+  managerId             BigInt?
+  status                String      @default("ACTIVE")
+  operatingHoursOpen    String?
+  operatingHoursClose   String?
+  timezone              String?
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+  
+  configuration         BranchConfiguration?
+  inventory             BranchInventory[]
+  pricing               BranchPricing[]
+  transactions          Transaction[]
+  customers             BranchCustomer[]
+  staff                 BranchStaff[]
+  
+  @@index([branchCode])
+  @@index([status])
+}
+
+model BranchConfiguration {
+  id                    Int         @id @default(autoincrement())
+  branchId              Int         @unique
+  paymentMethods        String[]
+  pricingStrategy       String?
+  discountRules         Json?
+  taxRate               Decimal     @db.Decimal(5, 2)
+  receiptFormat         String?
+  reportingPreferences  Json?
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+  
+  branch                Branch      @relation(fields: [branchId], references: [id])
+}
+
+// ============ PRODUCTS & INVENTORY ============
+model Product {
+  id                    BigInt      @id @default(autoincrement())
+  sku                   String      @unique
+  name                  String
+  description           String?
+  categoryId            Int
+  supplierId            Int?
+  costPrice             Decimal     @db.Decimal(12, 2)
+  retailPrice           Decimal     @db.Decimal(12, 2)
+  wholesalePrice        Decimal     @db.Decimal(12, 2)
+  imageUrl              String?
+  barcode               String?
+  status                String      @default("ACTIVE")
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+  
+  category              Category    @relation(fields: [categoryId], references: [id])
+  branchInventory       BranchInventory[]
+  branchPricing         BranchPricing[]
+  transactionItems      TransactionItem[]
+  
+  @@index([sku])
+  @@index([categoryId])
+  @@index([barcode])
+}
+
+model Category {
+  id                    Int         @id @default(autoincrement())
+  categoryName          String      @unique
+  description           String?
+  
+  products              Product[]
+}
+
+model BranchInventory {
+  id                    BigInt      @id @default(autoincrement())
+  branchId              Int
+  productId             BigInt
+  stockLevel            Int         @default(0)
+  reorderPoint          Int?
+  reorderQuantity       Int?
+  supplierId            Int?
+  lastStockCheck        DateTime?
+  
+  branch                Branch      @relation(fields: [branchId], references: [id])
+  product               Product     @relation(fields: [productId], references: [id])
+  
+  @@unique([branchId, productId])
+  @@index([branchId])
+  @@index([productId])
+}
+
+model BranchPricing {
+  id                    BigInt      @id @default(autoincrement())
+  branchId              Int
+  productId             BigInt
+  retailPrice           Decimal     @db.Decimal(12, 2)
+  wholesalePrice        Decimal     @db.Decimal(12, 2)
+  costPrice             Decimal     @db.Decimal(12, 2)
+  effectiveFrom         DateTime?
+  effectiveTo           DateTime?
+  
+  branch                Branch      @relation(fields: [branchId], references: [id])
+  product               Product     @relation(fields: [productId], references: [id])
+  
+  @@unique([branchId, productId])
+}
+
+model InventoryLog {
+  id                    BigInt      @id @default(autoincrement())
+  branchId              Int
+  productId             BigInt
+  actionType            String
+  quantityBefore        Int
+  quantityAfter         Int
+  reason                String?
+  userId                BigInt?
+  timestamp             DateTime    @default(now())
+  
+  @@index([branchId])
+  @@index([productId])
+  @@index([timestamp])
+}
+
+// ============ CUSTOMERS & CREDIT ============
+model Customer {
+  id                    BigInt      @id @default(autoincrement())
+  firstName             String
+  lastName              String
+  phone                 String      @unique
+  email                 String?
+  address               String?
+  city                  String?
+  country               String?
+  status                String      @default("ACTIVE")
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+  
+  branchCustomers       BranchCustomer[]
+  transactions          Transaction[]
+  creditSales           CreditSale[]
+  
+  @@index([phone])
+  @@index([email])
+}
+
+model BranchCustomer {
+  id                    BigInt      @id @default(autoincrement())
+  branchId              Int
+  customerId            BigInt
+  isLocal               Boolean     @default(true)
+  localCreditLimit      Decimal     @db.Decimal(12, 2)
+  localDebtBalance      Decimal     @db.Decimal(12, 2)
+  
+  branch                Branch      @relation(fields: [branchId], references: [id])
+  customer              Customer    @relation(fields: [customerId], references: [id])
+  
+  @@unique([branchId, customerId])
+}
+
+model CreditSale {
+  id                    BigInt      @id @default(autoincrement())
+  paymentTransactionId  BigInt      @unique
+  customerId            BigInt
+  creditLimit           Decimal     @db.Decimal(12, 2)
+  availableCredit       Decimal     @db.Decimal(12, 2)
+  debtAmount            Decimal     @db.Decimal(12, 2)
+  paymentTerms          String?
+  dueDate               DateTime?
+  status                String      @default("ACTIVE")
+  createdAt             DateTime    @default(now())
+  dueAt                 DateTime?
+  
+  customer              Customer    @relation(fields: [customerId], references: [id])
+  creditPayments        CreditPayment[]
+}
+
+model CreditPayment {
+  id                    BigInt      @id @default(autoincrement())
+  creditSaleId          BigInt
+  paymentAmount         Decimal     @db.Decimal(12, 2)
+  paymentDate           DateTime    @default(now())
+  paymentMethodId       Int?
+  referenceNumber       String?
+  
+  creditSale            CreditSale  @relation(fields: [creditSaleId], references: [id])
+}
+
+// ============ TRANSACTIONS & PAYMENTS ============
+model Transaction {
+  id                    BigInt      @id @default(autoincrement())
+  branchId              Int
+  transactionNumber     String      @unique
+  userId                BigInt
+  customerId            BigInt?
+  subtotal              Decimal     @db.Decimal(12, 2)
+  tax                   Decimal     @db.Decimal(12, 2)
+  discount              Decimal     @db.Decimal(12, 2)
+  total                 Decimal     @db.Decimal(12, 2)
+  status                String      @default("COMPLETED")
+  createdAt             DateTime    @default(now())
+  completedAt           DateTime?
+  
+  branch                Branch      @relation(fields: [branchId], references: [id])
+  user                  User        @relation(fields: [userId], references: [id])
+  customer              Customer?   @relation(fields: [customerId], references: [id])
+  items                 TransactionItem[]
+  payments              PaymentTransaction[]
+  
+  @@index([branchId])
+  @@index([userId])
+  @@index([customerId])
+  @@index([createdAt])
+}
+
+model TransactionItem {
+  id                    BigInt      @id @default(autoincrement())
+  transactionId         BigInt
+  productId             BigInt
+  quantity              Int
+  unitPrice             Decimal     @db.Decimal(12, 2)
+  discount              Decimal     @db.Decimal(12, 2)
+  total                 Decimal     @db.Decimal(12, 2)
+  
+  transaction           Transaction @relation(fields: [transactionId], references: [id])
+  product               Product     @relation(fields: [productId], references: [id])
+  
+  @@index([transactionId])
+}
+
+model PaymentMethod {
+  id                    Int         @id @default(autoincrement())
+  methodName            String      @unique
+  description           String?
+  enabled               Boolean     @default(true)
+  requiresConfirmation  Boolean     @default(false)
+  processingFee         Decimal     @db.Decimal(5, 2)
+}
+
+model PaymentTransaction {
+  id                    BigInt      @id @default(autoincrement())
+  transactionId         BigInt
+  paymentMethodId       Int
+  amount                Decimal     @db.Decimal(12, 2)
+  currency              String      @default("KES")
+  customerId            BigInt?
+  branchId              Int
+  userId                BigInt
+  status                String      @default("PENDING")
+  referenceNumber       String?
+  externalReference     String?
+  paymentDetails        Json?
+  createdAt             DateTime    @default(now())
+  confirmedAt           DateTime?
+  failedAt              DateTime?
+  failureReason         String?
+  
+  transaction           Transaction @relation(fields: [transactionId], references: [id])
+  paymentMethod         PaymentMethod @relation(fields: [paymentMethodId], references: [id])
+  
+  @@index([status])
+  @@index([referenceNumber])
+  @@index([createdAt])
+}
+
+model MpesaTransaction {
+  id                    BigInt      @id @default(autoincrement())
+  paymentTransactionId  BigInt      @unique
+  merchantRequestId     String?
+  checkoutRequestId     String?
+  phoneNumber           String?
+  amount                Decimal     @db.Decimal(12, 2)
+  status                String?
+  responseCode          String?
+  responseMessage       String?
+  resultCode            String?
+  resultDescription     String?
+  createdAt             DateTime    @default(now())
+  confirmedAt           DateTime?
+  
+  @@index([checkoutRequestId])
+}
+
+// ============ AUDIT & SECURITY ============
+model AuditLog {
+  id                    BigInt      @id @default(autoincrement())
+  actionType            String
+  entityType            String
+  entityId              BigInt?
+  userId                BigInt
+  username              String
+  timestamp             DateTime    @default(now())
+  ipAddress             String?
+  deviceFingerprint     String?
+  sessionId             String?
+  beforeValues          Json?
+  afterValues           Json?
+  reason                String?
+  severity              String      @default("INFO")
+  createdAt             DateTime    @default(now())
+  
+  user                  User        @relation(fields: [userId], references: [id])
+  
+  @@index([userId])
+  @@index([entityType])
+  @@index([timestamp])
+}
+
+model SuspiciousTransaction {
+  id                    BigInt      @id @default(autoincrement())
+  transactionId         BigInt      @unique
+  riskScore             Int
+  detectedPatterns      String[]
+  flaggedAt             DateTime    @default(now())
+  investigationStatus   String      @default("PENDING")
+  investigatorId        BigInt?
+  investigationNotes    String?
+  resolvedAt            DateTime?
+}
+
+model FraudAlert {
+  id                    BigInt      @id @default(autoincrement())
+  alertType             String
+  severity              String
+  description           String?
+  relatedEntityType     String?
+  relatedEntityId       BigInt?
+  triggeredAt           DateTime    @default(now())
+  acknowledgedBy        BigInt?
+  acknowledgedAt        DateTime?
+  resolvedAt            DateTime?
+}
+
+// ============ ANALYTICS & REPORTING ============
+model DailySalesReport {
+  id                    BigInt      @id @default(autoincrement())
+  branchId              Int
+  reportDate            DateTime
+  totalSales            Decimal     @db.Decimal(12, 2)
+  totalProfit           Decimal     @db.Decimal(12, 2)
+  totalTransactions     Int
+  averageTransactionValue Decimal   @db.Decimal(12, 2)
+  createdAt             DateTime    @default(now())
+  
+  @@unique([branchId, reportDate])
+  @@index([branchId])
+  @@index([reportDate])
+}
+
+model AIInsight {
+  id                    BigInt      @id @default(autoincrement())
+  branchId              Int
+  insightType           String
+  title                 String
+  description           String?
+  recommendation        String?
+  confidence            Decimal     @db.Decimal(5, 2)
+  generatedAt           DateTime    @default(now())
+  
+  @@index([branchId])
+  @@index([generatedAt])
+}
+
+// ============ SYNC & OFFLINE ============
+model SyncQueue {
+  id                    BigInt      @id @default(autoincrement())
+  entityType            String
+  entityId              BigInt
+  operation             String
+  data                  Json
+  sourceBranchId        Int?
+  targetBranches        Int[]
+  status                String      @default("PENDING")
+  retryCount            Int         @default(0)
+  createdAt             DateTime    @default(now())
+  syncedAt              DateTime?
+  
+  @@index([status])
+  @@index([createdAt])
+}
+
+model OfflineTransaction {
+  id                    BigInt      @id @default(autoincrement())
+  branchId              Int
+  terminalId            String?
+  transactionData       Json
+  status                String      @default("PENDING")
+  createdAt             DateTime    @default(now())
+  syncedAt              DateTime?
+}

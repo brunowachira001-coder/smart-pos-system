@@ -1,0 +1,418 @@
+╔════════════════════════════════════════════════════════════════════════════╗
+║                                                                            ║
+║              SMART POS SYSTEM - SECURITY AUDIT CHECKLIST                  ║
+║                                                                            ║
+║                    PRE-DEPLOYMENT SECURITY VERIFICATION                   ║
+║                                                                            ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔴 CRITICAL ISSUES (Must fix before deployment)
+
+  ☐ Remove hardcoded secrets from lib/config.ts
+    └─ JWT_SECRET, JWT_REFRESH_SECRET, ENCRYPTION_KEY must come from env vars
+    └─ Validate all required env vars at startup
+    └─ Fail fast if any required env var is missing
+
+  ☐ Implement cryptographically secure session tokens
+    └─ Replace Date.now() with randomBytes(32).toString('hex')
+    └─ Use generateSecureToken() function
+    └─ Test token randomness
+
+  ☐ Add input validation to all API endpoints
+    └─ Use Joi or express-validator
+    └─ Validate: type, length, format, range
+    └─ Reject invalid input with 400 status
+    └─ Test with malicious input
+
+  ☐ Implement CSRF protection
+    └─ Install csurf package
+    └─ Add CSRF middleware to all POST/PUT/DELETE endpoints
+    └─ Include CSRF token in responses
+    └─ Validate CSRF token on state-changing requests
+
+  ☐ Add rate limiting to authentication endpoints
+    └─ Install express-rate-limit
+    └─ Limit login to 5 attempts per 15 minutes
+    └─ Limit password reset to 3 attempts per hour
+    └─ Return 429 status when limit exceeded
+
+  ☐ Implement authorization checks
+    └─ Verify user has access to requested branch
+    └─ Verify user has required role/permission
+    └─ Check authorization on every operation
+    └─ Log authorization failures
+
+  ☐ Update vulnerable dependencies
+    └─ Run: npm audit
+    └─ Run: npm update
+    └─ Run: npm audit fix
+    └─ Verify no vulnerabilities remain
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🟠 HIGH PRIORITY ISSUES (Fix within 1 week)
+
+  ☐ Implement Multi-Factor Authentication (MFA)
+    └─ Install speakeasy and qrcode packages
+    └─ Generate TOTP secrets for users
+    └─ Verify TOTP tokens on login
+    └─ Generate backup codes
+    └─ Test MFA flow
+
+  ☐ Add session timeout
+    └─ Track last activity timestamp
+    └─ Invalidate sessions after 30 minutes of inactivity
+    └─ Update last activity on each request
+    └─ Return 401 when session expires
+
+  ☐ Add API rate limiting
+    └─ Limit to 100 requests per minute per IP
+    └─ Limit search to 30 requests per minute
+    └─ Return 429 status when limit exceeded
+    └─ Include rate limit headers in response
+
+  ☐ Add security headers
+    └─ Install helmet package
+    └─ Add Content-Security-Policy header
+    └─ Add X-Frame-Options: DENY
+    └─ Add X-Content-Type-Options: nosniff
+    └─ Add Strict-Transport-Security header
+    └─ Add X-XSS-Protection header
+
+  ☐ Enforce HTTPS
+    └─ Redirect HTTP to HTTPS
+    └─ Add HSTS header
+    └─ Set Secure flag on cookies
+    └─ Test HTTPS enforcement
+
+  ☐ Configure CORS properly
+    └─ Whitelist allowed origins
+    └─ Allow only necessary methods (GET, POST, etc.)
+    └─ Allow only necessary headers
+    └─ Set credentials: true only if needed
+
+  ☐ Implement comprehensive audit logging
+    └─ Log all authentication events
+    └─ Log all authorization failures
+    └─ Log all data modifications
+    └─ Include: user, action, timestamp, IP, result
+    └─ Store logs securely
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🟡 MEDIUM PRIORITY ISSUES (Fix within 2 weeks)
+
+  ☐ Implement password expiration policy
+    └─ Require password change every 90 days
+    └─ Warn users 14 days before expiration
+    └─ Prevent reuse of last 5 passwords
+
+  ☐ Implement account lockout
+    └─ Lock account after 5 failed login attempts
+    └─ Lock duration: 15 minutes
+    └─ Notify user of lockout
+    └─ Allow admin to unlock
+
+  ☐ Encrypt sensitive data at rest
+    └─ Encrypt: customer names, emails, phone numbers, ID numbers
+    └─ Use AES-256-GCM encryption
+    └─ Store encryption keys securely
+    └─ Test encryption/decryption
+
+  ☐ Implement data retention policy
+    └─ Delete audit logs after 365 days
+    └─ Delete login history after 90 days
+    └─ Delete temporary data after 30 days
+    └─ Automate cleanup process
+
+  ☐ Add PII masking in logs
+    └─ Mask email addresses
+    └─ Mask phone numbers
+    └─ Mask ID numbers
+    └─ Mask payment information
+
+  ☐ Implement centralized logging
+    └─ Send logs to CloudWatch/ELK/Datadog
+    └─ Include structured logging
+    └─ Set up log retention
+    └─ Set up log analysis
+
+  ☐ Implement real-time alerting
+    └─ Alert on multiple failed logins
+    └─ Alert on unusual transaction amounts
+    └─ Alert on permission changes
+    └─ Alert on system errors
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🟢 LOW PRIORITY ISSUES (Fix within 1 month)
+
+  ☐ Implement API versioning
+    └─ Use /api/v1/, /api/v2/ paths
+    └─ Maintain backward compatibility
+    └─ Document API changes
+
+  ☐ Implement key rotation
+    └─ Rotate encryption keys every 90 days
+    └─ Rotate JWT secrets every 180 days
+    └─ Support multiple key versions
+    └─ Automate rotation process
+
+  ☐ Add secrets scanning to CI/CD
+    └─ Install git-secrets
+    └─ Install detect-secrets
+    └─ Add pre-commit hooks
+    └─ Add to CI/CD pipeline
+
+  ☐ Add SAST tools
+    └─ Install snyk
+    └─ Install SonarQube
+    └─ Run on every commit
+    └─ Fix identified issues
+
+  ☐ Add container security scanning
+    └─ Scan Docker images
+    └─ Use minimal base images
+    └─ Don't run as root
+    └─ Sign images
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📋 CODE SECURITY VERIFICATION
+
+  ☐ No hardcoded secrets in code
+    └─ Run: grep -r "secret\|password\|key" --include="*.ts" --include="*.js"
+    └─ Review results
+    └─ Move to environment variables
+
+  ☐ No SQL injection vulnerabilities
+    └─ Verify all database queries use Prisma
+    └─ Verify no string concatenation in queries
+    └─ Test with SQL injection payloads
+
+  ☐ No XSS vulnerabilities
+    └─ Verify all user input is escaped
+    └─ Verify no innerHTML usage
+    └─ Test with XSS payloads
+
+  ☐ No CSRF vulnerabilities
+    └─ Verify CSRF tokens on all state-changing requests
+    └─ Verify SameSite cookie attribute
+    └─ Test with CSRF attacks
+
+  ☐ No authentication bypass
+    └─ Verify all endpoints require authentication
+    └─ Verify JWT validation is correct
+    └─ Test with invalid/expired tokens
+
+  ☐ No authorization bypass
+    └─ Verify all endpoints check permissions
+    └─ Verify role-based access control
+    └─ Test with different user roles
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔐 DEPENDENCY SECURITY VERIFICATION
+
+  ☐ npm audit passes
+    └─ Run: npm audit
+    └─ Fix all vulnerabilities
+    └─ Run: npm audit fix
+    └─ Verify no vulnerabilities remain
+
+  ☐ All dependencies are up to date
+    └─ Run: npm outdated
+    └─ Update all packages
+    └─ Test after updates
+
+  ☐ No unused dependencies
+    └─ Run: npm prune
+    └─ Remove unused packages
+    └─ Reduce attack surface
+
+  ☐ All security packages installed
+    ☐ helmet (security headers)
+    ☐ express-rate-limit (rate limiting)
+    ☐ csurf (CSRF protection)
+    ☐ express-validator (input validation)
+    ☐ bcryptjs (password hashing)
+    ☐ speakeasy (MFA)
+    ☐ dotenv-safe (env validation)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🌐 INFRASTRUCTURE SECURITY VERIFICATION
+
+  ☐ Environment variables are secure
+    └─ All secrets in environment variables
+    └─ No secrets in .env file
+    └─ .env file in .gitignore
+    └─ Secrets stored in Vercel/AWS Secrets Manager
+
+  ☐ HTTPS is enforced
+    └─ All traffic redirected to HTTPS
+    └─ HSTS header set
+    └─ Secure flag on cookies
+    └─ Test with HTTP requests
+
+  ☐ Database connection is encrypted
+    └─ DATABASE_URL uses sslmode=require
+    └─ Connection verified with SSL certificate
+    └─ Test connection security
+
+  ☐ Redis connection is encrypted
+    └─ REDIS_URL uses TLS
+    └─ Connection verified with certificate
+    └─ Test connection security
+
+  ☐ CORS is configured
+    └─ Only allowed origins can access API
+    └─ Only necessary methods allowed
+    └─ Only necessary headers allowed
+    └─ Test CORS restrictions
+
+  ☐ Security headers are set
+    └─ Content-Security-Policy
+    └─ X-Frame-Options
+    └─ X-Content-Type-Options
+    └─ Strict-Transport-Security
+    └─ X-XSS-Protection
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📊 DEPLOYMENT SECURITY VERIFICATION
+
+  ☐ Debug mode is disabled
+    └─ NODE_ENV=production
+    └─ No stack traces in error responses
+    └─ No sensitive data in error messages
+
+  ☐ No test endpoints in production
+    └─ Remove /api/test endpoints
+    └─ Remove /api/debug endpoints
+    └─ Remove /api/admin/reset endpoints
+
+  ☐ No default credentials
+    └─ Change default admin password
+    └─ Remove test users
+    └─ Remove test data
+
+  ☐ Secrets are not in git history
+    └─ Run: git log --all --full-history -- .env
+    └─ Verify no secrets in history
+    └─ Use git-secrets to prevent future commits
+
+  ☐ Build process is secure
+    └─ npm ci (not npm install)
+    └─ npm audit in build
+    └─ No secrets in build output
+    └─ Verify build integrity
+
+  ☐ Deployment process is secure
+    └─ Only authorized users can deploy
+    └─ Deployment logs are audited
+    └─ Rollback procedure documented
+    └─ Incident response plan documented
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🧪 SECURITY TESTING VERIFICATION
+
+  ☐ Authentication testing
+    ☐ Test with invalid credentials
+    ☐ Test with expired tokens
+    ☐ Test with invalid tokens
+    ☐ Test with no token
+    ☐ Test session timeout
+
+  ☐ Authorization testing
+    ☐ Test with different user roles
+    ☐ Test with different branches
+    ☐ Test permission boundaries
+    ☐ Test privilege escalation attempts
+
+  ☐ Input validation testing
+    ☐ Test with SQL injection payloads
+    ☐ Test with XSS payloads
+    ☐ Test with oversized input
+    ☐ Test with invalid data types
+    ☐ Test with special characters
+
+  ☐ Rate limiting testing
+    ☐ Test login rate limiting
+    ☐ Test API rate limiting
+    ☐ Test search rate limiting
+    ☐ Verify 429 responses
+
+  ☐ CSRF testing
+    ☐ Test without CSRF token
+    ☐ Test with invalid CSRF token
+    ☐ Test cross-origin requests
+
+  ☐ HTTPS testing
+    ☐ Test HTTP redirect
+    ☐ Test HSTS header
+    ☐ Test certificate validity
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📝 DOCUMENTATION VERIFICATION
+
+  ☐ Security documentation exists
+    ☐ SECURITY_AUDIT_REPORT.md
+    ☐ SECURITY_REMEDIATION_GUIDE.md
+    ☐ SECURITY_CHECKLIST.txt
+
+  ☐ Incident response plan documented
+    ☐ Contact information
+    ☐ Escalation procedures
+    ☐ Communication plan
+    ☐ Recovery procedures
+
+  ☐ Security policies documented
+    ☐ Password policy
+    ☐ Access control policy
+    ☐ Data retention policy
+    ☐ Incident response policy
+
+  ☐ API documentation includes security
+    ☐ Authentication requirements
+    ☐ Authorization requirements
+    ☐ Rate limiting information
+    ☐ CSRF token requirements
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ FINAL DEPLOYMENT APPROVAL
+
+  ☐ All CRITICAL issues fixed and tested
+  ☐ All HIGH priority issues fixed and tested
+  ☐ Security audit passed
+  ☐ Code review completed
+  ☐ Security testing completed
+  ☐ Staging deployment successful
+  ☐ Production deployment plan approved
+  ☐ Incident response team briefed
+  ☐ Monitoring and alerting configured
+  ☐ Backup and recovery tested
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📞 SECURITY CONTACTS
+
+  Security Lead: [Name]
+  Email: [Email]
+  Phone: [Phone]
+
+  Incident Response: [Contact]
+  Email: [Email]
+  Phone: [Phone]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Last Updated: April 13, 2026
+Audit Status: CRITICAL - DO NOT DEPLOY
+Next Review: After all critical issues are fixed
+
