@@ -120,7 +120,7 @@ export class AnalyticsService {
       }
 
       const topProducts = Array.from(productMap.values())
-        .sort((a, b) => b.revenue - a.revenue)
+        .sort((a: any, b: any) => b.revenue - a.revenue)
         .slice(0, limit);
 
       return topProducts;
