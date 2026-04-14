@@ -90,7 +90,7 @@ export class POSService {
       }
 
       // Validate payment amount
-      const totalPayment = payments.reduce((sum, p) => sum + p.amount, 0);
+      const totalPayment = payments.reduce((sum: number, p: any) => sum + p.amount, 0);
       if (totalPayment < transaction.netAmount) {
         throw new ValidationError('Insufficient payment amount');
       }
