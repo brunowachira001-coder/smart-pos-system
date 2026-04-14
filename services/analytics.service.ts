@@ -19,9 +19,9 @@ export class AnalyticsService {
         include: { items: true },
       });
 
-      const totalSales = transactions.reduce((sum, t) => sum + t.netAmount, 0);
-      const totalDiscount = transactions.reduce((sum, t) => sum + t.discountAmount, 0);
-      const totalTax = transactions.reduce((sum, t) => sum + t.taxAmount, 0);
+      const totalSales = transactions.reduce((sum: number, t: any) => sum + t.netAmount, 0);
+      const totalDiscount = transactions.reduce((sum: number, t: any) => sum + t.discountAmount, 0);
+      const totalTax = transactions.reduce((sum: number, t: any) => sum + t.taxAmount, 0);
 
       const report = {
         branchId,
