@@ -58,8 +58,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ApiResponse<any
     });
 
     // Extract roles and permissions
-    const roles = user.roles.map((ur) => ur.role.roleName);
-    const permissions = user.roles.flatMap((ur) => ur.role.permissions.map((rp) => rp.permission.permissionName));
+    const roles = user.roles.map((ur: any) => ur.role.roleName);
+    const permissions = user.roles.flatMap((ur: any) => ur.role.permissions.map((rp: any) => rp.permission.permissionName));
 
     // Generate tokens
     const tokens = authService.generateTokens({
