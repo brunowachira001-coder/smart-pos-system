@@ -2,7 +2,7 @@ import Redis from 'ioredis';
 import { config } from './config';
 import { logger } from './logger';
 
-let redis: Redis;
+let redis: Redis | null = null;
 
 export function initializeRedis() {
   try {
@@ -83,4 +83,4 @@ export const redisCache = {
   },
 };
 
-export default redis;
+export default getRedis();
