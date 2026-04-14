@@ -5,14 +5,7 @@
   "framework": "nextjs",
   "outputDirectory": ".next",
   "env": {
-    "DATABASE_URL": "@database_url",
-    "REDIS_URL": "@redis_url",
-    "JWT_SECRET": "@jwt_secret",
-    "JWT_REFRESH_SECRET": "@jwt_refresh_secret",
-    "ENCRYPTION_KEY": "@encryption_key",
-    "OPENAI_API_KEY": "@openai_api_key",
-    "NODE_ENV": "production",
-    "NEXT_PUBLIC_API_URL": "@next_public_api_url"
+    "NODE_ENV": "production"
   },
   "regions": ["iad1"],
   "functions": {
