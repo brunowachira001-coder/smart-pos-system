@@ -58,7 +58,7 @@ export class AnalyticsService {
       let revenue = 0;
 
       for (const transaction of transactions) {
-        const item = transaction.items.find((i) => i.productId === productId);
+        const item = transaction.items.find((i: any) => i.productId === productId);
         if (item) {
           unitsSold += item.quantity;
           revenue += item.lineTotal;
