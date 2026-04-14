@@ -7,13 +7,13 @@ import { logger } from '@/lib/logger';
 export class AuthService {
   generateTokens(payload: AuthPayload) {
     try {
-      const accessToken = jwt.sign(payload, config.jwt.secret, {
+      const accessToken = jwt.sign(payload, config.jwt.secret as string, {
         expiresIn: config.jwt.expiry,
       });
 
       const refreshToken = jwt.sign(
         { userId: payload.userId, sessionId: payload.sessionId },
-        config.jwt.refreshSecret,
+        config.jwt.refreshSecret as string,
         { expiresIn: config.jwt.refreshExpiry }
       );
 
@@ -26,7 +26,7 @@ export class AuthService {
 
   verifyToken(token: string): AuthPayload {
     try {
-      return jwt.verify(token, config.jwt.secret) as AuthPayload;
+      return jwt.verify(token, config.jwt.secret as string) as AuthPayload;
     } catch (error) {
       logger.error('Token verification failed', error);
       throw new AuthenticationError('Invalid or expired token');
@@ -35,7 +35,7 @@ export class AuthService {
 
   verifyRefreshToken(token: string) {
     try {
-      return jwt.verify(token, config.jwt.refreshSecret) as any;
+      return jwt.verify(token, config.jwt.refreshSecret as string) as any;
     } catch (error) {
       logger.error('Refresh token verification failed', error);
       throw new AuthenticationError('Invalid or expired refresh token');
