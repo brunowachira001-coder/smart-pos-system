@@ -32,7 +32,7 @@ export const useAuth = () => {
     setLoading(false);
   }, []);
 
-  const login = async (username: string, password: string) => {
+  const login = async (username: string, password: string): Promise<boolean> => {
     try {
       setError(null);
       const response = await axios.post('/api/auth/login', { username, password });
@@ -45,6 +45,7 @@ export const useAuth = () => {
         setUser(response.data.data.user);
         return true;
       }
+      return false;
     } catch (err: any) {
       const message = err.response?.data?.error || 'Login failed';
       setError(message);
