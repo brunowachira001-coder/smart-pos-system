@@ -1,0 +1,8 @@
+{
+  "buildCommand": "cd smart-pos-system && npm run build",
+  "devCommand": "cd smart-pos-system && npm run dev",
+  "installCommand": "cd smart-pos-system && npm install",
+  "framework": "nextjs",
+  "outputDirectory": "smart-pos-system/.next",
+  "rootDirectory": "smart-pos-system"
+}
