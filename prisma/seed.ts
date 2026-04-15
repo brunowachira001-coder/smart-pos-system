@@ -133,43 +133,54 @@ async function main() {
       },
     });
 
+    // Create sample category first
+    console.log('📂 Creating product category...');
+    const category = await prisma.category.upsert({
+      where: { categoryName: 'General' },
+      update: {},
+      create: {
+        categoryName: 'General',
+        description: 'General products',
+      },
+    });
+
     // Create sample products
     console.log('📦 Creating sample products...');
     const products = [
       {
         sku: 'PROD001',
         name: 'Milk (1L)',
-        category: 'Dairy',
-        unitPrice: 150,
         costPrice: 100,
+        retailPrice: 150,
+        wholesalePrice: 130,
       },
       {
         sku: 'PROD002',
         name: 'Bread (Loaf)',
-        category: 'Bakery',
-        unitPrice: 80,
         costPrice: 50,
+        retailPrice: 80,
+        wholesalePrice: 70,
       },
       {
         sku: 'PROD003',
         name: 'Eggs (Dozen)',
-        category: 'Dairy',
-        unitPrice: 200,
         costPrice: 140,
+        retailPrice: 200,
+        wholesalePrice: 180,
       },
       {
         sku: 'PROD004',
         name: 'Rice (2kg)',
-        category: 'Grains',
-        unitPrice: 300,
         costPrice: 200,
+        retailPrice: 300,
+        wholesalePrice: 270,
       },
       {
         sku: 'PROD005',
         name: 'Sugar (1kg)',
-        category: 'Groceries',
-        unitPrice: 120,
         costPrice: 80,
+        retailPrice: 120,
+        wholesalePrice: 105,
       },
     ];
 
@@ -180,6 +191,7 @@ async function main() {
           update: {},
           create: {
             ...prod,
+            categoryId: category.id,
             status: 'ACTIVE',
           },
         })
@@ -190,21 +202,19 @@ async function main() {
     console.log('📊 Creating inventory items...');
     await Promise.all(
       createdProducts.map((product) =>
-        prisma.inventoryItem.upsert({
+        prisma.branchInventory.upsert({
           where: {
-            productId_branchId: {
-              productId: product.id,
+            branchId_productId: {
               branchId: branch.id,
+              productId: product.id,
             },
           },
           update: {},
           create: {
-            productId: product.id,
             branchId: branch.id,
-            quantityOnHand: 100,
-            quantityReserved: 0,
-            quantityAvailable: 100,
-            reorderLevel: 20,
+            productId: product.id,
+            stockLevel: 100,
+            reorderPoint: 20,
             reorderQuantity: 50,
           },
         })
@@ -215,22 +225,22 @@ async function main() {
     console.log('👥 Creating sample customers...');
     const customers = [
       {
-        name: 'John Doe',
+        firstName: 'John',
+        lastName: 'Doe',
         phone: '+254712345678',
         email: 'john@example.com',
-        creditLimit: 10000,
       },
       {
-        name: 'Jane Smith',
+        firstName: 'Jane',
+        lastName: 'Smith',
         phone: '+254723456789',
         email: 'jane@example.com',
-        creditLimit: 15000,
       },
       {
-        name: 'Bob Johnson',
+        firstName: 'Bob',
+        lastName: 'Johnson',
         phone: '+254734567890',
         email: 'bob@example.com',
-        creditLimit: 5000,
       },
     ];
 
@@ -241,7 +251,6 @@ async function main() {
           update: {},
           create: {
             ...cust,
-            creditUsed: 0,
             status: 'ACTIVE',
           },
         })
