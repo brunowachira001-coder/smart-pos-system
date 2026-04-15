@@ -154,7 +154,6 @@ model Branch {
   pricing               BranchPricing[]
   transactions          Transaction[]
   customers             BranchCustomer[]
-  staff                 BranchStaff[]
   
   @@index([branchCode])
   @@index([status])
@@ -373,6 +372,8 @@ model PaymentMethod {
   enabled               Boolean     @default(true)
   requiresConfirmation  Boolean     @default(false)
   processingFee         Decimal     @db.Decimal(5, 2)
+  
+  paymentTransactions   PaymentTransaction[]
 }
 
 model PaymentTransaction {

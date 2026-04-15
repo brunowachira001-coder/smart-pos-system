@@ -5,7 +5,8 @@ import { ApiResponse } from '@/types';
 import { logger } from '@/lib/logger';
 
 async function handler(req: NextApiRequest, res: NextApiResponse<ApiResponse<any>>) {
-  if (req.method !== 'POST') {
+  // Allow both GET and POST
+  if (req.method !== 'POST' && req.method !== 'GET') {
     return res.status(405).json({ success: false, error: 'Method not allowed', timestamp: new Date() });
   }
 
@@ -16,9 +17,20 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ApiResponse<any
     });
 
     if (existingUser) {
-      return res.status(400).json({
-        success: false,
-        error: 'Test user already exists',
+      return res.status(200).json({
+        success: true,
+        data: {
+          message: 'Test user already exists',
+          user: {
+            id: existingUser.id,
+            username: existingUser.username,
+            email: existingUser.email,
+          },
+          credentials: {
+            username: 'admin',
+            password: 'admin123',
+          },
+        },
         timestamp: new Date(),
       });
     }
