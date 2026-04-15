@@ -3,11 +3,12 @@ import { ValidationError, NotFoundError } from '@/types';
 import { logger } from '@/lib/logger';
 
 export class InventoryService {
-  async getInventory(productId: bigint, branchId: bigint) {
+  async getInventory(productId: bigint | number, branchId: bigint | number) {
     try {
-      const inventory = await prisma.inventoryItem.findUnique({
+      const inventory = await prisma.branchInventory.findFirst({
         where: {
-          productId_branchId: { productId, branchId },
+          productId: BigInt(productId),
+          branchId: Number(branchId),
         },
       });
 
@@ -22,41 +23,28 @@ export class InventoryService {
     }
   }
 
-  async updateStock(productId: bigint, branchId: bigint, quantity: number, reason: string, userId: bigint) {
+  async updateStock(productId: bigint | number, branchId: bigint | number, quantity: number, reason: string, userId: bigint | number) {
     try {
-      const inventory = await prisma.inventoryItem.findUnique({
-        where: { productId_branchId: { productId, branchId } },
+      const inventory = await prisma.branchInventory.findFirst({
+        where: { productId: BigInt(productId), branchId: Number(branchId) },
       });
 
       if (!inventory) {
         throw new NotFoundError('Inventory item not found');
       }
 
-      const newQuantity = inventory.quantityOnHand + quantity;
+      const newQuantity = inventory.stockLevel + quantity;
 
       if (newQuantity < 0) {
         throw new ValidationError('Insufficient stock');
       }
 
       // Update inventory
-      const updated = await prisma.inventoryItem.update({
-        where: { productId_branchId: { productId, branchId } },
+      const updated = await prisma.branchInventory.update({
+        where: { id: inventory.id },
         data: {
-          quantityOnHand: newQuantity,
-          quantityAvailable: Math.max(0, newQuantity - inventory.quantityReserved),
-          updatedAt: new Date(),
-        },
-      });
-
-      // Log movement
-      await prisma.stockMovement.create({
-        data: {
-          productId,
-          branchId,
-          movementType: quantity > 0 ? 'IN' : 'OUT',
-          quantity: Math.abs(quantity),
-          reason,
-          createdBy: userId,
+          stockLevel: newQuantity,
+          lastStockCheck: new Date(),
         },
       });
 
@@ -68,13 +56,13 @@ export class InventoryService {
     }
   }
 
-  async checkLowStock(branchId: bigint) {
+  async checkLowStock(branchId: bigint | number) {
     try {
-      const lowStockItems = await prisma.inventoryItem.findMany({
+      const lowStockItems = await prisma.branchInventory.findMany({
         where: {
-          branchId,
-          quantityAvailable: {
-            lte: prisma.inventoryItem.fields.reorderLevel,
+          branchId: Number(branchId),
+          stockLevel: {
+            lte: 10, // Default reorder level
           },
         },
         include: { product: true },
@@ -87,37 +75,25 @@ export class InventoryService {
     }
   }
 
-  async reconcileInventory(branchId: bigint, items: Array<{ productId: bigint; actualQuantity: number }>, userId: bigint) {
+  async reconcileInventory(branchId: bigint | number, items: Array<{ productId: bigint | number; actualQuantity: number }>, userId: bigint | number) {
     try {
       const results = [];
 
       for (const item of items) {
-        const inventory = await prisma.inventoryItem.findUnique({
-          where: { productId_branchId: { productId: item.productId, branchId } },
+        const inventory = await prisma.branchInventory.findFirst({
+          where: { productId: BigInt(item.productId), branchId: Number(branchId) },
         });
 
         if (!inventory) continue;
 
-        const difference = item.actualQuantity - inventory.quantityOnHand;
+        const difference = item.actualQuantity - inventory.stockLevel;
 
         if (difference !== 0) {
-          const updated = await prisma.inventoryItem.update({
-            where: { productId_branchId: { productId: item.productId, branchId } },
+          const updated = await prisma.branchInventory.update({
+            where: { id: inventory.id },
             data: {
-              quantityOnHand: item.actualQuantity,
-              quantityAvailable: Math.max(0, item.actualQuantity - inventory.quantityReserved),
-              updatedAt: new Date(),
-            },
-          });
-
-          await prisma.stockMovement.create({
-            data: {
-              productId: item.productId,
-              branchId,
-              movementType: 'ADJUSTMENT',
-              quantity: Math.abs(difference),
-              reason: 'Inventory reconciliation',
-              createdBy: userId,
+              stockLevel: item.actualQuantity,
+              lastStockCheck: new Date(),
             },
           });
 

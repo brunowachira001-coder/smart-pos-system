@@ -4,12 +4,12 @@ import { logger } from '@/lib/logger';
 
 export class POSService {
   async createTransaction(data: {
-    branchId: bigint;
-    customerId?: bigint;
-    items: Array<{ productId: bigint; quantity: number; unitPrice: number; discountPercent?: number }>;
+    branchId: bigint | number;
+    customerId?: bigint | number;
+    items: Array<{ productId: bigint | number; quantity: number; unitPrice: number; discountPercent?: number }>;
     discountAmount: number;
     taxAmount: number;
-    createdBy: bigint;
+    createdBy: bigint | number;
   }) {
     try {
       // Validate items
@@ -30,24 +30,22 @@ export class POSService {
       // Create transaction
       const transaction = await prisma.transaction.create({
         data: {
-          branchId: data.branchId,
-          customerId: data.customerId,
+          branchId: Number(data.branchId),
+          customerId: data.customerId ? BigInt(data.customerId) : null,
           transactionNumber: `TXN-${Date.now()}`,
-          totalAmount: subtotal,
-          discountAmount: data.discountAmount,
-          taxAmount: data.taxAmount,
-          netAmount,
-          paymentStatus: 'PENDING',
-          transactionStatus: 'ACTIVE',
-          createdBy: data.createdBy,
+          subtotal: subtotal,
+          discount: data.discountAmount,
+          tax: data.taxAmount,
+          total: netAmount,
+          status: 'COMPLETED',
+          userId: BigInt(data.createdBy),
           items: {
             create: data.items.map((item) => ({
-              productId: item.productId,
+              productId: BigInt(item.productId),
               quantity: item.quantity,
               unitPrice: item.unitPrice,
-              discountPercent: item.discountPercent || 0,
-              discountAmount: item.quantity * item.unitPrice * ((item.discountPercent || 0) / 100),
-              lineTotal: item.quantity * item.unitPrice - (item.quantity * item.unitPrice * ((item.discountPercent || 0) / 100)),
+              discount: item.quantity * item.unitPrice * ((item.discountPercent || 0) / 100),
+              total: item.quantity * item.unitPrice - (item.quantity * item.unitPrice * ((item.discountPercent || 0) / 100)),
             })),
           },
         },
@@ -62,11 +60,11 @@ export class POSService {
     }
   }
 
-  async parkTransaction(transactionId: bigint) {
+  async parkTransaction(transactionId: bigint | number) {
     try {
       const transaction = await prisma.transaction.update({
-        where: { id: transactionId },
-        data: { transactionStatus: 'PARKED' },
+        where: { id: BigInt(transactionId) },
+        data: { status: 'PARKED' },
         include: { items: true, payments: true },
       });
 
@@ -78,10 +76,10 @@ export class POSService {
     }
   }
 
-  async completeTransaction(transactionId: bigint, payments: Array<{ method: string; amount: number }>) {
+  async completeTransaction(transactionId: bigint | number, payments: Array<{ method: string; amount: number }>) {
     try {
       const transaction = await prisma.transaction.findUnique({
-        where: { id: transactionId },
+        where: { id: BigInt(transactionId) },
         include: { items: true },
       });
 
@@ -91,30 +89,15 @@ export class POSService {
 
       // Validate payment amount
       const totalPayment = payments.reduce((sum: number, p: any) => sum + p.amount, 0);
-      if (totalPayment < transaction.netAmount) {
+      if (totalPayment < Number(transaction.total)) {
         throw new ValidationError('Insufficient payment amount');
       }
 
-      // Create payments
-      const createdPayments = await Promise.all(
-        payments.map((payment) =>
-          prisma.payment.create({
-            data: {
-              transactionId,
-              paymentMethod: payment.method as any,
-              amount: payment.amount,
-              status: 'COMPLETED',
-            },
-          })
-        )
-      );
-
       // Update transaction
       const updated = await prisma.transaction.update({
-        where: { id: transactionId },
+        where: { id: BigInt(transactionId) },
         data: {
-          transactionStatus: 'COMPLETED',
-          paymentStatus: 'COMPLETED',
+          status: 'COMPLETED',
           completedAt: new Date(),
         },
         include: { items: true, payments: true },
@@ -128,7 +111,7 @@ export class POSService {
     }
   }
 
-  async searchProducts(query: string, branchId: bigint, limit: number = 20) {
+  async searchProducts(query: string, branchId: bigint | number, limit: number = 20) {
     try {
       const products = await prisma.product.findMany({
         where: {

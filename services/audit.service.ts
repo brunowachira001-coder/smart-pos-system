@@ -6,7 +6,7 @@ export class AuditService {
     userId: bigint;
     action: string;
     entityType: string;
-    entityId?: string;
+    entityId?: bigint | number | string;
     changes?: Record<string, any>;
     ipAddress?: string;
     userAgent?: string;
@@ -17,14 +17,15 @@ export class AuditService {
       const auditLog = await prisma.auditLog.create({
         data: {
           userId: data.userId,
-          action: data.action,
+          actionType: data.action,
           entityType: data.entityType,
-          entityId: data.entityId,
-          changes: data.changes,
+          entityId: data.entityId ? BigInt(data.entityId) : null,
+          beforeValues: data.changes,
           ipAddress: data.ipAddress,
-          userAgent: data.userAgent,
-          status: data.status,
-          errorMessage: data.errorMessage,
+          deviceFingerprint: data.userAgent,
+          severity: data.status === 'SUCCESS' ? 'INFO' : 'ERROR',
+          reason: data.errorMessage,
+          username: 'system',
         },
       });
 

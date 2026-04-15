@@ -2,7 +2,7 @@ import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 
 export class AnalyticsService {
-  async getDailySalesReport(branchId: bigint, date: Date) {
+  async getDailySalesReport(branchId: bigint | number, date: Date) {
     try {
       const startOfDay = new Date(date);
       startOfDay.setHours(0, 0, 0, 0);
@@ -12,9 +12,9 @@ export class AnalyticsService {
 
       const transactions = await prisma.transaction.findMany({
         where: {
-          branchId,
+          branchId: Number(branchId),
           createdAt: { gte: startOfDay, lte: endOfDay },
-          transactionStatus: 'COMPLETED',
+          status: 'COMPLETED',
         },
         include: { items: true },
       });
@@ -43,13 +43,13 @@ export class AnalyticsService {
     }
   }
 
-  async getProductAnalytics(productId: bigint, branchId: bigint, period: 'DAILY' | 'WEEKLY' | 'MONTHLY', periodDate: Date) {
+  async getProductAnalytics(productId: bigint | number, branchId: bigint | number, period: 'DAILY' | 'WEEKLY' | 'MONTHLY', periodDate: Date) {
     try {
       const transactions = await prisma.transaction.findMany({
         where: {
-          branchId,
-          items: { some: { productId } },
-          transactionStatus: 'COMPLETED',
+          branchId: Number(branchId),
+          items: { some: { productId: Number(productId) } },
+          status: 'COMPLETED',
         },
         include: { items: true },
       });
@@ -58,18 +58,18 @@ export class AnalyticsService {
       let revenue = 0;
 
       for (const transaction of transactions) {
-        const item = transaction.items.find((i: any) => i.productId === productId);
+        const item = transaction.items.find((i: any) => i.productId === Number(productId));
         if (item) {
           unitsSold += item.quantity;
-          revenue += item.lineTotal;
+          revenue += Number(item.total);
         }
       }
 
       const product = await prisma.product.findUnique({
-        where: { id: productId },
+        where: { id: Number(productId) },
       });
 
-      const costOfGoodsSold = unitsSold * (product?.costPrice || 0);
+      const costOfGoodsSold = unitsSold * Number(product?.costPrice || 0);
       const profit = revenue - costOfGoodsSold;
 
       const analytics = {
@@ -91,12 +91,12 @@ export class AnalyticsService {
     }
   }
 
-  async getTopProducts(branchId: bigint, limit: number = 10) {
+  async getTopProducts(branchId: bigint | number, limit: number = 10) {
     try {
       const transactions = await prisma.transaction.findMany({
         where: {
-          branchId,
-          transactionStatus: 'COMPLETED',
+          branchId: Number(branchId),
+          status: 'COMPLETED',
         },
         include: { items: { include: { product: true } } },
       });
@@ -108,12 +108,12 @@ export class AnalyticsService {
           const existing = productMap.get(item.productId);
           if (existing) {
             existing.quantity += item.quantity;
-            existing.revenue += item.lineTotal;
+            existing.revenue += Number(item.total);
           } else {
             productMap.set(item.productId, {
               product: item.product,
               quantity: item.quantity,
-              revenue: item.lineTotal,
+              revenue: Number(item.total),
             });
           }
         }
