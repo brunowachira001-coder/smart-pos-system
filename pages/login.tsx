@@ -59,7 +59,7 @@ export default function Login() {
         <div className="bg-white rounded-2xl shadow-2xl p-8 border border-slate-200">
           {/* Title */}
           <h1 className="text-4xl font-bold text-slate-900 mb-2">Welcome Back</h1>
-          <p className="text-slate-600 mb-8">Sign in to your Smart Traders account</p>
+          <p className="text-slate-600 mb-8">Sign in to your Smart POS account</p>
 
           {/* Error Message */}
           {error && (
