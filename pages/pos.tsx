@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
+import axios from 'axios';
 
 export default function POS() {
   const router = useRouter();
@@ -8,6 +9,9 @@ export default function POS() {
   const [searchTerm, setSearchTerm] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('cash');
   const [amountPaid, setAmountPaid] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('accessToken');
@@ -16,17 +20,23 @@ export default function POS() {
       return;
     }
 
-    setProducts([
-      { id: 1, name: 'Milk (1L)', price: 150, sku: 'PROD001', stock: 100, category: 'Dairy' },
-      { id: 2, name: 'Bread (Loaf)', price: 80, sku: 'PROD002', stock: 50, category: 'Bakery' },
-      { id: 3, name: 'Eggs (Dozen)', price: 200, sku: 'PROD003', stock: 75, category: 'Dairy' },
-      { id: 4, name: 'Rice (2kg)', price: 300, sku: 'PROD004', stock: 120, category: 'Grains' },
-      { id: 5, name: 'Sugar (1kg)', price: 120, sku: 'PROD005', stock: 90, category: 'Groceries' },
-      { id: 6, name: 'Cooking Oil (1L)', price: 250, sku: 'PROD006', stock: 60, category: 'Oils' },
-      { id: 7, name: 'Beans (1kg)', price: 180, sku: 'PROD007', stock: 80, category: 'Grains' },
-      { id: 8, name: 'Flour (2kg)', price: 140, sku: 'PROD008', stock: 100, category: 'Grains' },
-    ]);
+    fetchProducts();
   }, [router]);
+
+  const fetchProducts = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get('/api/products/list');
+      if (response.data.success) {
+        setProducts(response.data.data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch products:', err);
+      setError('Failed to load products');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredProducts = products.filter(
     (p) =>
@@ -68,7 +78,7 @@ export default function POS() {
   const total = subtotal + tax;
   const change = parseFloat(amountPaid) - total || 0;
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     if (cart.length === 0) {
       alert('Cart is empty');
       return;
@@ -77,9 +87,35 @@ export default function POS() {
       alert('Insufficient payment');
       return;
     }
-    alert(`Transaction completed!\nTotal: KES ${total.toFixed(2)}\nChange: KES ${change.toFixed(2)}`);
-    setCart([]);
-    setAmountPaid('');
+
+    try {
+      setCheckoutLoading(true);
+      const response = await axios.post('/api/transactions/create', {
+        items: cart.map((item) => ({
+          id: item.id,
+          quantity: item.quantity,
+          discount: 0,
+        })),
+        paymentMethod,
+        amountPaid: parseFloat(amountPaid),
+        branchId: 1,
+        userId: 1,
+      });
+
+      if (response.data.success) {
+        alert(
+          `Transaction completed!\nTransaction ID: ${response.data.data.transactionNumber}\nTotal: KES ${response.data.data.total.toFixed(2)}\nChange: KES ${response.data.data.change.toFixed(2)}`
+        );
+        setCart([]);
+        setAmountPaid('');
+        fetchProducts(); // Refresh products to update stock
+      }
+    } catch (err: any) {
+      console.error('Checkout error:', err);
+      alert(err.response?.data?.error || 'Checkout failed');
+    } finally {
+      setCheckoutLoading(false);
+    }
   };
 
   return (
@@ -89,8 +125,19 @@ export default function POS() {
         <p className="text-slate-600 mt-1">Process customer transactions</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Products */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <p className="text-red-600">{error}</p>
+        </div>
+      )}
+
+      {loading ? (
+        <div className="flex items-center justify-center py-12">
+          <p className="text-slate-600">Loading products...</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Products */}
         <div className="lg:col-span-2">
           <div className="bg-white rounded-lg shadow p-6 border border-slate-200">
             <div className="mb-6">
@@ -241,15 +288,17 @@ export default function POS() {
 
                 <button
                   onClick={handleCheckout}
-                  className="w-full px-4 py-3 bg-gradient-to-r from-emerald-600 to-emerald-500 text-white font-semibold rounded-lg hover:shadow-lg transition"
+                  disabled={checkoutLoading}
+                  className="w-full px-4 py-3 bg-gradient-to-r from-emerald-600 to-emerald-500 text-white font-semibold rounded-lg hover:shadow-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Complete Transaction
+                  {checkoutLoading ? 'Processing...' : 'Complete Transaction'}
                 </button>
               </div>
             </div>
           )}
         </div>
-      </div>
+        </div>
+      )}
     </div>
   );
 }

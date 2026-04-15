@@ -9,18 +9,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const { q, category, branchId = 1 } = req.query;
-    const searchTerm = (q as string)?.toLowerCase() || '';
+    const { branchId = 1, category } = req.query;
 
     let where: any = { status: 'ACTIVE' };
-
-    if (searchTerm) {
-      where.OR = [
-        { name: { contains: searchTerm, mode: 'insensitive' } },
-        { sku: { contains: searchTerm, mode: 'insensitive' } },
-        { barcode: { contains: searchTerm, mode: 'insensitive' } },
-      ];
-    }
 
     if (category) {
       where.category = { categoryName: category };
@@ -37,18 +28,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           where: { branchId: parseInt(branchId as string) },
         },
       },
-      take: 50,
+      orderBy: { name: 'asc' },
     });
 
     const formattedProducts = products.map((product) => ({
-      id: product.id,
+      id: product.id.toString(),
       sku: product.sku,
       name: product.name,
       description: product.description,
       category: product.category?.categoryName,
-      price: product.branchPricing[0]?.retailPrice || product.retailPrice,
-      wholesalePrice: product.branchPricing[0]?.wholesalePrice || product.wholesalePrice,
-      costPrice: product.costPrice,
+      price: parseFloat(product.branchPricing[0]?.retailPrice.toString() || product.retailPrice.toString()),
+      wholesalePrice: parseFloat(product.branchPricing[0]?.wholesalePrice.toString() || product.wholesalePrice.toString()),
+      costPrice: parseFloat(product.costPrice.toString()),
       stock: product.branchInventory[0]?.stockLevel || 0,
       barcode: product.barcode,
       imageUrl: product.imageUrl,
@@ -56,7 +47,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     res.status(200).json({ success: true, data: formattedProducts });
   } catch (error) {
-    console.error('Product search error:', error);
-    res.status(500).json({ error: 'Failed to search products' });
+    console.error('Product list error:', error);
+    res.status(500).json({ error: 'Failed to fetch products' });
   }
 }

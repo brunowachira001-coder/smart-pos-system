@@ -1,273 +1,206 @@
 import { PrismaClient } from '@prisma/client';
-import { encryption } from '../lib/encryption';
+import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🌱 Starting database seed...');
+  console.log('Starting database seed...');
 
-  try {
-    // Create default roles
-    console.log('📋 Creating roles...');
-    const adminRole = await prisma.role.upsert({
-      where: { roleName: 'ADMIN' },
-      update: {},
-      create: {
-        roleName: 'ADMIN',
-        description: 'Administrator with full access',
-        isSystemRole: true,
-      },
-    });
+  // Create roles
+  const adminRole = await prisma.role.upsert({
+    where: { roleName: 'ADMIN' },
+    update: {},
+    create: {
+      roleName: 'ADMIN',
+      description: 'Administrator with full access',
+      isSystemRole: true,
+    },
+  });
 
-    const managerRole = await prisma.role.upsert({
-      where: { roleName: 'MANAGER' },
-      update: {},
-      create: {
-        roleName: 'MANAGER',
-        description: 'Store manager with management access',
-        isSystemRole: true,
-      },
-    });
+  const cashierRole = await prisma.role.upsert({
+    where: { roleName: 'CASHIER' },
+    update: {},
+    create: {
+      roleName: 'CASHIER',
+      description: 'Cashier for POS transactions',
+      isSystemRole: true,
+    },
+  });
 
-    const cashierRole = await prisma.role.upsert({
-      where: { roleName: 'CASHIER' },
-      update: {},
-      create: {
-        roleName: 'CASHIER',
-        description: 'Cashier with transaction access',
-        isSystemRole: true,
-      },
-    });
-
-    // Create permissions
-    console.log('🔐 Creating permissions...');
-    const permissions = [
-      { name: 'CREATE_TRANSACTION', entity: 'Transaction', operation: 'CREATE' },
-      { name: 'READ_TRANSACTION', entity: 'Transaction', operation: 'READ' },
-      { name: 'UPDATE_TRANSACTION', entity: 'Transaction', operation: 'UPDATE' },
-      { name: 'DELETE_TRANSACTION', entity: 'Transaction', operation: 'DELETE' },
-      { name: 'MANAGE_INVENTORY', entity: 'Inventory', operation: 'MANAGE' },
-      { name: 'MANAGE_CUSTOMERS', entity: 'Customer', operation: 'MANAGE' },
-      { name: 'VIEW_ANALYTICS', entity: 'Analytics', operation: 'READ' },
-      { name: 'MANAGE_USERS', entity: 'User', operation: 'MANAGE' },
-      { name: 'VIEW_AUDIT_LOGS', entity: 'AuditLog', operation: 'READ' },
-    ];
-
-    const createdPermissions = await Promise.all(
-      permissions.map((perm) =>
-        prisma.permission.upsert({
-          where: { permissionName: perm.name },
-          update: {},
-          create: {
-            permissionName: perm.name,
-            entityType: perm.entity,
-            operation: perm.operation,
-          },
-        })
-      )
-    );
-
-    // Assign permissions to roles
-    console.log('🔗 Assigning permissions to roles...');
-    for (const permission of createdPermissions) {
-      await prisma.rolePermission.upsert({
-        where: {
-          roleId_permissionId: {
-            roleId: adminRole.id,
-            permissionId: permission.id,
-          },
-        },
-        update: {},
+  // Create admin user
+  const hashedPassword = await bcrypt.hash('admin123', 10);
+  const adminUser = await prisma.user.upsert({
+    where: { username: 'admin' },
+    update: {},
+    create: {
+      username: 'admin',
+      email: 'admin@smartpos.com',
+      passwordHash: hashedPassword,
+      firstName: 'Admin',
+      lastName: 'User',
+      status: 'ACTIVE',
+      roles: {
         create: {
           roleId: adminRole.id,
-          permissionId: permission.id,
         },
-      });
-    }
+      },
+    },
+  });
 
-    // Create admin user
-    console.log('👤 Creating admin user...');
-    const adminUser = await prisma.user.upsert({
-      where: { username: 'admin' },
+  // Create branch
+  const branch = await prisma.branch.upsert({
+    where: { branchCode: 'MAIN' },
+    update: {},
+    create: {
+      branchCode: 'MAIN',
+      branchName: 'Main Branch',
+      address: '123 Main Street',
+      city: 'Nairobi',
+      country: 'Kenya',
+      phone: '+254712345678',
+      email: 'main@smartpos.com',
+      status: 'ACTIVE',
+      configuration: {
+        create: {
+          paymentMethods: ['CASH', 'CARD', 'MPESA'],
+          pricingStrategy: 'RETAIL',
+          taxRate: 16,
+          receiptFormat: 'THERMAL',
+        },
+      },
+    },
+  });
+
+  // Create categories
+  const categories = await Promise.all([
+    prisma.category.upsert({
+      where: { categoryName: 'Dairy' },
+      update: {},
+      create: { categoryName: 'Dairy', description: 'Milk and dairy products' },
+    }),
+    prisma.category.upsert({
+      where: { categoryName: 'Bakery' },
+      update: {},
+      create: { categoryName: 'Bakery', description: 'Bread and baked goods' },
+    }),
+    prisma.category.upsert({
+      where: { categoryName: 'Grains' },
+      update: {},
+      create: { categoryName: 'Grains', description: 'Rice, flour, and grains' },
+    }),
+    prisma.category.upsert({
+      where: { categoryName: 'Groceries' },
+      update: {},
+      create: { categoryName: 'Groceries', description: 'General groceries' },
+    }),
+    prisma.category.upsert({
+      where: { categoryName: 'Oils' },
+      update: {},
+      create: { categoryName: 'Oils', description: 'Cooking oils and fats' },
+    }),
+  ]);
+
+  // Create products
+  const products = [
+    { sku: 'PROD001', name: 'Milk (1L)', categoryId: categories[0].id, costPrice: 80, retailPrice: 150, wholesalePrice: 140 },
+    { sku: 'PROD002', name: 'Bread (Loaf)', categoryId: categories[1].id, costPrice: 40, retailPrice: 80, wholesalePrice: 75 },
+    { sku: 'PROD003', name: 'Eggs (Dozen)', categoryId: categories[0].id, costPrice: 120, retailPrice: 200, wholesalePrice: 190 },
+    { sku: 'PROD004', name: 'Rice (2kg)', categoryId: categories[2].id, costPrice: 180, retailPrice: 300, wholesalePrice: 280 },
+    { sku: 'PROD005', name: 'Sugar (1kg)', categoryId: categories[3].id, costPrice: 70, retailPrice: 120, wholesalePrice: 110 },
+    { sku: 'PROD006', name: 'Cooking Oil (1L)', categoryId: categories[4].id, costPrice: 150, retailPrice: 250, wholesalePrice: 240 },
+    { sku: 'PROD007', name: 'Beans (1kg)', categoryId: categories[2].id, costPrice: 100, retailPrice: 180, wholesalePrice: 170 },
+    { sku: 'PROD008', name: 'Flour (2kg)', categoryId: categories[2].id, costPrice: 80, retailPrice: 140, wholesalePrice: 130 },
+  ];
+
+  for (const productData of products) {
+    const product = await prisma.product.upsert({
+      where: { sku: productData.sku },
       update: {},
       create: {
-        username: 'admin',
-        email: 'admin@smartpos.local',
-        passwordHash: encryption.hashPassword('admin123'),
-        firstName: 'Admin',
-        lastName: 'User',
+        ...productData,
         status: 'ACTIVE',
       },
     });
 
-    // Assign admin role to admin user
-    await prisma.userRole.upsert({
+    // Create branch inventory
+    await prisma.branchInventory.upsert({
       where: {
-        userId_roleId: {
-          userId: adminUser.id,
-          roleId: adminRole.id,
+        branchId_productId: {
+          branchId: branch.id,
+          productId: product.id,
         },
       },
       update: {},
       create: {
-        userId: adminUser.id,
-        roleId: adminRole.id,
+        branchId: branch.id,
+        productId: product.id,
+        stockLevel: 100,
+        reorderPoint: 20,
+        reorderQuantity: 50,
       },
     });
 
-    // Create default branch
-    console.log('🏪 Creating default branch...');
-    const branch = await prisma.branch.upsert({
-      where: { branchCode: 'MAIN' },
+    // Create branch pricing
+    await prisma.branchPricing.upsert({
+      where: {
+        branchId_productId: {
+          branchId: branch.id,
+          productId: product.id,
+        },
+      },
       update: {},
       create: {
-        branchCode: 'MAIN',
-        branchName: 'Main Branch',
-        address: '123 Main Street',
-        city: 'Nairobi',
-        country: 'Kenya',
-        phone: '+254712345678',
-        email: 'main@smartpos.local',
-        status: 'ACTIVE',
-        timezone: 'Africa/Nairobi',
+        branchId: branch.id,
+        productId: product.id,
+        retailPrice: productData.retailPrice,
+        wholesalePrice: productData.wholesalePrice,
+        costPrice: productData.costPrice,
       },
     });
-
-    // Create sample category first
-    console.log('📂 Creating product category...');
-    const category = await prisma.category.upsert({
-      where: { categoryName: 'General' },
-      update: {},
-      create: {
-        categoryName: 'General',
-        description: 'General products',
-      },
-    });
-
-    // Create sample products
-    console.log('📦 Creating sample products...');
-    const products = [
-      {
-        sku: 'PROD001',
-        name: 'Milk (1L)',
-        costPrice: 100,
-        retailPrice: 150,
-        wholesalePrice: 130,
-      },
-      {
-        sku: 'PROD002',
-        name: 'Bread (Loaf)',
-        costPrice: 50,
-        retailPrice: 80,
-        wholesalePrice: 70,
-      },
-      {
-        sku: 'PROD003',
-        name: 'Eggs (Dozen)',
-        costPrice: 140,
-        retailPrice: 200,
-        wholesalePrice: 180,
-      },
-      {
-        sku: 'PROD004',
-        name: 'Rice (2kg)',
-        costPrice: 200,
-        retailPrice: 300,
-        wholesalePrice: 270,
-      },
-      {
-        sku: 'PROD005',
-        name: 'Sugar (1kg)',
-        costPrice: 80,
-        retailPrice: 120,
-        wholesalePrice: 105,
-      },
-    ];
-
-    const createdProducts = await Promise.all(
-      products.map((prod) =>
-        prisma.product.upsert({
-          where: { sku: prod.sku },
-          update: {},
-          create: {
-            ...prod,
-            categoryId: category.id,
-            status: 'ACTIVE',
-          },
-        })
-      )
-    );
-
-    // Create inventory items
-    console.log('📊 Creating inventory items...');
-    await Promise.all(
-      createdProducts.map((product) =>
-        prisma.branchInventory.upsert({
-          where: {
-            branchId_productId: {
-              branchId: branch.id,
-              productId: product.id,
-            },
-          },
-          update: {},
-          create: {
-            branchId: branch.id,
-            productId: product.id,
-            stockLevel: 100,
-            reorderPoint: 20,
-            reorderQuantity: 50,
-          },
-        })
-      )
-    );
-
-    // Create sample customers
-    console.log('👥 Creating sample customers...');
-    const customers = [
-      {
-        firstName: 'John',
-        lastName: 'Doe',
-        phone: '+254712345678',
-        email: 'john@example.com',
-      },
-      {
-        firstName: 'Jane',
-        lastName: 'Smith',
-        phone: '+254723456789',
-        email: 'jane@example.com',
-      },
-      {
-        firstName: 'Bob',
-        lastName: 'Johnson',
-        phone: '+254734567890',
-        email: 'bob@example.com',
-      },
-    ];
-
-    await Promise.all(
-      customers.map((cust) =>
-        prisma.customer.upsert({
-          where: { phone: cust.phone },
-          update: {},
-          create: {
-            ...cust,
-            status: 'ACTIVE',
-          },
-        })
-      )
-    );
-
-    console.log('✅ Database seed completed successfully!');
-    console.log('\n📝 Default credentials:');
-    console.log('   Username: admin');
-    console.log('   Password: admin123');
-    console.log('\n🏪 Default branch: MAIN');
-  } catch (error) {
-    console.error('❌ Seed failed:', error);
-    throw error;
-  } finally {
-    await prisma.$disconnect();
   }
+
+  // Create payment methods
+  await prisma.paymentMethod.upsert({
+    where: { methodName: 'CASH' },
+    update: {},
+    create: {
+      methodName: 'CASH',
+      description: 'Cash payment',
+      enabled: true,
+      processingFee: 0,
+    },
+  });
+
+  await prisma.paymentMethod.upsert({
+    where: { methodName: 'CARD' },
+    update: {},
+    create: {
+      methodName: 'CARD',
+      description: 'Card payment',
+      enabled: true,
+      processingFee: 2.5,
+    },
+  });
+
+  await prisma.paymentMethod.upsert({
+    where: { methodName: 'MPESA' },
+    update: {},
+    create: {
+      methodName: 'MPESA',
+      description: 'M-Pesa mobile money',
+      enabled: true,
+      processingFee: 1.5,
+    },
+  });
+
+  console.log('Database seed completed successfully!');
 }
 
-main();
+main()
+  .catch((e) => {
+    console.error('Seed error:', e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });
