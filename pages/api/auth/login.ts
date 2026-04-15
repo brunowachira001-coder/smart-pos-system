@@ -3,7 +3,6 @@ import { prisma } from '@/lib/prisma';
 import { authService } from '@/services/auth.service';
 import { errorHandler } from '@/middleware/errorHandler';
 import { ValidationError, AuthenticationError, ApiResponse } from '@/types';
-import { logger } from '@/lib/logger';
 
 async function handler(req: NextApiRequest, res: NextApiResponse<ApiResponse<any>>) {
   if (req.method !== 'POST') {
@@ -71,12 +70,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ApiResponse<any
       sessionId: session.id,
     });
 
-    logger.info(`User logged in: ${user.username}`, {
-      userId: user.id,
-      sessionId: session.id,
-      ipAddress: req.headers['x-forwarded-for'] || req.socket.remoteAddress,
-    });
-
     res.status(200).json({
       success: true,
       data: {
@@ -96,8 +89,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ApiResponse<any
       timestamp: new Date(),
     });
   } catch (error) {
-    logger.error('Login failed', error);
-
     if (error instanceof ValidationError) {
       return res.status(400).json({
         success: false,

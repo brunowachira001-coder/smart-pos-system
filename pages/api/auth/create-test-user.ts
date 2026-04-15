@@ -2,7 +2,6 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '@/lib/prisma';
 import { authService } from '@/services/auth.service';
 import { ApiResponse } from '@/types';
-import { logger } from '@/lib/logger';
 
 async function handler(req: NextApiRequest, res: NextApiResponse<ApiResponse<any>>) {
   // Allow both GET and POST
@@ -50,8 +49,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ApiResponse<any
       },
     });
 
-    logger.info(`Test user created: ${user.username}`);
-
     res.status(201).json({
       success: true,
       data: {
@@ -68,12 +65,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ApiResponse<any
       },
       timestamp: new Date(),
     });
-  } catch (error) {
-    logger.error('Failed to create test user', error);
-
+  } catch (error: any) {
     res.status(500).json({
       success: false,
-      error: 'Failed to create test user',
+      error: error?.message || 'Failed to create test user',
       timestamp: new Date(),
     });
   }
