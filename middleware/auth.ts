@@ -42,7 +42,7 @@ export const requireRole = (roles: string[]) => {
         return res.status(401).json({ success: false, error: 'Unauthorized' });
       }
 
-      const hasRole = req.user.roles.some((role) => roles.includes(role));
+      const hasRole = req.user.roles.some((role: any) => roles.includes(role));
 
       if (!hasRole) {
         logger.warn(`Access denied for user ${req.user.userId}`, { requiredRoles: roles });
@@ -61,7 +61,7 @@ export const requirePermission = (permissions: string[]) => {
         return res.status(401).json({ success: false, error: 'Unauthorized' });
       }
 
-      const hasPermission = req.user.permissions.some((perm) => permissions.includes(perm));
+      const hasPermission = req.user.permissions.some((perm: any) => permissions.includes(perm));
 
       if (!hasPermission) {
         logger.warn(`Permission denied for user ${req.user.userId}`, { requiredPermissions: permissions });
