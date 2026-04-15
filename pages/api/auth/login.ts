@@ -9,6 +9,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ApiResponse<any
   try {
     const { username, password } = req.body;
 
+    console.log('Login attempt:', { username, password: password ? '***' : 'missing' });
+
     if (!username || !password) {
       return res.status(400).json({
         success: false,
@@ -18,11 +20,13 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ApiResponse<any
     }
 
     // Simple hardcoded login for testing
-    if (username === 'admin' && password === 'admin123') {
+    if (username.toLowerCase() === 'admin' && password === 'admin123') {
       const tokens = {
-        accessToken: `token_${Date.now()}`,
-        refreshToken: `refresh_${Date.now()}`,
+        accessToken: `token_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        refreshToken: `refresh_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       };
+
+      console.log('Login successful for admin');
 
       return res.status(200).json({
         success: true,
@@ -44,12 +48,15 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ApiResponse<any
       });
     }
 
+    console.log('Login failed: Invalid credentials');
+
     return res.status(401).json({
       success: false,
       error: 'Invalid credentials',
       timestamp: new Date(),
     });
   } catch (error: any) {
+    console.error('Login error:', error);
     return res.status(500).json({
       success: false,
       error: error?.message || 'Internal server error',
