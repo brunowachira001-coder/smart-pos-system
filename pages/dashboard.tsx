@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
+import Navigation from '@/components/Navigation';
 
 export default function Dashboard() {
   const router = useRouter();
@@ -107,34 +107,11 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* Header */}
-      <nav className="bg-white shadow-lg">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-3">
-              <div className="text-2xl font-bold text-blue-600">💳 Smart POS</div>
-              <span className="text-gray-600">|</span>
-              <span className="text-gray-700 font-medium">{user.firstName} {user.lastName}</span>
-            </div>
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={() => setShowCart(!showCart)}
-                className="relative px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-              >
-                🛒 Cart ({cart.length})
-              </button>
-              <button
-                onClick={handleLogout}
-                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition"
-              >
-                Logout
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <Navigation />
 
       <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-6">Dashboard</h1>
+
         {/* Stats */}
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-8">
           <div className="bg-white overflow-hidden shadow rounded-lg">
@@ -170,7 +147,7 @@ export default function Dashboard() {
           {/* Products */}
           <div className="lg:col-span-2">
             <div className="bg-white shadow rounded-lg p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-6">Available Products</h2>
+              <h2 className="text-xl font-bold text-gray-900 mb-6">Quick Sale</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {products.map((product) => (
                   <div key={product.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-lg transition">
