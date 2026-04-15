@@ -1,34 +1,32 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { ApiResponse } from '@/types';
 
-async function handler(req: NextApiRequest, res: NextApiResponse<ApiResponse<any>>) {
+export default function handler(req: NextApiRequest, res: NextApiResponse) {
+  // Only allow POST
   if (req.method !== 'POST') {
-    return res.status(405).json({ success: false, error: 'Method not allowed', timestamp: new Date() });
+    return res.status(405).json({ 
+      success: false, 
+      error: 'Method not allowed' 
+    });
   }
 
   try {
     const { username, password } = req.body;
 
-    console.log('Login attempt:', { username, password: password ? '***' : 'missing' });
+    // Log for debugging
+    console.log('[LOGIN] Attempt with username:', username);
 
+    // Validate input
     if (!username || !password) {
       return res.status(400).json({
         success: false,
-        error: 'Username and password are required',
-        timestamp: new Date(),
+        error: 'Username and password required',
       });
     }
 
-    // Hardcoded admin credentials for testing
-    // Username: admin, Password: admin123
-    if (username.toLowerCase() === 'admin' && password === 'admin123') {
-      const tokens = {
-        accessToken: `token_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        refreshToken: `refresh_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      };
-
-      console.log('Login successful for admin');
-
+    // Check hardcoded credentials
+    if (username === 'admin' && password === 'admin123') {
+      console.log('[LOGIN] Success - admin user');
+      
       return res.status(200).json({
         success: true,
         data: {
@@ -39,31 +37,26 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ApiResponse<any
             firstName: 'Admin',
             lastName: 'User',
           },
-          tokens,
-          session: {
-            id: 1,
-            expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+          tokens: {
+            accessToken: `token_${Date.now()}`,
+            refreshToken: `refresh_${Date.now()}`,
           },
         },
-        timestamp: new Date(),
       });
     }
 
-    console.log('Login failed: Invalid credentials');
-
+    // Invalid credentials
+    console.log('[LOGIN] Failed - invalid credentials');
     return res.status(401).json({
       success: false,
       error: 'Invalid credentials',
-      timestamp: new Date(),
     });
+
   } catch (error: any) {
-    console.error('Login error:', error);
+    console.error('[LOGIN] Error:', error);
     return res.status(500).json({
       success: false,
-      error: error?.message || 'Internal server error',
-      timestamp: new Date(),
+      error: 'Server error',
     });
   }
 }
-
-export default handler;

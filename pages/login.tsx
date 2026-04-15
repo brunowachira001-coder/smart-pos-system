@@ -30,12 +30,14 @@ export default function Login() {
         router.push('/dashboard');
       }
     } catch (err: any) {
-      console.error('Login error details:', {
-        status: err.response?.status,
-        data: err.response?.data,
-        message: err.message,
-      });
-      setError(err.response?.data?.error || err.message || 'Login failed');
+      console.error('[LOGIN PAGE] Full error:', err);
+      console.error('[LOGIN PAGE] Response:', err.response);
+      console.error('[LOGIN PAGE] Response data:', err.response?.data);
+      
+      const errorMsg = err.response?.data?.error || err.message || 'Login failed';
+      console.error('[LOGIN PAGE] Final error message:', errorMsg);
+      
+      setError(errorMsg);
     } finally {
       setLoading(false);
     }
