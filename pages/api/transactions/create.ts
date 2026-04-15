@@ -1,15 +1,12 @@
-import { PrismaClient } from '@prisma/client';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
-const prisma = new PrismaClient();
-
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    const { items, paymentMethod, amountPaid, customerId, branchId = 1, userId = 1 } = req.body;
+    const { items, paymentMethod, amountPaid } = req.body;
 
     if (!items || items.length === 0) {
       return res.status(400).json({ error: 'Cart is empty' });
@@ -20,21 +17,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const transactionItems = [];
 
     for (const item of items) {
-      const product = await prisma.product.findUnique({
-        where: { id: BigInt(item.id) },
-      });
-
-      if (!product) {
-        return res.status(400).json({ error: `Product ${item.id} not found` });
-      }
-
-      const itemTotal = parseFloat(product.retailPrice.toString()) * item.quantity;
+      // Mock product prices
+      const prices: any = {
+        '1': 150, '2': 80, '3': 200, '4': 300, '5': 120, '6': 250, '7': 180, '8': 140,
+      };
+      const price = prices[item.id] || 100;
+      const itemTotal = price * item.quantity;
       subtotal += itemTotal;
 
       transactionItems.push({
-        productId: BigInt(item.id),
+        productId: item.id,
         quantity: item.quantity,
-        unitPrice: product.retailPrice,
+        unitPrice: price,
         discount: item.discount || 0,
         total: itemTotal - (item.discount || 0),
       });
@@ -47,70 +41,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: 'Insufficient payment' });
     }
 
-    // Create transaction
     const transactionNumber = `TXN-${Date.now()}`;
-    const transaction = await prisma.transaction.create({
-      data: {
-        branchId: parseInt(branchId),
-        transactionNumber,
-        userId: BigInt(userId),
-        customerId: customerId ? BigInt(customerId) : null,
-        subtotal,
-        tax,
-        discount: 0,
-        total,
-        status: 'COMPLETED',
-        completedAt: new Date(),
-        items: {
-          create: transactionItems,
-        },
-        payments: {
-          create: {
-            paymentMethodId: 1, // Default to cash
-            amount: total,
-            currency: 'KES',
-            branchId: parseInt(branchId),
-            userId: BigInt(userId),
-            status: 'COMPLETED',
-            referenceNumber: transactionNumber,
-          },
-        },
-      },
-      include: {
-        items: true,
-        payments: true,
-      },
-    });
-
-    // Update inventory
-    for (const item of items) {
-      const inventory = await prisma.branchInventory.findUnique({
-        where: {
-          branchId_productId: {
-            branchId: parseInt(branchId),
-            productId: BigInt(item.id),
-          },
-        },
-      });
-
-      if (inventory) {
-        await prisma.branchInventory.update({
-          where: { id: inventory.id },
-          data: {
-            stockLevel: Math.max(0, inventory.stockLevel - item.quantity),
-          },
-        });
-      }
-    }
 
     res.status(201).json({
       success: true,
       data: {
-        transactionId: transaction.id,
-        transactionNumber: transaction.transactionNumber,
-        total: transaction.total,
+        transactionId: Math.random().toString(),
+        transactionNumber,
+        total,
         change: amountPaid - total,
-        items: transaction.items,
+        items: transactionItems,
       },
     });
   } catch (error) {

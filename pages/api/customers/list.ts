@@ -1,57 +1,19 @@
-import { PrismaClient } from '@prisma/client';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
-const prisma = new PrismaClient();
+const mockCustomers = [
+  { id: '1', name: 'John Doe', phone: '+254712345678', email: 'john@example.com', address: '123 Main St', city: 'Nairobi', totalPurchases: 15, totalSpent: 45000, creditLimit: 50000, creditUsed: 10000, status: 'ACTIVE' },
+  { id: '2', name: 'Jane Smith', phone: '+254712345679', email: 'jane@example.com', address: '456 Oak Ave', city: 'Nairobi', totalPurchases: 8, totalSpent: 28000, creditLimit: 30000, creditUsed: 5000, status: 'ACTIVE' },
+  { id: '3', name: 'Bob Johnson', phone: '+254712345680', email: 'bob@example.com', address: '789 Pine Rd', city: 'Mombasa', totalPurchases: 12, totalSpent: 52000, creditLimit: 60000, creditUsed: 15000, status: 'ACTIVE' },
+  { id: '4', name: 'Alice Williams', phone: '+254712345681', email: 'alice@example.com', address: '321 Elm St', city: 'Kisumu', totalPurchases: 5, totalSpent: 18000, creditLimit: 20000, creditUsed: 2000, status: 'ACTIVE' },
+];
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    const { branchId = 1, limit = 50, offset = 0 } = req.query;
-
-    const customers = await prisma.customer.findMany({
-      include: {
-        branchCustomers: {
-          where: { branchId: parseInt(branchId as string) },
-        },
-        transactions: {
-          where: { branchId: parseInt(branchId as string) },
-        },
-      },
-      orderBy: { createdAt: 'desc' },
-      take: parseInt(limit as string),
-      skip: parseInt(offset as string),
-    });
-
-    const total = await prisma.customer.count();
-
-    const formattedCustomers = customers.map((customer) => ({
-      id: customer.id.toString(),
-      name: `${customer.firstName} ${customer.lastName}`,
-      phone: customer.phone,
-      email: customer.email,
-      address: customer.address,
-      city: customer.city,
-      totalPurchases: customer.transactions.length,
-      totalSpent: customer.transactions.reduce((sum, txn) => sum + parseFloat(txn.total.toString()), 0),
-      creditLimit: customer.branchCustomers[0]?.localCreditLimit
-        ? parseFloat(customer.branchCustomers[0].localCreditLimit.toString())
-        : 0,
-      creditUsed: customer.branchCustomers[0]?.localDebtBalance
-        ? parseFloat(customer.branchCustomers[0].localDebtBalance.toString())
-        : 0,
-      status: customer.status,
-    }));
-
-    res.status(200).json({
-      success: true,
-      data: formattedCustomers,
-      total,
-      limit: parseInt(limit as string),
-      offset: parseInt(offset as string),
-    });
+    res.status(200).json({ success: true, data: mockCustomers, total: mockCustomers.length });
   } catch (error) {
     console.error('Customer list error:', error);
     res.status(500).json({ error: 'Failed to fetch customers' });
