@@ -6,14 +6,13 @@ export default function Dashboard() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [stats, setStats] = useState({
-    totalSales: 0,
-    transactions: 0,
-    inventory: 0,
-    customers: 0,
+    totalSales: 125400,
+    transactions: 342,
+    inventory: 1250,
+    customers: 156,
   });
   const [products, setProducts] = useState<any[]>([]);
   const [cart, setCart] = useState<any[]>([]);
-  const [showCart, setShowCart] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('accessToken');
@@ -28,30 +27,14 @@ export default function Dashboard() {
       setUser(JSON.parse(userData));
     }
 
-    // Load sample products
     setProducts([
-      { id: 1, name: 'Milk (1L)', price: 150, sku: 'PROD001', stock: 100 },
-      { id: 2, name: 'Bread (Loaf)', price: 80, sku: 'PROD002', stock: 50 },
-      { id: 3, name: 'Eggs (Dozen)', price: 200, sku: 'PROD003', stock: 75 },
-      { id: 4, name: 'Rice (2kg)', price: 300, sku: 'PROD004', stock: 120 },
-      { id: 5, name: 'Sugar (1kg)', price: 120, sku: 'PROD005', stock: 90 },
+      { id: 1, name: 'Milk (1L)', price: 150, sku: 'PROD001', stock: 100, category: 'Dairy' },
+      { id: 2, name: 'Bread (Loaf)', price: 80, sku: 'PROD002', stock: 50, category: 'Bakery' },
+      { id: 3, name: 'Eggs (Dozen)', price: 200, sku: 'PROD003', stock: 75, category: 'Dairy' },
+      { id: 4, name: 'Rice (2kg)', price: 300, sku: 'PROD004', stock: 120, category: 'Grains' },
+      { id: 5, name: 'Sugar (1kg)', price: 120, sku: 'PROD005', stock: 90, category: 'Groceries' },
     ]);
-
-    // Load stats
-    setStats({
-      totalSales: 15000,
-      transactions: 45,
-      inventory: 435,
-      customers: 28,
-    });
   }, [router]);
-
-  const handleLogout = () => {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('user');
-    router.push('/login');
-  };
 
   const addToCart = (product: any) => {
     const existingItem = cart.find((item) => item.id === product.id);
@@ -91,74 +74,70 @@ export default function Dashboard() {
     }
     alert(`Transaction completed! Total: KES ${cartTotal.toFixed(2)}`);
     setCart([]);
-    setShowCart(false);
   };
 
   if (!user) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-900 to-slate-800">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-emerald-400 border-t-transparent mx-auto"></div>
+          <p className="mt-4 text-slate-300 text-lg">Loading...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
       <Navigation />
 
       <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-6">Dashboard</h1>
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-white mb-2">Dashboard</h1>
+          <p className="text-slate-400">Welcome back, {user.firstName}!</p>
+        </div>
 
-        {/* Stats */}
+        {/* Stats Grid */}
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-8">
-          <div className="bg-white overflow-hidden shadow rounded-lg">
-            <div className="px-4 py-5 sm:p-6">
-              <dt className="text-sm font-medium text-gray-500">Total Sales</dt>
-              <dd className="mt-2 text-3xl font-extrabold text-green-600">KES {stats.totalSales.toLocaleString()}</dd>
+          {[
+            { label: 'Total Sales', value: `KES ${stats.totalSales.toLocaleString()}`, icon: '💰', color: 'from-emerald-600 to-emerald-400' },
+            { label: 'Transactions', value: stats.transactions, icon: '📊', color: 'from-blue-600 to-blue-400' },
+            { label: 'Inventory', value: stats.inventory, icon: '📦', color: 'from-purple-600 to-purple-400' },
+            { label: 'Customers', value: stats.customers, icon: '👥', color: 'from-orange-600 to-orange-400' },
+          ].map((stat, idx) => (
+            <div key={idx} className={`bg-gradient-to-br ${stat.color} rounded-xl p-6 text-white shadow-xl hover:shadow-2xl transition transform hover:scale-105`}>
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="text-white/80 text-sm font-medium">{stat.label}</p>
+                  <p className="text-3xl font-bold mt-2">{stat.value}</p>
+                </div>
+                <span className="text-4xl opacity-20">{stat.icon}</span>
+              </div>
             </div>
-          </div>
-
-          <div className="bg-white overflow-hidden shadow rounded-lg">
-            <div className="px-4 py-5 sm:p-6">
-              <dt className="text-sm font-medium text-gray-500">Transactions</dt>
-              <dd className="mt-2 text-3xl font-extrabold text-blue-600">{stats.transactions}</dd>
-            </div>
-          </div>
-
-          <div className="bg-white overflow-hidden shadow rounded-lg">
-            <div className="px-4 py-5 sm:p-6">
-              <dt className="text-sm font-medium text-gray-500">Inventory Items</dt>
-              <dd className="mt-2 text-3xl font-extrabold text-purple-600">{stats.inventory}</dd>
-            </div>
-          </div>
-
-          <div className="bg-white overflow-hidden shadow rounded-lg">
-            <div className="px-4 py-5 sm:p-6">
-              <dt className="text-sm font-medium text-gray-500">Active Customers</dt>
-              <dd className="mt-2 text-3xl font-extrabold text-orange-600">{stats.customers}</dd>
-            </div>
-          </div>
+          ))}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Products */}
           <div className="lg:col-span-2">
-            <div className="bg-white shadow rounded-lg p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-6">Quick Sale</h2>
+            <div className="bg-slate-800 rounded-xl shadow-xl p-6 border border-slate-700">
+              <h2 className="text-2xl font-bold text-white mb-6">Quick Sale</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {products.map((product) => (
-                  <div key={product.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-lg transition">
-                    <h3 className="font-semibold text-gray-900">{product.name}</h3>
-                    <p className="text-sm text-gray-600 mt-1">SKU: {product.sku}</p>
-                    <p className="text-sm text-gray-600">Stock: {product.stock}</p>
-                    <div className="flex justify-between items-center mt-4">
-                      <span className="text-lg font-bold text-green-600">KES {product.price}</span>
+                  <div key={product.id} className="bg-slate-700 border border-slate-600 rounded-lg p-4 hover:border-emerald-500 hover:shadow-lg hover:shadow-emerald-500/20 transition">
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <h3 className="font-semibold text-white">{product.name}</h3>
+                        <p className="text-xs text-slate-400 mt-1">SKU: {product.sku}</p>
+                      </div>
+                      <span className="text-xs bg-emerald-600/20 text-emerald-400 px-2 py-1 rounded">{product.category}</span>
+                    </div>
+                    <p className="text-sm text-slate-400 mb-3">Stock: {product.stock}</p>
+                    <div className="flex justify-between items-center">
+                      <span className="text-lg font-bold text-emerald-400">KES {product.price}</span>
                       <button
                         onClick={() => addToCart(product)}
-                        className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition"
+                        className="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-sm rounded-lg transition shadow-lg hover:shadow-emerald-600/50"
                       >
                         Add
                       </button>
@@ -170,38 +149,40 @@ export default function Dashboard() {
           </div>
 
           {/* Cart */}
-          <div className="bg-white shadow rounded-lg p-6 h-fit sticky top-4">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Shopping Cart</h2>
+          <div className="bg-slate-800 rounded-xl shadow-xl p-6 border border-slate-700 h-fit sticky top-4">
+            <h2 className="text-2xl font-bold text-white mb-4">Shopping Cart</h2>
             {cart.length === 0 ? (
-              <p className="text-gray-500 text-center py-8">Cart is empty</p>
+              <div className="text-center py-12">
+                <p className="text-slate-400 text-lg">🛒 Cart is empty</p>
+              </div>
             ) : (
               <>
                 <div className="space-y-3 mb-4 max-h-96 overflow-y-auto">
                   {cart.map((item) => (
-                    <div key={item.id} className="border-b pb-3">
-                      <div className="flex justify-between items-start">
+                    <div key={item.id} className="bg-slate-700 rounded-lg p-3 border border-slate-600">
+                      <div className="flex justify-between items-start mb-2">
                         <div>
-                          <p className="font-medium text-gray-900">{item.name}</p>
-                          <p className="text-sm text-gray-600">KES {item.price} x {item.quantity}</p>
+                          <p className="font-medium text-white text-sm">{item.name}</p>
+                          <p className="text-xs text-slate-400">KES {item.price} x {item.quantity}</p>
                         </div>
                         <button
                           onClick={() => removeFromCart(item.id)}
-                          className="text-red-600 hover:text-red-800 text-sm"
+                          className="text-red-400 hover:text-red-300 text-sm"
                         >
                           ✕
                         </button>
                       </div>
-                      <div className="flex items-center space-x-2 mt-2">
+                      <div className="flex items-center space-x-2">
                         <button
                           onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                          className="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300"
+                          className="px-2 py-1 bg-slate-600 hover:bg-slate-500 rounded text-white text-sm"
                         >
                           −
                         </button>
-                        <span className="w-8 text-center">{item.quantity}</span>
+                        <span className="w-8 text-center text-white text-sm">{item.quantity}</span>
                         <button
                           onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                          className="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300"
+                          className="px-2 py-1 bg-slate-600 hover:bg-slate-500 rounded text-white text-sm"
                         >
                           +
                         </button>
@@ -210,14 +191,14 @@ export default function Dashboard() {
                   ))}
                 </div>
 
-                <div className="border-t pt-4">
+                <div className="border-t border-slate-600 pt-4">
                   <div className="flex justify-between mb-4">
-                    <span className="font-semibold text-gray-900">Total:</span>
-                    <span className="text-2xl font-bold text-green-600">KES {cartTotal.toFixed(2)}</span>
+                    <span className="font-semibold text-slate-300">Total:</span>
+                    <span className="text-2xl font-bold text-emerald-400">KES {cartTotal.toFixed(2)}</span>
                   </div>
                   <button
                     onClick={handleCheckout}
-                    className="w-full px-4 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition"
+                    className="w-full px-4 py-3 bg-gradient-to-r from-emerald-600 to-emerald-500 text-white font-semibold rounded-lg hover:shadow-lg hover:shadow-emerald-600/50 transition"
                   >
                     Checkout
                   </button>

@@ -32,19 +32,32 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">Smart POS System</h2>
-          <p className="mt-2 text-center text-sm text-gray-600">Sign in to your account</p>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center px-4 sm:px-6 lg:px-8">
+      <div className="w-full max-w-md">
+        {/* Card */}
+        <div className="bg-slate-800 rounded-2xl shadow-2xl p-8 border border-slate-700">
+          {/* Logo */}
+          <div className="flex justify-center mb-8">
+            <div className="w-16 h-16 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/50">
+              <span className="text-3xl">🏪</span>
+            </div>
+          </div>
 
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {error && <div className="rounded-md bg-red-50 p-4 text-sm text-red-700">{error}</div>}
+          {/* Title */}
+          <h1 className="text-3xl font-bold text-white text-center mb-2">Smart Traders</h1>
+          <p className="text-slate-400 text-center mb-8">Point of Sale System</p>
 
-          <div className="rounded-md shadow-sm -space-y-px">
+          {/* Error Message */}
+          {error && (
+            <div className="mb-6 p-4 bg-red-600/20 border border-red-600/50 rounded-lg">
+              <p className="text-red-400 text-sm">{error}</p>
+            </div>
+          )}
+
+          {/* Form */}
+          <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
-              <label htmlFor="username" className="sr-only">
+              <label htmlFor="username" className="block text-sm font-medium text-slate-300 mb-2">
                 Username
               </label>
               <input
@@ -52,14 +65,15 @@ export default function Login() {
                 name="username"
                 type="text"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="Username"
+                className="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
+                placeholder="Enter your username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
               />
             </div>
+
             <div>
-              <label htmlFor="password" className="sr-only">
+              <label htmlFor="password" className="block text-sm font-medium text-slate-300 mb-2">
                 Password
               </label>
               <input
@@ -67,24 +81,36 @@ export default function Login() {
                 name="password"
                 type="password"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="Password"
+                className="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
+                placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
             </div>
-          </div>
 
-          <div>
             <button
               type="submit"
               disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+              className="w-full py-3 px-4 bg-gradient-to-r from-emerald-600 to-emerald-500 text-white font-semibold rounded-lg hover:shadow-lg hover:shadow-emerald-600/50 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Signing in...' : 'Sign in'}
+              {loading ? 'Signing in...' : 'Sign In'}
             </button>
+          </form>
+
+          {/* Demo Credentials */}
+          <div className="mt-8 pt-8 border-t border-slate-700">
+            <p className="text-slate-400 text-xs text-center mb-3">Demo Credentials</p>
+            <div className="bg-slate-700/50 rounded-lg p-3 space-y-2">
+              <p className="text-slate-300 text-sm"><span className="text-emerald-400">Username:</span> admin</p>
+              <p className="text-slate-300 text-sm"><span className="text-emerald-400">Password:</span> admin123</p>
+            </div>
           </div>
-        </form>
+        </div>
+
+        {/* Footer */}
+        <p className="text-center text-slate-500 text-sm mt-8">
+          © 2024 Smart Traders. All rights reserved.
+        </p>
       </div>
     </div>
   );
