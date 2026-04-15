@@ -3,7 +3,6 @@ import { authMiddleware, AuthenticatedRequest } from '@/middleware/auth';
 import { errorHandler } from '@/middleware/errorHandler';
 import { customerService } from '@/services/customer.service';
 import { ApiResponse, ValidationError } from '@/types';
-import { logger } from '@/lib/logger';
 
 async function handler(req: AuthenticatedRequest, res: NextApiResponse<ApiResponse<any>>) {
   if (!req.user) {
@@ -12,21 +11,20 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse<ApiRespon
 
   try {
     if (req.method === 'POST') {
-      const { name, phone, email, address, creditLimit } = req.body;
+      const { firstName, lastName, phone, email, address, creditLimit } = req.body;
 
-      if (!name || !phone || creditLimit === undefined) {
-        throw new ValidationError('Name, phone, and creditLimit are required');
+      if (!firstName || !lastName || !phone || creditLimit === undefined) {
+        throw new ValidationError('FirstName, LastName, phone, and creditLimit are required');
       }
 
       const customer = await customerService.createCustomer({
-        name,
+        firstName,
+        lastName,
         phone,
         email,
         address,
         creditLimit,
       });
-
-      logger.info(`Customer created: ${customer.name}`);
 
       return res.status(201).json({
         success: true,
@@ -37,7 +35,6 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse<ApiRespon
 
     res.status(405).json({ success: false, error: 'Method not allowed', timestamp: new Date() });
   } catch (error) {
-    logger.error('Customer API error', error);
     res.status(500).json({
       success: false,
       error: error instanceof Error ? error.message : 'Internal server error',
