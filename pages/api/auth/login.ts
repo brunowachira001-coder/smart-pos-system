@@ -19,7 +19,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ApiResponse<any
       });
     }
 
-    // Simple hardcoded login for testing
+    // Hardcoded admin credentials for testing
+    // Username: admin, Password: admin123
     if (username.toLowerCase() === 'admin' && password === 'admin123') {
       const tokens = {
         accessToken: `token_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
