@@ -72,19 +72,21 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ApiResponse<any
       sessionId: session.id,
     });
 
-    // Log session creation to audit log
-    await auditService.logAction({
+    // Log session creation to audit log (non-blocking)
+    auditService.logAction({
       userId: user.id,
       action: 'LOGIN',
       entityType: 'USER_SESSION',
       entityId: session.id.toString(),
       ipAddress: (req.headers['x-forwarded-for'] as string) || req.socket.remoteAddress || 'unknown',
-      userAgent: req.headers['user-agent'],
+      userAgent: req.headers['user-agent'] as string,
       status: 'SUCCESS',
       changes: {
         sessionToken: session.sessionToken,
         expiresAt: session.expiresAt,
       },
+    }).catch((err: any) => {
+      logger.error('Failed to log login action', err);
     });
 
     logger.info(`User logged in: ${user.username}`, {
@@ -118,16 +120,16 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ApiResponse<any
     logger.error('Login failed', error);
 
     if (error instanceof ValidationError) {
-      // Log validation error
-      await auditService.logAction({
+      // Log validation error (non-blocking)
+      auditService.logAction({
         userId: BigInt(0),
         action: 'LOGIN_ATTEMPT',
         entityType: 'AUTHENTICATION',
         ipAddress,
-        userAgent,
+        userAgent: userAgent as string,
         status: 'FAILURE',
         errorMessage: error.message,
-      }).catch((err) => logger.error('Failed to log validation error', err));
+      }).catch((err: any) => logger.error('Failed to log validation error', err));
 
       return res.status(400).json({
         success: false,
@@ -137,16 +139,16 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ApiResponse<any
     }
 
     if (error instanceof AuthenticationError) {
-      // Log authentication error
-      await auditService.logAction({
+      // Log authentication error (non-blocking)
+      auditService.logAction({
         userId: BigInt(0),
         action: 'LOGIN_ATTEMPT',
         entityType: 'AUTHENTICATION',
         ipAddress,
-        userAgent,
+        userAgent: userAgent as string,
         status: 'FAILURE',
         errorMessage: error.message,
-      }).catch((err) => logger.error('Failed to log auth error', err));
+      }).catch((err: any) => logger.error('Failed to log auth error', err));
 
       return res.status(401).json({
         success: false,
@@ -155,16 +157,16 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ApiResponse<any
       });
     }
 
-    // Log unexpected error
-    await auditService.logAction({
+    // Log unexpected error (non-blocking)
+    auditService.logAction({
       userId: BigInt(0),
       action: 'LOGIN_ATTEMPT',
       entityType: 'AUTHENTICATION',
       ipAddress,
-      userAgent,
+      userAgent: userAgent as string,
       status: 'FAILURE',
       errorMessage: 'Internal server error',
-    }).catch((err) => logger.error('Failed to log server error', err));
+    }).catch((err: any) => logger.error('Failed to log server error', err));
 
     res.status(500).json({
       success: false,
