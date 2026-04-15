@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import Navigation from '@/components/Navigation';
 
 export default function Products() {
   const router = useRouter();
@@ -58,126 +57,125 @@ export default function Products() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <Navigation />
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-900">Products Management</h1>
+          <p className="text-slate-600 mt-1">Manage your product catalog</p>
+        </div>
+        <button
+          onClick={() => setShowForm(!showForm)}
+          className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition font-medium"
+        >
+          {showForm ? 'Cancel' : '+ Add Product'}
+        </button>
+      </div>
 
-      <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">Products Management</h1>
+      {showForm && (
+        <div className="bg-white shadow rounded-lg p-6 border border-slate-200">
+          <h2 className="text-lg font-bold text-slate-900 mb-4">Add New Product</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <input
+              type="text"
+              placeholder="Product Name *"
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              className="px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+            />
+            <input
+              type="text"
+              placeholder="SKU *"
+              value={formData.sku}
+              onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
+              className="px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+            />
+            <input
+              type="text"
+              placeholder="Category"
+              value={formData.category}
+              onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+              className="px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+            />
+            <input
+              type="number"
+              placeholder="Cost Price"
+              value={formData.costPrice}
+              onChange={(e) => setFormData({ ...formData, costPrice: e.target.value })}
+              className="px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+            />
+            <input
+              type="number"
+              placeholder="Retail Price"
+              value={formData.retailPrice}
+              onChange={(e) => setFormData({ ...formData, retailPrice: e.target.value })}
+              className="px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+            />
+            <input
+              type="number"
+              placeholder="Wholesale Price"
+              value={formData.wholesalePrice}
+              onChange={(e) => setFormData({ ...formData, wholesalePrice: e.target.value })}
+              className="px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+            />
+            <input
+              type="number"
+              placeholder="Stock Quantity"
+              value={formData.stock}
+              onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
+              className="px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+            />
+          </div>
           <button
-            onClick={() => setShowForm(!showForm)}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+            onClick={handleAddProduct}
+            className="mt-4 w-full px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition font-medium"
           >
-            {showForm ? 'Cancel' : '+ Add Product'}
+            Save Product
           </button>
         </div>
+      )}
 
-        {showForm && (
-          <div className="bg-white shadow rounded-lg p-6 mb-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Add New Product</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <input
-                type="text"
-                placeholder="Product Name *"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-              />
-              <input
-                type="text"
-                placeholder="SKU *"
-                value={formData.sku}
-                onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-              />
-              <input
-                type="text"
-                placeholder="Category"
-                value={formData.category}
-                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-              />
-              <input
-                type="number"
-                placeholder="Cost Price"
-                value={formData.costPrice}
-                onChange={(e) => setFormData({ ...formData, costPrice: e.target.value })}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-              />
-              <input
-                type="number"
-                placeholder="Retail Price"
-                value={formData.retailPrice}
-                onChange={(e) => setFormData({ ...formData, retailPrice: e.target.value })}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-              />
-              <input
-                type="number"
-                placeholder="Wholesale Price"
-                value={formData.wholesalePrice}
-                onChange={(e) => setFormData({ ...formData, wholesalePrice: e.target.value })}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-              />
-              <input
-                type="number"
-                placeholder="Stock Quantity"
-                value={formData.stock}
-                onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <button
-              onClick={handleAddProduct}
-              className="mt-4 w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
-            >
-              Save Product
-            </button>
-          </div>
-        )}
-
-        <div className="bg-white shadow rounded-lg overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">SKU</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Category</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cost</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Retail</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Wholesale</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Stock</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+      <div className="bg-white shadow rounded-lg overflow-hidden border border-slate-200">
+        <table className="min-w-full divide-y divide-slate-200">
+          <thead className="bg-slate-50">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-slate-900 uppercase">SKU</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-slate-900 uppercase">Name</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-slate-900 uppercase">Category</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-slate-900 uppercase">Cost</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-slate-900 uppercase">Retail</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-slate-900 uppercase">Wholesale</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-slate-900 uppercase">Stock</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-slate-900 uppercase">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-slate-200">
+            {products.map((product) => (
+              <tr key={product.id} className="hover:bg-slate-50 transition">
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">{product.sku}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">{product.name}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">{product.category}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">KES {product.costPrice}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">KES {product.retailPrice}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">KES {product.wholesalePrice}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm">
+                  <span className={`px-2 py-1 rounded text-xs font-medium ${product.stock > 20 ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}`}>
+                    {product.stock}
+                  </span>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm space-x-2">
+                  <button className="text-emerald-600 hover:text-emerald-700 font-medium">Edit</button>
+                  <button
+                    onClick={() => handleDeleteProduct(product.id)}
+                    className="text-red-600 hover:text-red-700 font-medium"
+                  >
+                    Delete
+                  </button>
+                </td>
               </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {products.map((product) => (
-                <tr key={product.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{product.sku}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{product.name}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{product.category}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">KES {product.costPrice}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">KES {product.retailPrice}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">KES {product.wholesalePrice}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    <span className={`px-2 py-1 rounded ${product.stock > 20 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                      {product.stock}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm space-x-2">
-                    <button className="text-blue-600 hover:text-blue-900">Edit</button>
-                    <button
-                      onClick={() => handleDeleteProduct(product.id)}
-                      className="text-red-600 hover:text-red-900"
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </main>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

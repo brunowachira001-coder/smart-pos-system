@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import Navigation from '@/components/Navigation';
 
 export default function Inventory() {
   const router = useRouter();
@@ -48,105 +47,104 @@ export default function Inventory() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <Navigation />
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold text-slate-900">Inventory Management</h1>
+        <p className="text-slate-600 mt-1">Manage product stock levels</p>
+      </div>
 
-      <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-6">Inventory Management</h1>
-
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-          <div className="bg-white shadow rounded-lg p-6">
-            <p className="text-gray-600 text-sm">Total Items</p>
-            <p className="text-3xl font-bold text-blue-600">{stats.totalItems}</p>
-          </div>
-          <div className="bg-white shadow rounded-lg p-6">
-            <p className="text-gray-600 text-sm">Low Stock</p>
-            <p className="text-3xl font-bold text-yellow-600">{stats.lowStock}</p>
-          </div>
-          <div className="bg-white shadow rounded-lg p-6">
-            <p className="text-gray-600 text-sm">Critical Stock</p>
-            <p className="text-3xl font-bold text-red-600">{stats.criticalStock}</p>
-          </div>
+      {/* Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-white shadow rounded-lg p-6 border border-slate-200">
+          <p className="text-slate-600 text-sm font-medium">Total Items</p>
+          <p className="text-3xl font-bold text-emerald-600 mt-2">{stats.totalItems}</p>
         </div>
-
-        {/* Filter */}
-        <div className="mb-6 flex space-x-2">
-          <button
-            onClick={() => setFilter('all')}
-            className={`px-4 py-2 rounded-lg transition ${
-              filter === 'all' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 border border-gray-300'
-            }`}
-          >
-            All Items
-          </button>
-          <button
-            onClick={() => setFilter('low')}
-            className={`px-4 py-2 rounded-lg transition ${
-              filter === 'low' ? 'bg-yellow-600 text-white' : 'bg-white text-gray-700 border border-gray-300'
-            }`}
-          >
-            Low Stock
-          </button>
-          <button
-            onClick={() => setFilter('critical')}
-            className={`px-4 py-2 rounded-lg transition ${
-              filter === 'critical' ? 'bg-red-600 text-white' : 'bg-white text-gray-700 border border-gray-300'
-            }`}
-          >
-            Critical
-          </button>
+        <div className="bg-white shadow rounded-lg p-6 border border-slate-200">
+          <p className="text-slate-600 text-sm font-medium">Low Stock</p>
+          <p className="text-3xl font-bold text-yellow-600 mt-2">{stats.lowStock}</p>
         </div>
+        <div className="bg-white shadow rounded-lg p-6 border border-slate-200">
+          <p className="text-slate-600 text-sm font-medium">Critical Stock</p>
+          <p className="text-3xl font-bold text-red-600 mt-2">{stats.criticalStock}</p>
+        </div>
+      </div>
 
-        {/* Inventory Table */}
-        <div className="bg-white shadow rounded-lg overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">SKU</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Product</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Current Stock</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Reorder Level</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Last Restocked</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+      {/* Filter */}
+      <div className="flex space-x-2">
+        <button
+          onClick={() => setFilter('all')}
+          className={`px-4 py-2 rounded-lg transition font-medium ${
+            filter === 'all' ? 'bg-emerald-600 text-white' : 'bg-white text-slate-700 border border-slate-300 hover:border-slate-400'
+          }`}
+        >
+          All Items
+        </button>
+        <button
+          onClick={() => setFilter('low')}
+          className={`px-4 py-2 rounded-lg transition font-medium ${
+            filter === 'low' ? 'bg-yellow-600 text-white' : 'bg-white text-slate-700 border border-slate-300 hover:border-slate-400'
+          }`}
+        >
+          Low Stock
+        </button>
+        <button
+          onClick={() => setFilter('critical')}
+          className={`px-4 py-2 rounded-lg transition font-medium ${
+            filter === 'critical' ? 'bg-red-600 text-white' : 'bg-white text-slate-700 border border-slate-300 hover:border-slate-400'
+          }`}
+        >
+          Critical
+        </button>
+      </div>
+
+      {/* Inventory Table */}
+      <div className="bg-white shadow rounded-lg overflow-hidden border border-slate-200">
+        <table className="min-w-full divide-y divide-slate-200">
+          <thead className="bg-slate-50">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-slate-900 uppercase">SKU</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-slate-900 uppercase">Product</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-slate-900 uppercase">Current Stock</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-slate-900 uppercase">Reorder Level</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-slate-900 uppercase">Status</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-slate-900 uppercase">Last Restocked</th>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-slate-900 uppercase">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-slate-200">
+            {filteredInventory.map((item) => (
+              <tr key={item.id} className="hover:bg-slate-50 transition">
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">{item.sku}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">{item.name}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-slate-900">{item.stock}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">{item.reorderLevel}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm">
+                  <span
+                    className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                      item.status === 'good'
+                        ? 'bg-emerald-100 text-emerald-800'
+                        : item.status === 'low'
+                        ? 'bg-yellow-100 text-yellow-800'
+                        : 'bg-red-100 text-red-800'
+                    }`}
+                  >
+                    {item.status.toUpperCase()}
+                  </span>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">{item.lastRestocked}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm">
+                  <button
+                    onClick={() => handleRestock(item.id)}
+                    className="text-emerald-600 hover:text-emerald-700 font-medium transition"
+                  >
+                    Restock
+                  </button>
+                </td>
               </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredInventory.map((item) => (
-                <tr key={item.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.sku}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.name}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">{item.stock}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{item.reorderLevel}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                        item.status === 'good'
-                          ? 'bg-green-100 text-green-800'
-                          : item.status === 'low'
-                          ? 'bg-yellow-100 text-yellow-800'
-                          : 'bg-red-100 text-red-800'
-                      }`}
-                    >
-                      {item.status.toUpperCase()}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{item.lastRestocked}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm space-x-2">
-                    <button
-                      onClick={() => handleRestock(item.id)}
-                      className="text-blue-600 hover:text-blue-900 font-medium"
-                    >
-                      Restock
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </main>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

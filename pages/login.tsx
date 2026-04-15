@@ -6,6 +6,7 @@ export default function Login() {
   const router = useRouter();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -22,6 +23,10 @@ export default function Login() {
         localStorage.setItem('refreshToken', response.data.data.tokens.refreshToken);
         localStorage.setItem('user', JSON.stringify(response.data.data.user));
 
+        if (rememberMe) {
+          localStorage.setItem('rememberMe', 'true');
+        }
+
         router.push('/dashboard');
       }
     } catch (err: any) {
@@ -32,48 +37,50 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center px-4 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md">
-        {/* Card */}
-        <div className="bg-slate-800 rounded-2xl shadow-2xl p-8 border border-slate-700">
-          {/* Logo */}
-          <div className="flex justify-center mb-8">
-            <div className="w-16 h-16 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/50">
-              <span className="text-3xl">🏪</span>
-            </div>
-          </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 flex items-center justify-center px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+      {/* Background Decoration */}
+      <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
+      <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
 
+      <div className="w-full max-w-md relative z-10">
+        {/* Logo - Top Left */}
+        <div className="absolute -top-20 -left-20 w-20 h-20 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg">
+          <span className="text-4xl">🏪</span>
+        </div>
+
+        {/* Card */}
+        <div className="bg-white rounded-2xl shadow-2xl p-8 border border-slate-200">
           {/* Title */}
-          <h1 className="text-3xl font-bold text-white text-center mb-2">Smart Traders</h1>
-          <p className="text-slate-400 text-center mb-8">Point of Sale System</p>
+          <h1 className="text-4xl font-bold text-slate-900 mb-2">Welcome Back</h1>
+          <p className="text-slate-600 mb-8">Sign in to your Smart Traders account</p>
 
           {/* Error Message */}
           {error && (
-            <div className="mb-6 p-4 bg-red-600/20 border border-red-600/50 rounded-lg">
-              <p className="text-red-400 text-sm">{error}</p>
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-red-600 text-sm font-medium">{error}</p>
             </div>
           )}
 
           {/* Form */}
-          <form className="space-y-6" onSubmit={handleSubmit}>
+          <form className="space-y-5" onSubmit={handleSubmit}>
             <div>
-              <label htmlFor="username" className="block text-sm font-medium text-slate-300 mb-2">
-                Username
+              <label htmlFor="username" className="block text-sm font-semibold text-slate-900 mb-2">
+                Username or Email
               </label>
               <input
                 id="username"
                 name="username"
                 type="text"
                 required
-                className="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
-                placeholder="Enter your username"
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-lg text-slate-900 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
+                placeholder="admin"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-slate-300 mb-2">
+              <label htmlFor="password" className="block text-sm font-semibold text-slate-900 mb-2">
                 Password
               </label>
               <input
@@ -81,28 +88,44 @@ export default function Login() {
                 name="password"
                 type="password"
                 required
-                className="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
-                placeholder="Enter your password"
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-lg text-slate-900 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
+                placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
             </div>
 
+            {/* Remember Me & Forgot Password */}
+            <div className="flex items-center justify-between">
+              <label className="flex items-center space-x-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                />
+                <span className="text-sm text-slate-600">Remember me</span>
+              </label>
+              <a href="#" className="text-sm text-emerald-600 hover:text-emerald-700 font-medium">
+                Forgot password?
+              </a>
+            </div>
+
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 px-4 bg-gradient-to-r from-emerald-600 to-emerald-500 text-white font-semibold rounded-lg hover:shadow-lg hover:shadow-emerald-600/50 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-3 px-4 bg-gradient-to-r from-emerald-600 to-emerald-500 text-white font-semibold rounded-lg hover:shadow-lg hover:shadow-emerald-600/30 transition disabled:opacity-50 disabled:cursor-not-allowed mt-6"
             >
               {loading ? 'Signing in...' : 'Sign In'}
             </button>
           </form>
 
           {/* Demo Credentials */}
-          <div className="mt-8 pt-8 border-t border-slate-700">
-            <p className="text-slate-400 text-xs text-center mb-3">Demo Credentials</p>
-            <div className="bg-slate-700/50 rounded-lg p-3 space-y-2">
-              <p className="text-slate-300 text-sm"><span className="text-emerald-400">Username:</span> admin</p>
-              <p className="text-slate-300 text-sm"><span className="text-emerald-400">Password:</span> admin123</p>
+          <div className="mt-8 pt-8 border-t border-slate-200">
+            <p className="text-slate-600 text-xs text-center mb-3 font-medium">Demo Credentials</p>
+            <div className="bg-slate-50 rounded-lg p-4 space-y-2 border border-slate-200">
+              <p className="text-slate-700 text-sm"><span className="font-semibold text-emerald-600">Username:</span> admin</p>
+              <p className="text-slate-700 text-sm"><span className="font-semibold text-emerald-600">Password:</span> admin123</p>
             </div>
           </div>
         </div>

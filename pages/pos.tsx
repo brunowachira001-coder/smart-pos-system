@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import Navigation from '@/components/Navigation';
 
 export default function POS() {
   const router = useRouter();
@@ -84,174 +83,173 @@ export default function POS() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-      <Navigation />
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold text-slate-900">Point of Sale</h1>
+        <p className="text-slate-600 mt-1">Process customer transactions</p>
+      </div>
 
-      <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-        <h1 className="text-3xl font-bold text-white mb-6">Point of Sale</h1>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Products */}
-          <div className="lg:col-span-2">
-            <div className="bg-slate-800 rounded-xl shadow-xl p-6 border border-slate-700">
-              <div className="mb-6">
-                <input
-                  type="text"
-                  placeholder="Search products by name or SKU..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {filteredProducts.map((product) => (
-                  <div
-                    key={product.id}
-                    className="bg-slate-700 border border-slate-600 rounded-lg p-4 hover:border-emerald-500 hover:shadow-lg hover:shadow-emerald-500/20 transition cursor-pointer"
-                  >
-                    <div className="flex justify-between items-start mb-2">
-                      <div>
-                        <h3 className="font-semibold text-white">{product.name}</h3>
-                        <p className="text-xs text-slate-400">SKU: {product.sku}</p>
-                      </div>
-                      <span className="text-xs bg-emerald-600/20 text-emerald-400 px-2 py-1 rounded">
-                        {product.category}
-                      </span>
-                    </div>
-                    <p className="text-sm text-slate-400 mb-3">Stock: {product.stock}</p>
-                    <div className="flex justify-between items-center">
-                      <span className="text-lg font-bold text-emerald-400">KES {product.price}</span>
-                      <button
-                        onClick={() => addToCart(product)}
-                        className="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-sm rounded-lg transition shadow-lg hover:shadow-emerald-600/50"
-                      >
-                        Add
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Cart & Payment */}
-          <div className="space-y-6">
-            {/* Cart */}
-            <div className="bg-slate-800 rounded-xl shadow-xl p-6 border border-slate-700">
-              <h2 className="text-xl font-bold text-white mb-4">Shopping Cart</h2>
-              {cart.length === 0 ? (
-                <p className="text-slate-400 text-center py-8">🛒 Cart is empty</p>
-              ) : (
-                <>
-                  <div className="space-y-3 mb-4 max-h-64 overflow-y-auto">
-                    {cart.map((item) => (
-                      <div key={item.id} className="bg-slate-700 rounded-lg p-3 border border-slate-600">
-                        <div className="flex justify-between items-start mb-2">
-                          <div>
-                            <p className="font-medium text-white text-sm">{item.name}</p>
-                            <p className="text-xs text-slate-400">KES {item.price} x {item.quantity}</p>
-                          </div>
-                          <button
-                            onClick={() => removeFromCart(item.id)}
-                            className="text-red-400 hover:text-red-300 text-sm"
-                          >
-                            ✕
-                          </button>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <button
-                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                            className="px-2 py-1 bg-slate-600 hover:bg-slate-500 rounded text-white text-sm"
-                          >
-                            −
-                          </button>
-                          <span className="w-6 text-center text-white text-sm">{item.quantity}</span>
-                          <button
-                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                            className="px-2 py-1 bg-slate-600 hover:bg-slate-500 rounded text-white text-sm"
-                          >
-                            +
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="border-t border-slate-600 pt-4 space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-slate-400">Subtotal:</span>
-                      <span className="text-white">KES {subtotal.toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-slate-400">Tax (16%):</span>
-                      <span className="text-white">KES {tax.toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between font-bold text-lg border-t border-slate-600 pt-2">
-                      <span className="text-white">Total:</span>
-                      <span className="text-emerald-400">KES {total.toFixed(2)}</span>
-                    </div>
-                  </div>
-                </>
-              )}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Products */}
+        <div className="lg:col-span-2">
+          <div className="bg-white rounded-lg shadow p-6 border border-slate-200">
+            <div className="mb-6">
+              <input
+                type="text"
+                placeholder="Search products by name or SKU..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-lg text-slate-900 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition"
+              />
             </div>
 
-            {/* Payment */}
-            {cart.length > 0 && (
-              <div className="bg-slate-800 rounded-xl shadow-xl p-6 border border-slate-700">
-                <h2 className="text-xl font-bold text-white mb-4">Payment</h2>
-
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-2">
-                      Payment Method
-                    </label>
-                    <select
-                      value={paymentMethod}
-                      onChange={(e) => setPaymentMethod(e.target.value)}
-                      className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {filteredProducts.map((product) => (
+                <div
+                  key={product.id}
+                  className="bg-slate-50 border border-slate-200 rounded-lg p-4 hover:border-emerald-500 hover:shadow-lg transition cursor-pointer"
+                >
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <h3 className="font-semibold text-slate-900">{product.name}</h3>
+                      <p className="text-xs text-slate-600">SKU: {product.sku}</p>
+                    </div>
+                    <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded font-medium">
+                      {product.category}
+                    </span>
+                  </div>
+                  <p className="text-sm text-slate-600 mb-3">Stock: {product.stock}</p>
+                  <div className="flex justify-between items-center">
+                    <span className="text-lg font-bold text-emerald-600">KES {product.price}</span>
+                    <button
+                      onClick={() => addToCart(product)}
+                      className="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-sm rounded-lg transition shadow hover:shadow-lg"
                     >
-                      <option value="cash">Cash</option>
-                      <option value="card">Card</option>
-                      <option value="mpesa">M-Pesa</option>
-                      <option value="check">Check</option>
-                    </select>
+                      Add
+                    </button>
                   </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-2">
-                      Amount Paid
-                    </label>
-                    <input
-                      type="number"
-                      value={amountPaid}
-                      onChange={(e) => setAmountPaid(e.target.value)}
-                      placeholder="0.00"
-                      className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                    />
-                  </div>
-
-                  {amountPaid && (
-                    <div className="bg-emerald-600/20 border border-emerald-600/50 p-3 rounded-lg">
-                      <p className="text-sm text-slate-400">Change:</p>
-                      <p className="text-2xl font-bold text-emerald-400">
-                        KES {Math.max(0, change).toFixed(2)}
-                      </p>
-                    </div>
-                  )}
-
-                  <button
-                    onClick={handleCheckout}
-                    className="w-full px-4 py-3 bg-gradient-to-r from-emerald-600 to-emerald-500 text-white font-semibold rounded-lg hover:shadow-lg hover:shadow-emerald-600/50 transition"
-                  >
-                    Complete Transaction
-                  </button>
                 </div>
-              </div>
-            )}
+              ))}
+            </div>
           </div>
         </div>
-      </main>
+
+        {/* Cart & Payment */}
+        <div className="space-y-6">
+          {/* Cart */}
+          <div className="bg-white rounded-lg shadow p-6 border border-slate-200">
+            <h2 className="text-lg font-bold text-slate-900 mb-4">Shopping Cart</h2>
+            {cart.length === 0 ? (
+              <p className="text-slate-600 text-center py-8">🛒 Cart is empty</p>
+            ) : (
+              <>
+                <div className="space-y-3 mb-4 max-h-64 overflow-y-auto">
+                  {cart.map((item) => (
+                    <div key={item.id} className="bg-slate-50 rounded-lg p-3 border border-slate-200">
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <p className="font-medium text-slate-900 text-sm">{item.name}</p>
+                          <p className="text-xs text-slate-600">KES {item.price} x {item.quantity}</p>
+                        </div>
+                        <button
+                          onClick={() => removeFromCart(item.id)}
+                          className="text-red-600 hover:text-red-700 text-sm font-bold"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <button
+                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                          className="px-2 py-1 bg-slate-200 hover:bg-slate-300 rounded text-slate-900 text-sm"
+                        >
+                          −
+                        </button>
+                        <span className="w-6 text-center text-slate-900 text-sm font-medium">{item.quantity}</span>
+                        <button
+                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                          className="px-2 py-1 bg-slate-200 hover:bg-slate-300 rounded text-slate-900 text-sm"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="border-t border-slate-200 pt-4 space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-slate-600">Subtotal:</span>
+                    <span className="text-slate-900 font-medium">KES {subtotal.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-slate-600">Tax (16%):</span>
+                    <span className="text-slate-900 font-medium">KES {tax.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between font-bold text-lg border-t border-slate-200 pt-2">
+                    <span className="text-slate-900">Total:</span>
+                    <span className="text-emerald-600">KES {total.toFixed(2)}</span>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Payment */}
+          {cart.length > 0 && (
+            <div className="bg-white rounded-lg shadow p-6 border border-slate-200">
+              <h2 className="text-lg font-bold text-slate-900 mb-4">Payment</h2>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-900 mb-2">
+                    Payment Method
+                  </label>
+                  <select
+                    value={paymentMethod}
+                    onChange={(e) => setPaymentMethod(e.target.value)}
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  >
+                    <option value="cash">Cash</option>
+                    <option value="card">Card</option>
+                    <option value="mpesa">M-Pesa</option>
+                    <option value="check">Check</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-900 mb-2">
+                    Amount Paid
+                  </label>
+                  <input
+                    type="number"
+                    value={amountPaid}
+                    onChange={(e) => setAmountPaid(e.target.value)}
+                    placeholder="0.00"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-900 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+
+                {amountPaid && (
+                  <div className="bg-emerald-50 border border-emerald-200 p-3 rounded-lg">
+                    <p className="text-sm text-slate-600">Change:</p>
+                    <p className="text-2xl font-bold text-emerald-600">
+                      KES {Math.max(0, change).toFixed(2)}
+                    </p>
+                  </div>
+                )}
+
+                <button
+                  onClick={handleCheckout}
+                  className="w-full px-4 py-3 bg-gradient-to-r from-emerald-600 to-emerald-500 text-white font-semibold rounded-lg hover:shadow-lg transition"
+                >
+                  Complete Transaction
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
