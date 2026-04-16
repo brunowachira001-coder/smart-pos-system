@@ -1,17 +1,10 @@
-import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 
 export default function Home() {
-  const router = useRouter();
-
   useEffect(() => {
-    const token = localStorage.getItem('accessToken');
-    if (token) {
-      router.push('/dashboard');
-    } else {
-      router.push('/login');
-    }
-  }, [router]);
+    // Redirect to login page (served from public/index.html)
+    window.location.href = '/login';
+  }, []);
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
