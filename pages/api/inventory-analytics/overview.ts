@@ -26,19 +26,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Calculate inventory metrics
     const totalProducts = products?.length || 0;
-    const inventoryValueCost = products?.reduce((sum, p) => sum + (parseFloat(p.cost_price || 0) * parseInt(p.stock_quantity || 0)), 0) || 0;
-    const inventoryValueSelling = products?.reduce((sum, p) => sum + (parseFloat(p.retail_price || 0) * parseInt(p.stock_quantity || 0)), 0) || 0;
+    
+    // Use 'price' as selling price and estimate cost as 60% of price
+    const inventoryValueSelling = products?.reduce((sum, p) => {
+      const price = parseFloat(p.price || 0);
+      const stock = parseInt(p.stock || 0);
+      return sum + (price * stock);
+    }, 0) || 0;
+    
+    const inventoryValueCost = inventoryValueSelling * 0.6; // Estimate cost as 60% of selling price
     const potentialProfit = inventoryValueSelling - inventoryValueCost;
 
-    // Low stock items (below minimum stock level)
+    // Low stock items (stock below 10)
     const lowStockItems = products?.filter(p => {
-      const stock = parseInt(p.stock_quantity || 0);
-      const minStock = parseInt(p.minimum_stock_level || 0);
-      return stock > 0 && stock <= minStock;
+      const stock = parseInt(p.stock || 0);
+      return stock > 0 && stock < 10;
     }) || [];
 
-    // Items below minimum retail stock
-    const lowStockAlerts = lowStockItems.filter(p => parseInt(p.stock_quantity || 0) < 5).length;
+    // Items with very low stock (below 5)
+    const lowStockAlerts = products?.filter(p => parseInt(p.stock || 0) < 5 && parseInt(p.stock || 0) > 0).length || 0;
 
     // Get returns data
     let returnsQuery = supabase
@@ -59,8 +65,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const pendingReturns = returns?.filter(r => r.status === 'pending').length || 0;
     const valueOfReturns = returns?.reduce((sum, r) => sum + parseFloat(r.refund_amount || 0), 0) || 0;
 
-    // Archived items (products with 0 stock)
-    const archivedItems = products?.filter(p => parseInt(p.stock_quantity || 0) === 0).length || 0;
+    // Archived items (products with 0 stock or inactive status)
+    const archivedItems = products?.filter(p => 
+      parseInt(p.stock || 0) === 0 || p.status?.toLowerCase() === 'inactive'
+    ).length || 0;
 
     return res.status(200).json({
       overview: {
@@ -77,8 +85,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         id: p.id,
         name: p.name,
         sku: p.sku,
-        quantity: p.stock_quantity,
-        minimumStock: p.minimum_stock_level || 0
+        quantity: p.stock || 0,
+        minimumStock: 10 // Default minimum
       }))
     });
 
