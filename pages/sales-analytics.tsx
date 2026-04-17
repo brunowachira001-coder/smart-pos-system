@@ -137,67 +137,79 @@ export default function SalesAnalyticsPage() {
               <h2 className="text-lg font-semibold mb-2">Payment Methods</h2>
               <p className="text-sm text-[var(--text-secondary)] mb-6">Breakdown of transactions by payment method.</p>
 
-              <div className="flex items-center justify-center py-8">
-                <div className="relative w-96 h-96 flex items-center justify-center">
-                  {/* Pie Chart using conic-gradient */}
-                  <div 
-                    className="w-80 h-80 rounded-full relative"
-                    style={{
-                      background: analytics.paymentMethods.length > 0 
-                        ? `conic-gradient(${analytics.paymentMethods.map((pm, index) => {
+              {analytics.paymentMethods && analytics.paymentMethods.length > 0 ? (
+                <>
+                  <div className="flex items-center justify-center py-8">
+                    <div className="relative w-96 h-96 flex items-center justify-center">
+                      {/* Pie Chart using conic-gradient */}
+                      <div 
+                        className="w-80 h-80 rounded-full relative shadow-lg"
+                        style={{
+                          background: `conic-gradient(${analytics.paymentMethods.map((pm, index) => {
                             const prevPercentage = analytics.paymentMethods
                               .slice(0, index)
                               .reduce((sum, p) => sum + parseFloat(p.percentage), 0);
                             const currentPercentage = parseFloat(pm.percentage);
                             return `${getPaymentMethodColor(pm.method)} ${prevPercentage}% ${prevPercentage + currentPercentage}%`;
                           }).join(', ')})`
-                        : '#E5E7EB'
-                    }}
-                  >
-                    {/* Labels positioned around the chart */}
-                    {analytics.paymentMethods.map((pm, index) => {
-                      const prevPercentage = analytics.paymentMethods
-                        .slice(0, index)
-                        .reduce((sum, p) => sum + parseFloat(p.percentage), 0);
-                      const currentPercentage = parseFloat(pm.percentage);
-                      const midPercentage = prevPercentage + (currentPercentage / 2);
-                      const angle = (midPercentage / 100) * 360 - 90;
-                      const radian = (angle * Math.PI) / 180;
-                      const radius = 200;
-                      const x = Math.cos(radian) * radius;
-                      const y = Math.sin(radian) * radius;
+                        }}
+                      >
+                        {/* Labels positioned around the chart */}
+                        {analytics.paymentMethods.map((pm, index) => {
+                          const prevPercentage = analytics.paymentMethods
+                            .slice(0, index)
+                            .reduce((sum, p) => sum + parseFloat(p.percentage), 0);
+                          const currentPercentage = parseFloat(pm.percentage);
+                          const midPercentage = prevPercentage + (currentPercentage / 2);
+                          const angle = (midPercentage / 100) * 360 - 90;
+                          const radian = (angle * Math.PI) / 180;
+                          const radius = 200;
+                          const x = Math.cos(radian) * radius;
+                          const y = Math.sin(radian) * radius;
 
-                      return (
+                          return (
+                            <div
+                              key={pm.method}
+                              className="absolute text-sm font-bold whitespace-nowrap bg-white px-2 py-1 rounded shadow-md"
+                              style={{
+                                left: '50%',
+                                top: '50%',
+                                transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`,
+                                color: '#1F2937'
+                              }}
+                            >
+                              {pm.method} {pm.percentage}%
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-8 flex flex-wrap justify-center gap-6">
+                    {analytics.paymentMethods.map(pm => (
+                      <div key={pm.method} className="flex items-center gap-2">
                         <div
-                          key={pm.method}
-                          className="absolute text-sm font-medium whitespace-nowrap"
-                          style={{
-                            left: '50%',
-                            top: '50%',
-                            transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`
-                          }}
-                        >
-                          <span className={pm.method.toLowerCase() === 'cash' ? 'text-gray-800' : 'text-red-500'}>
-                            {pm.method} {pm.percentage}%
-                          </span>
-                        </div>
-                      );
-                    })}
+                          className="w-4 h-4 rounded"
+                          style={{ backgroundColor: getPaymentMethodColor(pm.method) }}
+                        />
+                        <span className="text-sm capitalize text-[var(--text-primary)]">
+                          {pm.method}: {pm.count} transactions ({pm.percentage}%)
+                        </span>
+                      </div>
+                    ))}
                   </div>
+                </>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-16">
+                  <div className="text-6xl mb-4">📊</div>
+                  <p className="text-[var(--text-secondary)] text-center">
+                    No payment data available for the selected period.
+                    <br />
+                    Make some sales to see payment method analytics.
+                  </p>
                 </div>
-              </div>
-
-              <div className="mt-8 flex flex-wrap justify-center gap-6">
-                {analytics.paymentMethods.map(pm => (
-                  <div key={pm.method} className="flex items-center gap-2">
-                    <div
-                      className="w-4 h-4 rounded"
-                      style={{ backgroundColor: getPaymentMethodColor(pm.method) }}
-                    />
-                    <span className="text-sm capitalize">{pm.method}: {pm.count} ({pm.percentage}%)</span>
-                  </div>
-                ))}
-              </div>
+              )}
             </div>
           </>
         ) : (
