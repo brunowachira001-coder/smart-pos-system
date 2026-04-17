@@ -26,7 +26,7 @@ CREATE INDEX IF NOT EXISTS idx_customers_type ON customers(customer_type);
 CREATE INDEX IF NOT EXISTS idx_customers_status ON customers(status);
 CREATE INDEX IF NOT EXISTS idx_customers_created ON customers(created_at);
 
--- Trigger for updated_at
+-- Trigger for updated_at (uses function from pos-schema.sql)
 CREATE TRIGGER update_customers_updated_at
   BEFORE UPDATE ON customers
   FOR EACH ROW
@@ -37,21 +37,23 @@ CREATE OR REPLACE FUNCTION update_customer_stats()
 RETURNS TRIGGER AS $$
 BEGIN
   -- Update customer's total purchases and transaction count
-  UPDATE customers
-  SET 
-    total_purchases = total_purchases + NEW.total,
-    total_transactions = total_transactions + 1,
-    last_purchase_date = NEW.created_at,
-    updated_at = NOW()
-  WHERE id = NEW.customer_id;
+  IF NEW.customer_id IS NOT NULL THEN
+    UPDATE customers
+    SET 
+      total_purchases = COALESCE(total_purchases, 0) + NEW.total,
+      total_transactions = COALESCE(total_transactions, 0) + 1,
+      last_purchase_date = NEW.created_at,
+      updated_at = NOW()
+    WHERE id = NEW.customer_id;
+  END IF;
   
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
 -- Trigger to update customer stats when transaction is created
+DROP TRIGGER IF EXISTS update_customer_stats_on_transaction ON sales_transactions;
 CREATE TRIGGER update_customer_stats_on_transaction
   AFTER INSERT ON sales_transactions
   FOR EACH ROW
-  WHEN (NEW.customer_id IS NOT NULL)
   EXECUTE FUNCTION update_customer_stats();
