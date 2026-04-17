@@ -89,7 +89,7 @@ export default function ProductPerformancePage() {
 
         {/* Filters */}
         <div className="flex gap-4 mb-6 items-center">
-          <DateRangeFilter onDateRangeChange={handleDateRangeChange} />
+          <DateRangeFilter onDateChange={handleDateRangeChange} />
           
           <button
             onClick={exportToCSV}
