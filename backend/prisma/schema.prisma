@@ -1,0 +1,286 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Users & Authentication
+model User {
+  id        String     @id @default(cuid())
+  email     String     @unique
+  username  String     @unique
+  password  String
+  firstName String?
+  lastName  String?
+  role      UserRole   @default(CASHIER)
+  branch    Branch?    @relation(fields: [branchId], references: [id])
+  branchId  String?
+  isActive  Boolean    @default(true)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  transactions Transaction[]
+  auditLogs    AuditLog[]
+  sessions     Session[]
+
+  @@index([branchId])
+}
+
+enum UserRole {
+  ADMIN
+  MANAGER
+  CASHIER
+  INVENTORY_STAFF
+  ACCOUNTANT
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+// Products & Inventory
+model Product {
+  id          String   @id @default(cuid())
+  sku         String   @unique
+  name        String
+  description String?
+  price       Float
+  cost        Float
+  category    Category @relation(fields: [categoryId], references: [id])
+  categoryId  String
+  image       String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  inventory        Inventory[]
+  transactionItems TransactionItem[]
+  aiInsights       AIInsight[]
+
+  @@index([categoryId])
+}
+
+model Category {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  description String?
+  createdAt DateTime  @default(now())
+
+  products Product[]
+}
+
+model Inventory {
+  id        String   @id @default(cuid())
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId String
+  branch    Branch   @relation(fields: [branchId], references: [id])
+  branchId  String
+  quantity  Int
+  minStock  Int      @default(10)
+  maxStock  Int      @default(100)
+  lastRestockDate DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([productId, branchId])
+  @@index([branchId])
+}
+
+// Customers & Credit
+model Customer {
+  id          String   @id @default(cuid())
+  name        String
+  email       String?  @unique
+  phone       String?  @unique
+  address     String?
+  city        String?
+  country     String?
+  creditLimit Float    @default(0)
+  creditUsed  Float    @default(0)
+  totalSpent  Float    @default(0)
+  branch      Branch   @relation(fields: [branchId], references: [id])
+  branchId    String
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  transactions Transaction[]
+  creditHistory CreditHistory[]
+
+  @@index([branchId])
+}
+
+model CreditHistory {
+  id        String   @id @default(cuid())
+  customer  Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  customerId String
+  amount    Float
+  type      String   // CREDIT_ADDED, PAYMENT, ADJUSTMENT
+  reason    String?
+  createdAt DateTime @default(now())
+
+  @@index([customerId])
+}
+
+// Transactions & Sales
+model Transaction {
+  id          String   @id @default(cuid())
+  transactionNumber String @unique
+  user        User     @relation(fields: [userId], references: [id])
+  userId      String
+  customer    Customer? @relation(fields: [customerId], references: [id])
+  customerId  String?
+  branch      Branch   @relation(fields: [branchId], references: [id])
+  branchId    String
+  subtotal    Float
+  tax         Float
+  discount    Float    @default(0)
+  total       Float
+  paymentMethod String  // CASH, CARD, CREDIT, MOBILE_MONEY
+  status      String   @default("COMPLETED") // COMPLETED, PENDING, CANCELLED
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  items       TransactionItem[]
+  payments    Payment[]
+
+  @@index([userId])
+  @@index([customerId])
+  @@index([branchId])
+  @@index([createdAt])
+}
+
+model TransactionItem {
+  id            String   @id @default(cuid())
+  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  transactionId String
+  product       Product  @relation(fields: [productId], references: [id])
+  productId     String
+  quantity      Int
+  unitPrice     Float
+  discount      Float    @default(0)
+  total         Float
+  createdAt     DateTime @default(now())
+
+  @@index([transactionId])
+  @@index([productId])
+}
+
+model Payment {
+  id            String   @id @default(cuid())
+  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  transactionId String
+  amount        Float
+  method        String   // CASH, CARD, CREDIT, MOBILE_MONEY
+  reference     String?
+  createdAt     DateTime @default(now())
+
+  @@index([transactionId])
+}
+
+// Multi-Branch System
+model Branch {
+  id        String   @id @default(cuid())
+  name      String
+  location  String
+  phone     String?
+  email     String?
+  manager   String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users        User[]
+  inventory    Inventory[]
+  customers    Customer[]
+  transactions Transaction[]
+}
+
+// Analytics & Reporting
+model DailySales {
+  id        String   @id @default(cuid())
+  branch    Branch   @relation(fields: [branchId], references: [id])
+  branchId  String
+  date      DateTime
+  totalSales Float
+  totalTransactions Int
+  totalCustomers Int
+  createdAt DateTime @default(now())
+
+  @@unique([branchId, date])
+  @@index([branchId])
+}
+
+model ProductSales {
+  id        String   @id @default(cuid())
+  product   Product  @relation(fields: [productId], references: [id])
+  productId String
+  branch    Branch   @relation(fields: [branchId], references: [id])
+  branchId  String
+  date      DateTime
+  quantity  Int
+  revenue   Float
+  createdAt DateTime @default(now())
+
+  @@unique([productId, branchId, date])
+  @@index([productId])
+  @@index([branchId])
+}
+
+// Audit & Logging
+model AuditLog {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  action    String
+  entity    String
+  entityId  String
+  changes   String?  // JSON string of changes
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+// AI Insights
+model AIInsight {
+  id        String   @id @default(cuid())
+  product   Product  @relation(fields: [productId], references: [id])
+  productId String
+  type      String   // RECOMMENDATION, FORECAST, PRICING, TREND
+  insight   String   // JSON string of insight data
+  confidence Float   @default(0.0)
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+
+  @@index([productId])
+  @@index([type])
+}
+
+// Chat & AI Assistant
+model ChatMessage {
+  id        String   @id @default(cuid())
+  userId    String
+  role      String   // USER, ASSISTANT
+  content   String
+  context   String?  // JSON string of context
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+}

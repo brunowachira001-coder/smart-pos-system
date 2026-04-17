@@ -1,73 +1,65 @@
-import { useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 
 export default function Sidebar() {
   const router = useRouter();
-  const [collapsed, setCollapsed] = useState(false);
 
   const menuItems = [
-    { label: 'Dashboard', path: '/dashboard', icon: '📊' },
-    { label: 'POS / Sales', path: '/pos', icon: '💳' },
-    { label: 'Inventory', path: '/inventory', icon: '📦' },
-    { label: 'Customers', path: '/customers', icon: '👥' },
-    { label: 'Transactions', path: '/sales', icon: '💰' },
-    { label: 'Reports', path: '/reports', icon: '📈' },
-    { label: 'Settings', path: '/settings', icon: '⚙️' },
+    { label: 'Dashboard', href: '/dashboard-pro', icon: '📊' },
+    { label: 'Point of Sale', href: '/pos-advanced', icon: '🛒' },
+    { label: 'Transactions', href: '/sales-pro', icon: '💳' },
+    { label: 'Returns', href: '/returns', icon: '↩️' },
+    { label: 'Expenses', href: '/expenses', icon: '💸' },
+    { label: 'Inventory', href: '/inventory-pro', icon: '📦' },
+    { label: 'Customers', href: '/customers-pro', icon: '👥' },
+    { label: 'Debt Management', href: '/debt', icon: '💰' },
+    { label: 'Sales Analytics', href: '/reports-pro', icon: '📈' },
+    { label: 'Inventory Analytics', href: '/inventory-analytics', icon: '📊' },
+    { label: 'Product Performance', href: '/products-pro', icon: '🎯' },
+    { label: 'User Management', href: '/users', icon: '👤' },
+    { label: 'My Profile', href: '/settings', icon: '⚙️' },
   ];
 
-  const isActive = (path: string) => router.pathname === path;
+  const isActive = (href: string) => router.pathname === href;
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    router.push('/login');
+  };
 
   return (
-    <aside
-      className={`fixed left-0 top-0 h-screen bg-gradient-to-b from-slate-900 to-slate-800 border-r border-slate-700 transition-all duration-300 z-40 ${
-        collapsed ? 'w-20' : 'w-64'
-      }`}
-    >
-      {/* Header */}
-      <div className="h-20 flex items-center justify-between px-4 border-b border-slate-700">
-        {!collapsed && (
-          <Link href="/dashboard" className="flex items-center space-x-3 font-bold text-white hover:text-emerald-400 transition">
-            <div className="w-10 h-10 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-lg flex items-center justify-center">
-              <span className="text-lg">🏪</span>
-            </div>
-            <span className="text-lg">Smart Traders</span>
-          </Link>
-        )}
-        {collapsed && (
-          <div className="w-10 h-10 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-lg flex items-center justify-center mx-auto">
-            <span className="text-lg">🏪</span>
-          </div>
-        )}
+    <aside className="w-64 bg-[var(--bg-primary)] border-r border-[var(--border-color)] overflow-y-auto flex flex-col h-screen">
+      <div className="p-6 border-b border-[var(--border-color)]">
+        <h1 className="text-2xl font-bold text-emerald-500">Smart Traders</h1>
+        <p className="text-sm text-[var(--text-secondary)] mt-1">Inventory System</p>
       </div>
 
-      {/* Menu Items */}
-      <nav className="flex-1 px-3 py-6 space-y-2 overflow-y-auto">
+      <nav className="px-3 py-4 space-y-1 flex-1">
         {menuItems.map((item) => (
           <Link
-            key={item.path}
-            href={item.path}
-            className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition duration-200 ${
-              isActive(item.path)
-                ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30'
-                : 'text-slate-300 hover:text-white hover:bg-slate-700'
+            key={item.href}
+            href={item.href}
+            className={`flex items-center px-3 py-2.5 rounded-lg transition-colors text-sm ${
+              isActive(item.href)
+                ? 'bg-emerald-500/10 text-emerald-500 font-medium'
+                : 'text-[var(--text-primary)] hover:bg-[var(--bg-secondary)]'
             }`}
-            title={collapsed ? item.label : ''}
           >
-            <span className="text-xl">{item.icon}</span>
-            {!collapsed && <span className="font-medium">{item.label}</span>}
+            <span className="text-lg mr-3">{item.icon}</span>
+            <span>{item.label}</span>
           </Link>
         ))}
       </nav>
 
-      {/* Collapse Button */}
-      <div className="p-4 border-t border-slate-700">
+      <div className="p-4 border-t border-[var(--border-color)]">
         <button
-          onClick={() => setCollapsed(!collapsed)}
-          className="w-full flex items-center justify-center py-2 text-slate-400 hover:text-white transition"
-          title={collapsed ? 'Expand' : 'Collapse'}
+          onClick={handleLogout}
+          className="w-full px-4 py-2.5 text-sm font-medium text-red-500 hover:bg-red-500/10 rounded-lg transition-colors flex items-center justify-center space-x-2"
         >
-          {collapsed ? '→' : '←'}
+          <span>🚪</span>
+          <span>Logout</span>
         </button>
       </div>
     </aside>

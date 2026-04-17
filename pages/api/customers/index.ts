@@ -1,46 +1,35 @@
-import { NextApiRequest, NextApiResponse } from 'next';
-import { authMiddleware, AuthenticatedRequest } from '@/middleware/auth';
-import { errorHandler } from '@/middleware/errorHandler';
-import { customerService } from '@/services/customer.service';
-import { ApiResponse, ValidationError } from '@/types';
+import type { NextApiRequest, NextApiResponse } from 'next';
+import { supabase } from '@/lib/supabase';
 
-async function handler(req: AuthenticatedRequest, res: NextApiResponse<ApiResponse<any>>) {
-  if (!req.user) {
-    return res.status(401).json({ success: false, error: 'Unauthorized', timestamp: new Date() });
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method === 'GET') {
+    const { data, error } = await supabase
+      .from('customers')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) return res.status(500).json({ error: error.message });
+    return res.status(200).json(data);
   }
 
-  try {
-    if (req.method === 'POST') {
-      const { firstName, lastName, phone, email, address, creditLimit } = req.body;
-
-      if (!firstName || !lastName || !phone || creditLimit === undefined) {
-        throw new ValidationError('FirstName, LastName, phone, and creditLimit are required');
-      }
-
-      const customer = await customerService.createCustomer({
-        firstName,
-        lastName,
-        phone,
+  if (req.method === 'POST') {
+    const { name, email, phone } = req.body;
+    
+    const { data, error } = await supabase
+      .from('customers')
+      .insert([{
+        name,
         email,
-        address,
-        creditLimit,
-      });
+        phone,
+        total_spent: 0,
+        status: 'Active'
+      }])
+      .select()
+      .single();
 
-      return res.status(201).json({
-        success: true,
-        data: customer,
-        timestamp: new Date(),
-      });
-    }
-
-    res.status(405).json({ success: false, error: 'Method not allowed', timestamp: new Date() });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error instanceof Error ? error.message : 'Internal server error',
-      timestamp: new Date(),
-    });
+    if (error) return res.status(500).json({ error: error.message });
+    return res.status(201).json(data);
   }
-}
 
-export default authMiddleware(errorHandler(handler));
+  return res.status(405).json({ error: 'Method not allowed' });
+}

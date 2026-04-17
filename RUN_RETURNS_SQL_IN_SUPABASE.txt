@@ -1,0 +1,34 @@
+========================================
+RUN THIS SQL IN SUPABASE FOR RETURNS
+========================================
+
+QUICK STEPS:
+1. Go to: https://supabase.com/dashboard
+2. Select your project: smart-pos-system
+3. Click "SQL Editor"
+4. Click "New Query"
+5. Open file: lib/returns-schema.sql
+6. Copy ALL content
+7. Paste into Supabase
+8. Click "Run"
+
+WHAT THIS CREATES:
+✅ 3 tables (returns, return_items, return_reasons)
+✅ 5 sample returns (1 pending, 4 completed)
+✅ 11 predefined return reasons
+✅ Automatic inventory restoration
+✅ Status update triggers
+
+AFTER RUNNING:
+Visit: https://smart-pos-system-peach.vercel.app/returns
+
+You'll see:
+- 5 return records
+- Search and filter functionality
+- Process returns (approve/reject)
+- Automatic inventory updates
+
+========================================
+
+SQL file: lib/returns-schema.sql
+Full guide: RETURNS_MANAGEMENT_SETUP.md

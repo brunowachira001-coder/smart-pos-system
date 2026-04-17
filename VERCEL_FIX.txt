@@ -1,2 +1,0 @@
-Vercel configuration fixed - moved .vercel to root directory
-Timestamp: 2026-04-15
