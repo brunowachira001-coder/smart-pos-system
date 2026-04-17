@@ -1,0 +1,134 @@
+🧪 TEST INVENTORY PAGE - STEP BY STEP
+
+═══════════════════════════════════════════════════════════════
+
+STEP 1: RESTART DEV SERVER
+═══════════════════════════════════════════════════════════════
+
+In your terminal:
+1. Press Ctrl + C to stop the server
+2. Run: npm run dev
+3. Wait for "ready - started server on 0.0.0.0:3000"
+
+═══════════════════════════════════════════════════════════════
+
+STEP 2: CLEAR BROWSER CACHE
+═══════════════════════════════════════════════════════════════
+
+Option A - Hard Refresh:
+- Windows/Linux: Ctrl + Shift + R
+- Mac: Cmd + Shift + R
+
+Option B - DevTools:
+1. Press F12 to open DevTools
+2. Right-click the refresh button
+3. Select "Empty Cache and Hard Reload"
+
+═══════════════════════════════════════════════════════════════
+
+STEP 3: NAVIGATE TO INVENTORY
+═══════════════════════════════════════════════════════════════
+
+Go to: http://localhost:3000/inventory
+
+You should see:
+✅ Title: "Inventory"
+✅ Subtitle: "Manage your product inventory and stock levels."
+✅ Three tabs: All Products | Parent Products | Archived
+✅ Search bar with placeholder: "Search products by name, SKU, or barcode"
+✅ Category dropdown
+✅ Export button
+✅ Add Product button (green)
+
+═══════════════════════════════════════════════════════════════
+
+STEP 4: CHECK CONSOLE FOR ERRORS
+═══════════════════════════════════════════════════════════════
+
+1. Press F12 to open DevTools
+2. Click "Console" tab
+3. Look for any red errors
+4. If you see errors, copy them
+
+Common errors and fixes:
+- "Cannot read property..." → API endpoint issue
+- "Failed to fetch" → Check Supabase credentials
+- "404 Not Found" → Check API files exist
+
+═══════════════════════════════════════════════════════════════
+
+STEP 5: TEST API ENDPOINT
+═══════════════════════════════════════════════════════════════
+
+Open in browser:
+http://localhost:3000/api/inventory/list?page=1&limit=20&filter=all
+
+You should see JSON response with:
+{
+  "products": [...],
+  "categories": [...],
+  "pagination": {...}
+}
+
+If you get an error, check:
+- Supabase credentials in .env.local
+- Products table exists in Supabase
+- Migration was run successfully
+
+═══════════════════════════════════════════════════════════════
+
+STEP 6: VERIFY FILES
+═══════════════════════════════════════════════════════════════
+
+Run these commands:
+
+ls -la pages/inventory.tsx
+→ Should show ~41KB file
+
+ls -la pages/api/inventory/
+→ Should show: list.ts, index.ts, restock.ts, adjust.ts
+
+═══════════════════════════════════════════════════════════════
+
+WHAT'S DIFFERENT FROM OLD PAGE?
+═══════════════════════════════════════════════════════════════
+
+OLD PAGE (inventory-pro.tsx):
+❌ Simple table with hardcoded data
+❌ Only "Adjust Stock" button
+❌ No search or filters
+❌ No real database integration
+
+NEW PAGE (inventory.tsx):
+✅ Complete product management
+✅ Search by name, SKU, barcode
+✅ Filter tabs and category dropdown
+✅ Add/Edit/Delete products
+✅ Restock and Adjust Stock
+✅ Export to CSV
+✅ Full Supabase integration
+✅ Pagination
+
+═══════════════════════════════════════════════════════════════
+
+STILL SEEING OLD PAGE?
+═══════════════════════════════════════════════════════════════
+
+1. Check URL - must be /inventory NOT /inventory-pro
+2. Check sidebar link - should point to /inventory
+3. Clear ALL browser data for localhost
+4. Try incognito/private window
+5. Check terminal for build errors
+
+═══════════════════════════════════════════════════════════════
+
+NEED HELP?
+═══════════════════════════════════════════════════════════════
+
+Share:
+1. URL you're visiting
+2. Browser console errors (F12 → Console)
+3. Terminal output
+4. Screenshot of what you see
+
+═══════════════════════════════════════════════════════════════

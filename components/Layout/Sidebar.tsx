@@ -17,7 +17,7 @@ export default function Sidebar() {
     { label: 'Sales Analytics', href: '/sales-analytics', icon: '📈' },
     { label: 'Inventory Analytics', href: '/inventory-analytics', icon: '📊' },
     { label: 'Product Performance', href: '/product-performance', icon: '🎯' },
-    { label: 'User Management', href: '/users', icon: '👤' },
+    { label: 'User Management', href: '/user-management', icon: '👤' },
     { label: 'My Profile', href: '/settings', icon: '⚙️' },
   ];
 
