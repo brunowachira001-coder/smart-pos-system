@@ -1,38 +1,112 @@
-# Web Projects
+# Smart POS System
 
-This folder contains all web projects.
+A complete Point of Sale and Inventory Management System built with Next.js, React, and Supabase.
 
-## Projects
+## 🚀 Live Demo
 
-### QuantyX Digital Technologies
-Location: `websites/quantyx/`
+**Website**: [https://smart-pos-system.vercel.app](https://smart-pos-system.vercel.app)
 
-To view the website:
-1. Open `websites/quantyx/quantyx_homepage.html` in your browser
-2. Or use a local server: `python -m http.server 8000` then visit `http://localhost:8000/websites/quantyx/`
+## 📋 Features
 
-### Website 2
-Location: `websites/website-2/`
-(Ready for your next project)
+- **Dashboard** - Real-time analytics and insights
+- **Point of Sale (POS)** - Fast checkout and sales processing
+- **Inventory Management** - Track stock levels and products
+- **Customer Management** - Manage customer information
+- **Transactions** - Complete transaction history
+- **Returns Management** - Handle product returns
+- **Expense Tracking** - Monitor business expenses
+- **Debt Management** - Track customer debts
+- **Sales Analytics** - Detailed sales reports
+- **Inventory Analytics** - Stock analysis and insights
+- **Product Performance** - Track product sales metrics
+- **User Management** - Manage system users and roles
+- **Profile Settings** - User profile and preferences
 
-## Folder Structure
+## 🛠️ Tech Stack
+
+- **Frontend**: Next.js 14, React, TypeScript, Tailwind CSS
+- **Backend**: Next.js API Routes
+- **Database**: Supabase (PostgreSQL)
+- **Hosting**: Vercel
+- **Authentication**: Supabase Auth
+
+## 📚 Documentation
+
+All documentation is in the `docs/` folder:
+
+- [Quick Start Guide](docs/README.md)
+- [Database Setup](docs/DATABASE_SETUP.md)
+- [Deployment Guide](docs/DEPLOYMENT_GUIDE.md)
+- [Feature Documentation](docs/)
+
+## 🚀 Quick Start
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/brunowachira001-coder/smart-pos-system.git
+cd smart-pos-system
+```
+
+### 2. Install Dependencies
+
+```bash
+npm install
+```
+
+### 3. Setup Environment Variables
+
+Create a `.env.local` file:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+```
+
+### 4. Setup Database
+
+Run the SQL schemas in your Supabase SQL Editor:
+- `lib/database.sql` - Main schema
+- `lib/users-schema.sql` - Users table
+- `lib/customers-step-by-step.sql` - Customers
+- `lib/products-migration.sql` - Products updates
+- Other schema files as needed
+
+### 5. Run Development Server
+
+```bash
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000)
+
+## 📁 Project Structure
 
 ```
-websites/
-├── quantyx/
-│   ├── documentation/     (All docs and guides)
-│   ├── archive/          (Old/test files)
-│   ├── assets/           (Images, icons, etc)
-│   └── (HTML, CSS, JS files)
-└── website-2/
-    └── (Your next project)
+smart-pos-system/
+├── components/        # React components
+├── pages/            # Next.js pages and API routes
+├── lib/              # Database schemas and utilities
+├── styles/           # CSS styles
+├── docs/             # Documentation
+├── public/           # Static files
+└── .env.local        # Environment variables
 ```
 
-## Hidden Folders
-- `.git/` - Version control (can be hidden in file manager)
-- `.vscode/` - Editor settings (can be hidden in file manager)
+## 🔑 Default Login
 
-## To Hide Folders in File Manager
-**Windows:** View → Options → Show hidden files (uncheck)
-**Mac:** Cmd + Shift + . (toggle hidden files)
-**Linux:** Ctrl + H (toggle hidden files)
+- Email: `johnsmarttraders@gmail.com`
+- Password: (Set in your system)
+
+## 📝 License
+
+This project is private and proprietary.
+
+## 👨‍💻 Developer
+
+Built by Bruno Wachira
+
+## 🆘 Support
+
+For issues or questions, check the documentation in the `docs/` folder.
