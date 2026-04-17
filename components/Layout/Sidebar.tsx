@@ -18,7 +18,7 @@ export default function Sidebar() {
     { label: 'Inventory Analytics', href: '/inventory-analytics', icon: '📊' },
     { label: 'Product Performance', href: '/product-performance', icon: '🎯' },
     { label: 'User Management', href: '/user-management', icon: '👤' },
-    { label: 'My Profile', href: '/settings', icon: '⚙️' },
+    { label: 'My Profile', href: '/my-profile', icon: '⚙️' },
   ];
 
   const isActive = (href: string) => router.pathname === href;
