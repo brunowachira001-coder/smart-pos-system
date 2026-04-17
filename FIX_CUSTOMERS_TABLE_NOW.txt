@@ -1,0 +1,64 @@
+🔧 CUSTOMERS TABLE FIX
+======================
+
+The error "column customer_type does not exist" means there's likely
+an old/partial customers table in your database that's blocking the new one.
+
+🎯 SOLUTION: Use the NEW file with DROP TABLE
+==============================================
+
+File: lib/customers-step-by-step.sql
+
+This file will:
+1. DROP the existing customers table (if any)
+2. Create a fresh customers table with ALL columns
+3. Create all indexes
+4. Create all functions
+5. Create all triggers
+
+📋 RUN THIS IN SUPABASE:
+=========================
+
+1. Go to Supabase SQL Editor
+
+2. Copy ALL code from: lib/customers-step-by-step.sql
+
+3. Paste and click "Run"
+
+4. You should see: "Success. No rows returned"
+
+⚠️ WARNING:
+===========
+This will DELETE any existing customers data!
+If you have important data, export it first.
+
+But since this is a new feature, you probably don't have
+any customers data yet, so it's safe to run.
+
+✅ AFTER SUCCESS:
+=================
+
+Visit http://localhost:3000/customers
+
+The page should load without errors and you can:
+- Add customers
+- Search customers
+- Edit customers
+- Export to CSV
+
+🔍 WHY THIS HAPPENED:
+=====================
+
+The error suggests that:
+1. A partial customers table was created earlier
+2. It's missing the customer_type column
+3. The CREATE TABLE IF NOT EXISTS is skipping creation
+4. But the trigger is trying to use customer_type
+
+The DROP TABLE fixes this by starting fresh.
+
+📁 USE THIS FILE:
+=================
+lib/customers-step-by-step.sql
+
+Copy, paste, run. Done!

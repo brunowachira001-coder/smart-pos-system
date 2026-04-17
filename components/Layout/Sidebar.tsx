@@ -14,7 +14,7 @@ export default function Sidebar() {
     { label: 'Inventory', href: '/inventory-pro', icon: '📦' },
     { label: 'Customers', href: '/customers', icon: '👥' },
     { label: 'Debt Management', href: '/debt', icon: '💰' },
-    { label: 'Sales Analytics', href: '/reports-pro', icon: '📈' },
+    { label: 'Sales Analytics', href: '/sales-analytics', icon: '📈' },
     { label: 'Inventory Analytics', href: '/inventory-analytics', icon: '📊' },
     { label: 'Product Performance', href: '/products-pro', icon: '🎯' },
     { label: 'User Management', href: '/users', icon: '👤' },
