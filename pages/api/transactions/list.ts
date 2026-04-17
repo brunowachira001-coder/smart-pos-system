@@ -1,22 +1,102 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { createClient } from '@supabase/supabase-js';
 
-const mockTransactions = [
-  { id: '1', transactionNumber: 'TXN-001', date: '2024-04-15', time: '10:30:00', cashier: 'admin', customer: 'John Doe', itemCount: 3, subtotal: 5000, tax: 800, total: 5800, status: 'COMPLETED' },
-  { id: '2', transactionNumber: 'TXN-002', date: '2024-04-15', time: '11:15:00', cashier: 'admin', customer: 'Walk-in', itemCount: 2, subtotal: 3000, tax: 480, total: 3480, status: 'COMPLETED' },
-  { id: '3', transactionNumber: 'TXN-003', date: '2024-04-15', time: '12:00:00', cashier: 'admin', customer: 'Jane Smith', itemCount: 4, subtotal: 7500, tax: 1200, total: 8700, status: 'COMPLETED' },
-  { id: '4', transactionNumber: 'TXN-004', date: '2024-04-15', time: '14:30:00', cashier: 'admin', customer: 'Walk-in', itemCount: 1, subtotal: 2000, tax: 320, total: 2320, status: 'COMPLETED' },
-  { id: '5', transactionNumber: 'TXN-005', date: '2024-04-15', time: '15:45:00', cashier: 'admin', customer: 'Bob Johnson', itemCount: 5, subtotal: 9000, tax: 1440, total: 10440, status: 'COMPLETED' },
-];
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
-export default function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    res.setHeader('Allow', ['GET']);
+    return res.status(405).json({ error: `Method ${req.method} Not Allowed` });
   }
 
   try {
-    res.status(200).json({ success: true, data: mockTransactions, total: mockTransactions.length });
-  } catch (error) {
-    console.error('Transaction list error:', error);
-    res.status(500).json({ error: 'Failed to fetch transactions' });
+    const { 
+      page = '1', 
+      limit = '20', 
+      search = '', 
+      priceType = '',
+      paymentMethod = '',
+      status = '',
+      startDate = '',
+      endDate = '',
+      sortBy = 'created_at',
+      sortOrder = 'desc'
+    } = req.query;
+
+    const pageNum = parseInt(page as string);
+    const limitNum = parseInt(limit as string);
+    const offset = (pageNum - 1) * limitNum;
+
+    let query = supabase
+      .from('sales_transactions')
+      .select('*', { count: 'exact' });
+
+    // Search filter
+    if (search) {
+      query = query.or(`transaction_number.ilike.%${search}%,customer_name.ilike.%${search}%,customer_phone.ilike.%${search}%`);
+    }
+
+    // Payment method filter
+    if (paymentMethod && paymentMethod !== 'all') {
+      query = query.eq('payment_method', paymentMethod);
+    }
+
+    // Status filter
+    if (status && status !== 'all') {
+      query = query.eq('status', status);
+    }
+
+    // Date range filter
+    if (startDate) {
+      query = query.gte('created_at', startDate);
+    }
+    if (endDate) {
+      query = query.lte('created_at', endDate);
+    }
+
+    // Sorting
+    query = query.order(sortBy as string, { ascending: sortOrder === 'asc' });
+
+    // Pagination
+    query = query.range(offset, offset + limitNum - 1);
+
+    const { data: transactions, error, count } = await query;
+
+    if (error) {
+      return res.status(500).json({ error: error.message });
+    }
+
+    // Get items count for each transaction
+    const transactionsWithItems = await Promise.all(
+      (transactions || []).map(async (transaction) => {
+        const { data: items } = await supabase
+          .from('sales_transaction_items')
+          .select('*')
+          .eq('transaction_id', transaction.id);
+
+        return {
+          ...transaction,
+          items_count: items?.length || 0,
+          items: items || []
+        };
+      })
+    );
+
+    return res.status(200).json({
+      transactions: transactionsWithItems,
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        total: count || 0,
+        totalPages: Math.ceil((count || 0) / limitNum)
+      }
+    });
+
+  } catch (error: any) {
+    console.error('Error fetching transactions:', error);
+    return res.status(500).json({ error: error.message || 'Failed to fetch transactions' });
   }
 }

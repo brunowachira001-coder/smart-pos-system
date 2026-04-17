@@ -8,7 +8,7 @@ export default function Sidebar() {
   const menuItems = [
     { label: 'Dashboard', href: '/dashboard-pro', icon: '📊' },
     { label: 'Point of Sale', href: '/pos', icon: '🛒' },
-    { label: 'Transactions', href: '/sales-pro', icon: '💳' },
+    { label: 'Transactions', href: '/transactions', icon: '💳' },
     { label: 'Returns', href: '/returns', icon: '↩️' },
     { label: 'Expenses', href: '/expenses', icon: '💸' },
     { label: 'Inventory', href: '/inventory-pro', icon: '📦' },
