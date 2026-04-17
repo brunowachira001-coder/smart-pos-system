@@ -1,7 +1,3 @@
--- Customers Table Schema for Supabase
--- Run this AFTER running lib/pos-schema.sql
-
--- First, ensure the update function exists (in case pos-schema wasn't run)
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -10,7 +6,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Create customers table
 CREATE TABLE IF NOT EXISTS customers (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   name VARCHAR(255) NOT NULL,
@@ -29,7 +24,6 @@ CREATE TABLE IF NOT EXISTS customers (
   updated_at TIMESTAMP DEFAULT NOW()
 );
 
--- Create indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_customers_name ON customers(name);
 CREATE INDEX IF NOT EXISTS idx_customers_email ON customers(email);
 CREATE INDEX IF NOT EXISTS idx_customers_phone ON customers(phone);
@@ -37,18 +31,15 @@ CREATE INDEX IF NOT EXISTS idx_customers_type ON customers(customer_type);
 CREATE INDEX IF NOT EXISTS idx_customers_status ON customers(status);
 CREATE INDEX IF NOT EXISTS idx_customers_created ON customers(created_at);
 
--- Trigger for updated_at
 DROP TRIGGER IF EXISTS update_customers_updated_at ON customers;
 CREATE TRIGGER update_customers_updated_at
   BEFORE UPDATE ON customers
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at_column();
 
--- Function to update customer stats after transaction
 CREATE OR REPLACE FUNCTION update_customer_stats()
 RETURNS TRIGGER AS $$
 BEGIN
-  -- Update customer's total purchases and transaction count
   IF NEW.customer_id IS NOT NULL THEN
     UPDATE customers
     SET 
@@ -58,12 +49,10 @@ BEGIN
       updated_at = NOW()
     WHERE id = NEW.customer_id;
   END IF;
-  
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
--- Trigger to update customer stats when transaction is created
 DROP TRIGGER IF EXISTS update_customer_stats_on_transaction ON sales_transactions;
 CREATE TRIGGER update_customer_stats_on_transaction
   AFTER INSERT ON sales_transactions
