@@ -18,6 +18,7 @@ export default function ProductPerformancePage() {
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
+  const [selectedRange, setSelectedRange] = useState('all');
 
   useEffect(() => {
     fetchPerformance();
@@ -89,7 +90,13 @@ export default function ProductPerformancePage() {
 
         {/* Filters */}
         <div className="flex gap-4 mb-6 items-center">
-          <DateRangeFilter onDateChange={handleDateRangeChange} />
+          <DateRangeFilter 
+            value={selectedRange}
+            onChange={setSelectedRange}
+            startDate={dateRange.start}
+            endDate={dateRange.end}
+            onDateChange={handleDateRangeChange}
+          />
           
           <button
             onClick={exportToCSV}
