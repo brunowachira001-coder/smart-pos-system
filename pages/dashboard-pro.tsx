@@ -7,6 +7,8 @@ export default function DashboardPro() {
   const [showReportModal, setShowReportModal] = useState(false);
   const [showPricingAudit, setShowPricingAudit] = useState(false);
   const [dateRange, setDateRange] = useState('today');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   const [stats, setStats] = useState({
     verifiedProfit: 1626987.04,
     potentialProfit: 9244459.94,
@@ -35,15 +37,24 @@ export default function DashboardPro() {
         {/* Header */}
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold">Dashboard Overview</h1>
-            <p className="text-[var(--text-secondary)] text-sm">A summary of your business performance</p>
+            <h1 className="text-2xl font-semibold tracking-tight">Dashboard Overview</h1>
+            <p className="text-[var(--text-secondary)] text-sm mt-1">A summary of your business performance</p>
           </div>
           <div className="flex items-center gap-4">
             <select className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg px-4 py-2 text-sm">
               <option>Retail</option>
               <option>Wholesale</option>
             </select>
-            <DateRangeFilter value={dateRange} onChange={setDateRange} />
+            <DateRangeFilter 
+              value={dateRange} 
+              onChange={setDateRange}
+              startDate={startDate}
+              endDate={endDate}
+              onDateChange={(start, end) => {
+                setStartDate(start);
+                setEndDate(end);
+              }}
+            />
             <button className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg px-4 py-2 text-sm hover:bg-[var(--bg-tertiary)]">
               📄 Export Summary
             </button>
@@ -55,10 +66,10 @@ export default function DashboardPro() {
         {/* All Time Verified Profit */}
         <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-6">
           <div className="flex justify-between items-start mb-2">
-            <p className="text-[var(--text-secondary)] text-sm">All Time Verified Profit</p>
+            <p className="text-[var(--text-secondary)] text-xs font-medium">All Time Verified Profit</p>
             <span className="text-emerald-500">📈</span>
           </div>
-          <p className="text-3xl font-bold text-emerald-500">KSH {stats.verifiedProfit.toLocaleString()}</p>
+          <p className="text-2xl font-semibold text-emerald-500">KSH {stats.verifiedProfit.toLocaleString()}</p>
           <div className="mt-4 space-y-2">
             <div className="flex justify-between text-sm">
               <span className="text-[var(--text-secondary)]">Retail</span>
@@ -75,10 +86,10 @@ export default function DashboardPro() {
         {/* Potential Profit */}
         <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-6">
           <div className="flex justify-between items-start mb-2">
-            <p className="text-[var(--text-secondary)] text-sm">Potential Profit</p>
+            <p className="text-[var(--text-secondary)] text-xs font-medium">Potential Profit</p>
             <span className="text-emerald-500">📈</span>
           </div>
-          <p className="text-3xl font-bold">KSH {stats.potentialProfit.toLocaleString()}</p>
+          <p className="text-2xl font-semibold">KSH {stats.potentialProfit.toLocaleString()}</p>
           <p className="text-sm text-[var(--text-secondary)] mt-2">
             Potential profit from current inventory at retail prices
           </p>
@@ -90,10 +101,10 @@ export default function DashboardPro() {
         {/* Gross Sales Revenue */}
         <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-6">
           <div className="flex justify-between items-start mb-2">
-            <p className="text-[var(--text-secondary)] text-sm">Gross Sales Revenue</p>
+            <p className="text-[var(--text-secondary)] text-xs font-medium">Gross Sales Revenue</p>
             <span className="text-emerald-500">📈</span>
           </div>
-          <p className="text-3xl font-bold">KSH {stats.grossRevenue.toLocaleString()}</p>
+          <p className="text-2xl font-semibold">KSH {stats.grossRevenue.toLocaleString()}</p>
           <p className="text-sm text-[var(--text-secondary)] mt-2">
             Wholesale: KSH 5872270 • Retail: KSH 944662.24
           </p>
@@ -105,10 +116,10 @@ export default function DashboardPro() {
         {/* Today's Net Revenue */}
         <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-6">
           <div className="flex justify-between items-start mb-2">
-            <p className="text-[var(--text-secondary)] text-sm">Today's Net Revenue</p>
+            <p className="text-[var(--text-secondary)] text-xs font-medium">Today's Net Revenue</p>
             <span className="text-emerald-500">📈</span>
           </div>
-          <p className="text-3xl font-bold text-emerald-500">KSH {stats.netRevenue.toFixed(2)}</p>
+          <p className="text-2xl font-semibold text-emerald-500">KSH {stats.netRevenue.toFixed(2)}</p>
           <div className="mt-4 space-y-2 bg-[var(--bg-primary)] rounded-lg p-3">
             {revenueBreakdown.map((item, idx) => (
               <div key={idx} className="flex justify-between text-sm">
@@ -127,30 +138,30 @@ export default function DashboardPro() {
         {/* Product Categories */}
         <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-6">
           <div className="flex justify-between items-start mb-2">
-            <p className="text-[var(--text-secondary)] text-sm">Product Categories</p>
+            <p className="text-[var(--text-secondary)] text-xs font-medium">Product Categories</p>
             <span className="text-blue-400">📦</span>
           </div>
-          <p className="text-4xl font-bold">{stats.productCategories}</p>
+          <p className="text-3xl font-semibold">{stats.productCategories}</p>
           <p className="text-sm text-[var(--text-secondary)] mt-2">Number of unique active categories</p>
         </div>
 
         {/* Outstanding Debt */}
         <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-6">
           <div className="flex justify-between items-start mb-2">
-            <p className="text-[var(--text-secondary)] text-sm">Outstanding Debt</p>
+            <p className="text-[var(--text-secondary)] text-xs font-medium">Outstanding Debt</p>
             <span className="text-orange-400">💳</span>
           </div>
-          <p className="text-4xl font-bold">KSH {stats.outstandingDebt.toFixed(2)}</p>
+          <p className="text-3xl font-semibold">KSH {stats.outstandingDebt.toFixed(2)}</p>
           <p className="text-sm text-[var(--text-secondary)] mt-2">2 customers with debt</p>
         </div>
 
         {/* Low Stock Alerts */}
         <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-6">
           <div className="flex justify-between items-start mb-2">
-            <p className="text-[var(--text-secondary)] text-sm">Low Stock Alerts</p>
+            <p className="text-[var(--text-secondary)] text-xs font-medium">Low Stock Alerts</p>
             <span className="text-yellow-400">⚠️</span>
           </div>
-          <p className="text-4xl font-bold text-yellow-400">{stats.lowStockItems}</p>
+          <p className="text-3xl font-semibold text-yellow-400">{stats.lowStockItems}</p>
           <p className="text-sm text-[var(--text-secondary)] mt-2">Items below minimum stock</p>
         </div>
       </div>
@@ -232,10 +243,10 @@ export default function DashboardPro() {
         {/* Today's Expenses */}
         <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-6">
           <div className="flex justify-between items-start mb-2">
-            <p className="text-[var(--text-secondary)] text-sm">Today's Expenses</p>
+            <p className="text-[var(--text-secondary)] text-xs font-medium">Today's Expenses</p>
             <span className="text-red-500">📉</span>
           </div>
-          <p className="text-3xl font-bold text-red-500">KSH {stats.expenses.toFixed(2)}</p>
+          <p className="text-2xl font-semibold text-red-500">KSH {stats.expenses.toFixed(2)}</p>
           <p className="text-sm text-[var(--text-secondary)] mt-2">No expenses recorded today</p>
           <button className="mt-4 text-sm text-emerald-500 hover:text-emerald-400">+ Add</button>
         </div>
@@ -243,30 +254,30 @@ export default function DashboardPro() {
         {/* Total Inventory Value (Cost) */}
         <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-6">
           <div className="flex justify-between items-start mb-2">
-            <p className="text-[var(--text-secondary)] text-sm">Total Inventory Value (Cost)</p>
+            <p className="text-[var(--text-secondary)] text-xs font-medium">Total Inventory Value (Cost)</p>
             <span className="text-blue-500">💰</span>
           </div>
-          <p className="text-3xl font-bold">KSH {stats.inventoryValueCost.toLocaleString()}</p>
+          <p className="text-2xl font-semibold">KSH {stats.inventoryValueCost.toLocaleString()}</p>
           <p className="text-sm text-[var(--text-secondary)] mt-2">Current value at buying price</p>
         </div>
 
         {/* Total Inventory Value (Selling) */}
         <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-6">
           <div className="flex justify-between items-start mb-2">
-            <p className="text-[var(--text-secondary)] text-sm">Total Inventory Value (Selling)</p>
+            <p className="text-[var(--text-secondary)] text-xs font-medium">Total Inventory Value (Selling)</p>
             <span className="text-purple-500">💵</span>
           </div>
-          <p className="text-3xl font-bold">KSH {stats.inventoryValueSelling.toLocaleString()}</p>
+          <p className="text-2xl font-semibold">KSH {stats.inventoryValueSelling.toLocaleString()}</p>
           <p className="text-sm text-[var(--text-secondary)] mt-2">Current value at retail price</p>
         </div>
 
         {/* Total Units in Stock */}
         <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-6">
           <div className="flex justify-between items-start mb-2">
-            <p className="text-[var(--text-secondary)] text-sm">Total Units in Stock</p>
+            <p className="text-[var(--text-secondary)] text-xs font-medium">Total Units in Stock</p>
             <span className="text-orange-500">📦</span>
           </div>
-          <p className="text-3xl font-bold">{stats.totalUnits.toLocaleString()}</p>
+          <p className="text-3xl font-semibold">{stats.totalUnits.toLocaleString()}</p>
           <p className="text-sm text-[var(--text-secondary)] mt-2">Total units for all products</p>
         </div>
       </div>
