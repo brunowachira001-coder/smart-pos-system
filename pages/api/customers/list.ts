@@ -1,21 +1,75 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { createClient } from '@supabase/supabase-js';
 
-const mockCustomers = [
-  { id: '1', name: 'John Doe', phone: '+254712345678', email: 'john@example.com', address: '123 Main St', city: 'Nairobi', totalPurchases: 15, totalSpent: 45000, creditLimit: 50000, creditUsed: 10000, status: 'ACTIVE' },
-  { id: '2', name: 'Jane Smith', phone: '+254712345679', email: 'jane@example.com', address: '456 Oak Ave', city: 'Nairobi', totalPurchases: 8, totalSpent: 28000, creditLimit: 30000, creditUsed: 5000, status: 'ACTIVE' },
-  { id: '3', name: 'Bob Johnson', phone: '+254712345680', email: 'bob@example.com', address: '789 Pine Rd', city: 'Mombasa', totalPurchases: 12, totalSpent: 52000, creditLimit: 60000, creditUsed: 15000, status: 'ACTIVE' },
-  { id: '4', name: 'Alice Williams', phone: '+254712345681', email: 'alice@example.com', address: '321 Elm St', city: 'Kisumu', totalPurchases: 5, totalSpent: 18000, creditLimit: 20000, creditUsed: 2000, status: 'ACTIVE' },
-];
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
-export default function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    res.setHeader('Allow', ['GET']);
+    return res.status(405).json({ error: `Method ${req.method} Not Allowed` });
   }
 
   try {
-    res.status(200).json({ success: true, data: mockCustomers, total: mockCustomers.length });
-  } catch (error) {
-    console.error('Customer list error:', error);
-    res.status(500).json({ error: 'Failed to fetch customers' });
+    const { 
+      page = '1', 
+      limit = '20', 
+      search = '',
+      customerType = '',
+      status = '',
+      sortBy = 'created_at',
+      sortOrder = 'desc'
+    } = req.query;
+
+    const pageNum = parseInt(page as string);
+    const limitNum = parseInt(limit as string);
+    const offset = (pageNum - 1) * limitNum;
+
+    let query = supabase
+      .from('customers')
+      .select('*', { count: 'exact' });
+
+    // Search filter
+    if (search) {
+      query = query.or(`name.ilike.%${search}%,email.ilike.%${search}%,phone.ilike.%${search}%`);
+    }
+
+    // Customer type filter
+    if (customerType && customerType !== 'all') {
+      query = query.eq('customer_type', customerType);
+    }
+
+    // Status filter
+    if (status && status !== 'all') {
+      query = query.eq('status', status);
+    }
+
+    // Sorting
+    query = query.order(sortBy as string, { ascending: sortOrder === 'asc' });
+
+    // Pagination
+    query = query.range(offset, offset + limitNum - 1);
+
+    const { data: customers, error, count } = await query;
+
+    if (error) {
+      return res.status(500).json({ error: error.message });
+    }
+
+    return res.status(200).json({
+      customers: customers || [],
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        total: count || 0,
+        totalPages: Math.ceil((count || 0) / limitNum)
+      }
+    });
+
+  } catch (error: any) {
+    console.error('Error fetching customers:', error);
+    return res.status(500).json({ error: error.message || 'Failed to fetch customers' });
   }
 }
