@@ -1,5 +1,16 @@
 -- Customers Table Schema for Supabase
+-- Run this AFTER running lib/pos-schema.sql
 
+-- First, ensure the update function exists (in case pos-schema wasn't run)
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create customers table
 CREATE TABLE IF NOT EXISTS customers (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   name VARCHAR(255) NOT NULL,
@@ -9,8 +20,8 @@ CREATE TABLE IF NOT EXISTS customers (
   city VARCHAR(100),
   country VARCHAR(100) DEFAULT 'Kenya',
   notes TEXT,
-  customer_type VARCHAR(20) DEFAULT 'retail', -- 'retail' or 'wholesale'
-  status VARCHAR(20) DEFAULT 'active', -- 'active', 'inactive', 'blocked'
+  customer_type VARCHAR(20) DEFAULT 'retail',
+  status VARCHAR(20) DEFAULT 'active',
   total_purchases DECIMAL(10, 2) DEFAULT 0,
   total_transactions INTEGER DEFAULT 0,
   last_purchase_date TIMESTAMP,
@@ -26,7 +37,8 @@ CREATE INDEX IF NOT EXISTS idx_customers_type ON customers(customer_type);
 CREATE INDEX IF NOT EXISTS idx_customers_status ON customers(status);
 CREATE INDEX IF NOT EXISTS idx_customers_created ON customers(created_at);
 
--- Trigger for updated_at (uses function from pos-schema.sql)
+-- Trigger for updated_at
+DROP TRIGGER IF EXISTS update_customers_updated_at ON customers;
 CREATE TRIGGER update_customers_updated_at
   BEFORE UPDATE ON customers
   FOR EACH ROW
