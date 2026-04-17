@@ -1,0 +1,5 @@
+Force deployment trigger - Dashboard update with removed top bar
+Timestamp: April 17, 2026
+Commit: f3d30d4
+
+This file triggers a new Vercel deployment.
