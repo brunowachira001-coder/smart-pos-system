@@ -67,25 +67,6 @@ export default function SalesAnalyticsPage() {
     return colors[method.toLowerCase()] || '#6B7280';
   };
 
-  const calculatePieChart = () => {
-    if (!analytics?.paymentMethods) return [];
-    
-    let currentAngle = 0;
-    return analytics.paymentMethods.map(pm => {
-      const percentage = parseFloat(pm.percentage);
-      const angle = (percentage / 100) * 360;
-      const slice = {
-        method: pm.method,
-        percentage: pm.percentage,
-        startAngle: currentAngle,
-        endAngle: currentAngle + angle,
-        color: getPaymentMethodColor(pm.method)
-      };
-      currentAngle += angle;
-      return slice;
-    });
-  };
-
   return (
     <div className="min-h-screen bg-[var(--bg-secondary)]">
       <div className="p-6">
@@ -156,49 +137,47 @@ export default function SalesAnalyticsPage() {
               <h2 className="text-lg font-semibold mb-2">Payment Methods</h2>
               <p className="text-sm text-[var(--text-secondary)] mb-6">Breakdown of transactions by payment method.</p>
 
-              <div className="flex items-center justify-center">
-                <div className="relative w-80 h-80">
-                  <svg viewBox="0 0 200 200" className="w-full h-full transform -rotate-90">
-                    {calculatePieChart().map((slice, index) => {
-                      const startAngle = (slice.startAngle * Math.PI) / 180;
-                      const endAngle = (slice.endAngle * Math.PI) / 180;
-                      const x1 = 100 + 80 * Math.cos(startAngle);
-                      const y1 = 100 + 80 * Math.sin(startAngle);
-                      const x2 = 100 + 80 * Math.cos(endAngle);
-                      const y2 = 100 + 80 * Math.sin(endAngle);
-                      const largeArc = slice.endAngle - slice.startAngle > 180 ? 1 : 0;
-
-                      return (
-                        <path
-                          key={index}
-                          d={`M 100 100 L ${x1} ${y1} A 80 80 0 ${largeArc} 1 ${x2} ${y2} Z`}
-                          fill={slice.color}
-                          stroke="var(--bg-tertiary)"
-                          strokeWidth="2"
-                        />
-                      );
-                    })}
-                  </svg>
-
-                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-end">
+              <div className="flex items-center justify-center py-8">
+                <div className="relative w-96 h-96 flex items-center justify-center">
+                  {/* Pie Chart using conic-gradient */}
+                  <div 
+                    className="w-80 h-80 rounded-full relative"
+                    style={{
+                      background: analytics.paymentMethods.length > 0 
+                        ? `conic-gradient(${analytics.paymentMethods.map((pm, index) => {
+                            const prevPercentage = analytics.paymentMethods
+                              .slice(0, index)
+                              .reduce((sum, p) => sum + parseFloat(p.percentage), 0);
+                            const currentPercentage = parseFloat(pm.percentage);
+                            return `${getPaymentMethodColor(pm.method)} ${prevPercentage}% ${prevPercentage + currentPercentage}%`;
+                          }).join(', ')})`
+                        : '#E5E7EB'
+                    }}
+                  >
+                    {/* Labels positioned around the chart */}
                     {analytics.paymentMethods.map((pm, index) => {
-                      const angle = ((parseFloat(pm.percentage) / 100) * 360 * Math.PI) / 180;
-                      const midAngle = calculatePieChart()[index]?.startAngle + (angle / 2);
-                      const labelRadius = 120;
-                      const x = Math.cos((midAngle * Math.PI) / 180 - Math.PI / 2) * labelRadius;
-                      const y = Math.sin((midAngle * Math.PI) / 180 - Math.PI / 2) * labelRadius;
+                      const prevPercentage = analytics.paymentMethods
+                        .slice(0, index)
+                        .reduce((sum, p) => sum + parseFloat(p.percentage), 0);
+                      const currentPercentage = parseFloat(pm.percentage);
+                      const midPercentage = prevPercentage + (currentPercentage / 2);
+                      const angle = (midPercentage / 100) * 360 - 90;
+                      const radian = (angle * Math.PI) / 180;
+                      const radius = 200;
+                      const x = Math.cos(radian) * radius;
+                      const y = Math.sin(radian) * radius;
 
                       return (
                         <div
                           key={pm.method}
-                          className="absolute text-sm font-medium"
+                          className="absolute text-sm font-medium whitespace-nowrap"
                           style={{
-                            left: `${x}px`,
-                            top: `${y}px`,
-                            transform: 'translate(-50%, -50%)'
+                            left: '50%',
+                            top: '50%',
+                            transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`
                           }}
                         >
-                          <span className={pm.method === 'cash' ? 'text-[var(--text-primary)]' : 'text-red-500'}>
+                          <span className={pm.method.toLowerCase() === 'cash' ? 'text-gray-800' : 'text-red-500'}>
                             {pm.method} {pm.percentage}%
                           </span>
                         </div>
@@ -208,7 +187,7 @@ export default function SalesAnalyticsPage() {
                 </div>
               </div>
 
-              <div className="mt-8 flex justify-center gap-6">
+              <div className="mt-8 flex flex-wrap justify-center gap-6">
                 {analytics.paymentMethods.map(pm => (
                   <div key={pm.method} className="flex items-center gap-2">
                     <div
