@@ -8,6 +8,20 @@ interface DateRangeFilterProps {
   onDateChange?: (start: string, end: string) => void;
 }
 
+const getDisplayLabel = (value: string): string => {
+  const labels: { [key: string]: string } = {
+    'today': 'Today',
+    'yesterday': 'Yesterday',
+    'last7days': 'Last 7 Days',
+    'last30days': 'Last 30 Days',
+    'thisMonth': 'This Month',
+    'lastMonth': 'Last Month',
+    'thisYear': 'This Year',
+    'all': 'All'
+  };
+  return labels[value] || 'All';
+};
+
 export default function DateRangeFilter({ 
   value, 
   onChange, 
@@ -15,7 +29,6 @@ export default function DateRangeFilter({
   endDate = '',
   onDateChange 
 }: DateRangeFilterProps) {
-  const [activeTab, setActiveTab] = useState<'day' | 'month' | 'year'>('day');
   const [showDropdown, setShowDropdown] = useState(false);
 
   const formatDate = (date: Date) => {
@@ -24,134 +37,100 @@ export default function DateRangeFilter({
 
   const today = formatDate(new Date());
 
-  const handleTabChange = (tab: 'day' | 'month' | 'year') => {
-    setActiveTab(tab);
-    // Auto-select appropriate range based on tab
-    if (tab === 'day') {
-      onChange('today');
-    } else if (tab === 'month') {
-      onChange('thisMonth');
-    } else if (tab === 'year') {
-      onChange('thisYear');
-    }
-  };
-
   return (
-    <div className="relative">
-      <div className="flex items-center gap-2 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-1">
-        {/* Tab Buttons */}
-        <button
-          onClick={() => handleTabChange('day')}
-          className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
-            activeTab === 'day'
-              ? 'bg-[var(--bg-primary)] text-[var(--text-primary)]'
-              : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-          }`}
-        >
-          Day
-        </button>
-        <button
-          onClick={() => handleTabChange('month')}
-          className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
-            activeTab === 'month'
-              ? 'bg-[var(--bg-primary)] text-[var(--text-primary)]'
-              : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-          }`}
-        >
-          Month
-        </button>
-        <button
-          onClick={() => handleTabChange('year')}
-          className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
-            activeTab === 'year'
-              ? 'bg-[var(--bg-primary)] text-[var(--text-primary)]'
-              : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-          }`}
-        >
-          Year
-        </button>
-
-        {/* Date Range Inputs */}
-        <div className="flex items-center gap-2 ml-2 pl-2 border-l border-[var(--border-color)]">
-          <input
-            type="date"
-            value={startDate || today}
-            onChange={(e) => onDateChange?.(e.target.value, endDate || today)}
-            className="bg-[var(--bg-primary)] border border-[var(--border-color)] rounded px-2 py-1 text-xs text-[var(--text-primary)] focus:outline-none focus:ring-1 focus:ring-blue-500"
-          />
-          <span className="text-[var(--text-secondary)] text-xs">to</span>
-          <input
-            type="date"
-            value={endDate || today}
-            onChange={(e) => onDateChange?.(startDate || today, e.target.value)}
-            className="bg-[var(--bg-primary)] border border-[var(--border-color)] rounded px-2 py-1 text-xs text-[var(--text-primary)] focus:outline-none focus:ring-1 focus:ring-blue-500"
-          />
-        </div>
-
-        {/* Quick Select Dropdown */}
+    <div className="flex items-center gap-3">
+      {/* Dropdown Select - Similar to "All" in reference */}
+      <div className="relative">
         <button
           onClick={() => setShowDropdown(!showDropdown)}
-          className="px-2 py-1 text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-xs"
+          className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg px-4 py-2 text-sm text-[var(--text-primary)] hover:bg-[var(--bg-primary)] transition-colors flex items-center gap-2 min-w-[120px] justify-between"
         >
-          ▼
+          <span>{getDisplayLabel(value)}</span>
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
         </button>
+
+        {/* Dropdown Menu */}
+        {showDropdown && (
+          <>
+            <div 
+              className="fixed inset-0 z-40" 
+              onClick={() => setShowDropdown(false)}
+            />
+            <div className="absolute left-0 mt-2 w-48 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg shadow-xl z-50 py-1">
+              <button
+                onClick={() => { onChange('all'); setShowDropdown(false); }}
+                className="w-full text-left px-4 py-2.5 text-sm hover:bg-[var(--bg-primary)] text-[var(--text-primary)] transition-colors"
+              >
+                All
+              </button>
+              <button
+                onClick={() => { onChange('today'); setShowDropdown(false); }}
+                className="w-full text-left px-4 py-2.5 text-sm hover:bg-[var(--bg-primary)] text-[var(--text-primary)] transition-colors"
+              >
+                Today
+              </button>
+              <button
+                onClick={() => { onChange('yesterday'); setShowDropdown(false); }}
+                className="w-full text-left px-4 py-2.5 text-sm hover:bg-[var(--bg-primary)] text-[var(--text-primary)] transition-colors"
+              >
+                Yesterday
+              </button>
+              <button
+                onClick={() => { onChange('last7days'); setShowDropdown(false); }}
+                className="w-full text-left px-4 py-2.5 text-sm hover:bg-[var(--bg-primary)] text-[var(--text-primary)] transition-colors"
+              >
+                Last 7 Days
+              </button>
+              <button
+                onClick={() => { onChange('last30days'); setShowDropdown(false); }}
+                className="w-full text-left px-4 py-2.5 text-sm hover:bg-[var(--bg-primary)] text-[var(--text-primary)] transition-colors"
+              >
+                Last 30 Days
+              </button>
+              <button
+                onClick={() => { onChange('thisMonth'); setShowDropdown(false); }}
+                className="w-full text-left px-4 py-2.5 text-sm hover:bg-[var(--bg-primary)] text-[var(--text-primary)] transition-colors"
+              >
+                This Month
+              </button>
+              <button
+                onClick={() => { onChange('lastMonth'); setShowDropdown(false); }}
+                className="w-full text-left px-4 py-2.5 text-sm hover:bg-[var(--bg-primary)] text-[var(--text-primary)] transition-colors"
+              >
+                Last Month
+              </button>
+              <button
+                onClick={() => { onChange('thisYear'); setShowDropdown(false); }}
+                className="w-full text-left px-4 py-2.5 text-sm hover:bg-[var(--bg-primary)] text-[var(--text-primary)] transition-colors"
+              >
+                This Year
+              </button>
+            </div>
+          </>
+        )}
       </div>
 
-      {/* Dropdown Menu */}
-      {showDropdown && (
-        <div className="absolute right-0 mt-2 w-48 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg shadow-lg z-50">
-          <div className="py-1">
-            <button
-              onClick={() => { onChange('today'); setShowDropdown(false); }}
-              className="w-full text-left px-4 py-2 text-sm hover:bg-[var(--bg-primary)] text-[var(--text-primary)]"
-            >
-              Today
-            </button>
-            <button
-              onClick={() => { onChange('yesterday'); setShowDropdown(false); }}
-              className="w-full text-left px-4 py-2 text-sm hover:bg-[var(--bg-primary)] text-[var(--text-primary)]"
-            >
-              Yesterday
-            </button>
-            <button
-              onClick={() => { onChange('last7days'); setShowDropdown(false); }}
-              className="w-full text-left px-4 py-2 text-sm hover:bg-[var(--bg-primary)] text-[var(--text-primary)]"
-            >
-              Last 7 Days
-            </button>
-            <button
-              onClick={() => { onChange('last30days'); setShowDropdown(false); }}
-              className="w-full text-left px-4 py-2 text-sm hover:bg-[var(--bg-primary)] text-[var(--text-primary)]"
-            >
-              Last 30 Days
-            </button>
-            <button
-              onClick={() => { onChange('thisMonth'); setShowDropdown(false); }}
-              className="w-full text-left px-4 py-2 text-sm hover:bg-[var(--bg-primary)] text-[var(--text-primary)]"
-            >
-              This Month
-            </button>
-            <button
-              onClick={() => { onChange('lastMonth'); setShowDropdown(false); }}
-              className="w-full text-left px-4 py-2 text-sm hover:bg-[var(--bg-primary)] text-[var(--text-primary)]"
-            >
-              Last Month
-            </button>
-            <button
-              onClick={() => { onChange('thisYear'); setShowDropdown(false); }}
-              className="w-full text-left px-4 py-2 text-sm hover:bg-[var(--bg-primary)] text-[var(--text-primary)]"
-            >
-              This Year
-            </button>
-            <button
-              onClick={() => { onChange('all'); setShowDropdown(false); }}
-              className="w-full text-left px-4 py-2 text-sm hover:bg-[var(--bg-primary)] text-[var(--text-primary)]"
-            >
-              All Time
-            </button>
-          </div>
-        </div>
-      )}
+      {/* Calendar Icon with Date Pickers */}
+      <div className="flex items-center gap-2 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg px-3 py-2">
+        <svg className="w-4 h-4 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+        <input
+          type="date"
+          value={startDate || today}
+          onChange={(e) => onDateChange?.(e.target.value, endDate || today)}
+          className="bg-transparent border-none text-sm text-[var(--text-primary)] focus:outline-none w-[110px]"
+        />
+        <span className="text-[var(--text-secondary)] text-sm">to</span>
+        <input
+          type="date"
+          value={endDate || today}
+          onChange={(e) => onDateChange?.(startDate || today, e.target.value)}
+          className="bg-transparent border-none text-sm text-[var(--text-primary)] focus:outline-none w-[110px]"
+        />
+      </div>
     </div>
   );
 }
