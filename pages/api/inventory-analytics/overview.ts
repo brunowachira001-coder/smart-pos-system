@@ -24,27 +24,37 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(500).json({ error: productsError.message });
     }
 
-    // Calculate inventory metrics
+    // Calculate inventory metrics using new product fields
     const totalProducts = products?.length || 0;
     
-    // Use 'price' as selling price and estimate cost as 60% of price
+    // Use retail_price and cost_price from products table
     const inventoryValueSelling = products?.reduce((sum, p) => {
-      const price = parseFloat(p.price || 0);
-      const stock = parseInt(p.stock || 0);
-      return sum + (price * stock);
+      const retailPrice = parseFloat(p.retail_price || p.price || 0);
+      const stockQty = parseInt(p.stock_quantity || p.stock || 0);
+      return sum + (retailPrice * stockQty);
     }, 0) || 0;
     
-    const inventoryValueCost = inventoryValueSelling * 0.6; // Estimate cost as 60% of selling price
+    const inventoryValueCost = products?.reduce((sum, p) => {
+      const costPrice = parseFloat(p.cost_price || (p.price * 0.6) || 0);
+      const stockQty = parseInt(p.stock_quantity || p.stock || 0);
+      return sum + (costPrice * stockQty);
+    }, 0) || 0;
+    
     const potentialProfit = inventoryValueSelling - inventoryValueCost;
 
-    // Low stock items (stock below 10)
+    // Low stock items (stock below minimum_stock_level)
     const lowStockItems = products?.filter(p => {
-      const stock = parseInt(p.stock || 0);
-      return stock > 0 && stock < 10;
+      const stockQty = parseInt(p.stock_quantity || p.stock || 0);
+      const minStock = parseInt(p.minimum_stock_level || 10);
+      return stockQty > 0 && stockQty < minStock;
     }) || [];
 
-    // Items with very low stock (below 5)
-    const lowStockAlerts = products?.filter(p => parseInt(p.stock || 0) < 5 && parseInt(p.stock || 0) > 0).length || 0;
+    // Items with very low stock (below 50% of minimum)
+    const lowStockAlerts = products?.filter(p => {
+      const stockQty = parseInt(p.stock_quantity || p.stock || 0);
+      const minStock = parseInt(p.minimum_stock_level || 10);
+      return stockQty < (minStock * 0.5) && stockQty > 0;
+    }).length || 0;
 
     // Get returns data
     let returnsQuery = supabase
@@ -67,7 +77,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Archived items (products with 0 stock or inactive status)
     const archivedItems = products?.filter(p => 
-      parseInt(p.stock || 0) === 0 || p.status?.toLowerCase() === 'inactive'
+      parseInt(p.stock_quantity || p.stock || 0) === 0 || p.status?.toLowerCase() === 'inactive'
     ).length || 0;
 
     return res.status(200).json({
@@ -85,8 +95,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         id: p.id,
         name: p.name,
         sku: p.sku,
-        quantity: p.stock || 0,
-        minimumStock: 10 // Default minimum
+        quantity: p.stock_quantity || p.stock || 0,
+        minimumStock: p.minimum_stock_level || 10
       }))
     });
 

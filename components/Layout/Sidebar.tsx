@@ -11,7 +11,7 @@ export default function Sidebar() {
     { label: 'Transactions', href: '/transactions', icon: '💳' },
     { label: 'Returns', href: '/returns', icon: '↩️' },
     { label: 'Expenses', href: '/expenses', icon: '💸' },
-    { label: 'Inventory', href: '/inventory-pro', icon: '📦' },
+    { label: 'Inventory', href: '/inventory', icon: '📦' },
     { label: 'Customers', href: '/customers', icon: '👥' },
     { label: 'Debt Management', href: '/debt', icon: '💰' },
     { label: 'Sales Analytics', href: '/sales-analytics', icon: '📈' },
