@@ -23,6 +23,25 @@ export default function SalesAnalyticsPage() {
   const [dateFilter, setDateFilter] = useState('all');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [useDemoData, setUseDemoData] = useState(false);
+
+  // Demo data for visualization
+  const demoData: AnalyticsData = {
+    overview: {
+      totalTransactions: 10037,
+      averageTransactionValue: '1005.13',
+      totalDiscounts: '7051.66',
+      grossSalesRevenue: '10088462.94',
+      retailRevenue: '5944720.00',
+      wholesaleRevenue: '4143742.94'
+    },
+    paymentMethods: [
+      { method: 'cash', count: 8431, percentage: '84.0' },
+      { method: 'mpesa', count: 956, percentage: '9.5' },
+      { method: 'card', count: 451, percentage: '4.5' },
+      { method: 'bank', count: 199, percentage: '2.0' }
+    ]
+  };
 
   useEffect(() => {
     fetchAnalytics();
@@ -42,11 +61,19 @@ export default function SalesAnalyticsPage() {
       const response = await fetch(`/api/sales-analytics/overview?${params}`);
       const data = await response.json();
 
-      if (response.ok) {
+      if (response.ok && data.overview.totalTransactions > 0) {
         setAnalytics(data);
+        setUseDemoData(false);
+      } else {
+        // Use demo data if no real data
+        setAnalytics(demoData);
+        setUseDemoData(true);
       }
     } catch (error) {
       console.error('Error fetching analytics:', error);
+      // Use demo data on error
+      setAnalytics(demoData);
+      setUseDemoData(true);
     } finally {
       setLoading(false);
     }
@@ -73,7 +100,10 @@ export default function SalesAnalyticsPage() {
         <div className="flex justify-between items-start mb-6">
           <div>
             <h1 className="text-2xl font-semibold tracking-tight mb-1">Sales Analytics</h1>
-            <p className="text-sm text-[var(--text-secondary)]">A deep dive into your sales performance.</p>
+            <p className="text-sm text-[var(--text-secondary)]">
+              A deep dive into your sales performance.
+              {useDemoData && <span className="ml-2 text-amber-500">(Showing demo data)</span>}
+            </p>
           </div>
           <DateRangeFilter 
             value={dateFilter}
