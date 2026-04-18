@@ -43,6 +43,7 @@ export default function Returns() {
   const [transactionItems, setTransactionItems] = useState<Array<any>>([]);
   const [loadingTransaction, setLoadingTransaction] = useState(false);
   const [productSearchTerms, setProductSearchTerms] = useState<string[]>(['']);
+  const [unitPrices, setUnitPrices] = useState<number[]>([0]);
 
   const [stats, setStats] = useState({
     totalReturns: 0,
@@ -198,6 +199,7 @@ export default function Returns() {
         setReturnItems([{ productName: '', quantity: 1, amount: 0 }]);
         setTransactionItems([]);
         setProductSearchTerms(['']);
+        setUnitPrices([0]);
         fetchData();
       }
     } catch (error) {
@@ -250,8 +252,29 @@ export default function Returns() {
     );
 
     if (transactionItem) {
-      newItems[index].quantity = transactionItem.quantity;
-      newItems[index].amount = parseFloat(transactionItem.subtotal);
+      const quantity = transactionItem.quantity;
+      const totalPrice = parseFloat(transactionItem.subtotal);
+      const unitPrice = totalPrice / quantity;
+
+      newItems[index].quantity = quantity;
+      newItems[index].amount = totalPrice;
+
+      // Store unit price for this item
+      const newUnitPrices = [...unitPrices];
+      newUnitPrices[index] = unitPrice;
+      setUnitPrices(newUnitPrices);
+    }
+
+    setReturnItems(newItems);
+  };
+
+  const handleQuantityChange = (index: number, newQuantity: number) => {
+    const newItems = [...returnItems];
+    newItems[index].quantity = newQuantity;
+
+    // Auto-calculate price based on unit price if available
+    if (unitPrices[index] && unitPrices[index] > 0) {
+      newItems[index].amount = unitPrices[index] * newQuantity;
     }
 
     setReturnItems(newItems);
@@ -478,6 +501,7 @@ export default function Returns() {
                     onClick={() => {
                       setReturnItems([...returnItems, { productName: '', quantity: 1, amount: 0 }]);
                       setProductSearchTerms([...productSearchTerms, '']);
+                      setUnitPrices([...unitPrices, 0]);
                     }}
                     className="text-sm text-emerald-600 hover:text-emerald-700 font-medium"
                   >
@@ -511,6 +535,7 @@ export default function Returns() {
                             onClick={() => {
                               setReturnItems(returnItems.filter((_, i) => i !== index));
                               setProductSearchTerms(productSearchTerms.filter((_, i) => i !== index));
+                              setUnitPrices(unitPrices.filter((_, i) => i !== index));
                             }}
                             className="text-red-500 hover:text-red-600 text-sm"
                           >
@@ -596,18 +621,19 @@ export default function Returns() {
                               type="number"
                               min="1"
                               value={item.quantity}
-                              onChange={(e) => {
-                                const newItems = [...returnItems];
-                                newItems[index].quantity = parseInt(e.target.value) || 1;
-                                setReturnItems(newItems);
-                              }}
+                              onChange={(e) => handleQuantityChange(index, parseInt(e.target.value) || 1)}
                               className="w-full px-3 py-2 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-emerald-500"
                               required
                             />
+                            {unitPrices[index] > 0 && (
+                              <p className="text-xs text-[var(--text-secondary)] mt-1">
+                                Unit price: KES {unitPrices[index].toFixed(2)}
+                              </p>
+                            )}
                           </div>
                           <div>
                             <label className="block text-xs text-[var(--text-secondary)] mb-1">
-                              Amount (KES) {transactionItems.length > 0 && '(auto-filled)'}
+                              Amount (KES) {unitPrices[index] > 0 && '(auto-calculated)'}
                             </label>
                             <input
                               type="number"
@@ -622,6 +648,11 @@ export default function Returns() {
                               placeholder="0.00"
                               className="w-full px-3 py-2 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-emerald-500"
                             />
+                            {unitPrices[index] > 0 && (
+                              <p className="text-xs text-emerald-600 mt-1">
+                                ✓ Auto-calculated
+                              </p>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -630,7 +661,7 @@ export default function Returns() {
                 </div>
 
                 <p className="text-xs text-[var(--text-secondary)] mt-2">
-                  💡 Tip: Enter transaction ID to auto-fill product details, or search products manually
+                  💡 Tip: Enter transaction ID to auto-fill. Adjust quantity and price auto-calculates!
                 </p>
               </div>
 
@@ -662,6 +693,7 @@ export default function Returns() {
                     setReturnItems([{ productName: '', quantity: 1, amount: 0 }]);
                     setTransactionItems([]);
                     setProductSearchTerms(['']);
+                    setUnitPrices([0]);
                     setCreateFormErrors('');
                   }}
                   className="px-4 py-2 border border-[var(--border-color)] rounded-lg hover:bg-[var(--bg-secondary)] text-[var(--text-primary)]"
