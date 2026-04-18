@@ -47,17 +47,35 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // If return is approved (Completed), add the quantity back to inventory
     if (status === 'Completed' && returnRecord.product_name && returnRecord.quantity) {
-      // Find the product by name
-      const { data: products, error: productError } = await supabase
+      console.log(`Processing return approval for: ${returnRecord.product_name}, Quantity: ${returnRecord.quantity}`);
+      
+      // Try to find product by exact name match first
+      let { data: products, error: productError } = await supabase
         .from('products')
         .select('*')
-        .ilike('name', returnRecord.product_name)
-        .limit(1);
+        .eq('name', returnRecord.product_name);
+
+      // If no exact match, try case-insensitive search
+      if (!products || products.length === 0) {
+        const result = await supabase
+          .from('products')
+          .select('*')
+          .ilike('name', returnRecord.product_name);
+        products = result.data;
+        productError = result.error;
+      }
 
       if (productError) {
         console.error('Error finding product:', productError);
-      } else if (products && products.length > 0) {
+        return res.status(200).json({
+          ...updatedReturn,
+          warning: 'Return processed but could not update inventory: ' + productError.message
+        });
+      }
+
+      if (products && products.length > 0) {
         const product = products[0];
+        console.log(`Found product: ${product.name}, Current stock: ${product.stock_quantity}`);
         
         // Increase the stock quantity
         const newStockQuantity = (product.stock_quantity || 0) + returnRecord.quantity;
@@ -72,11 +90,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         if (stockUpdateError) {
           console.error('Error updating product stock:', stockUpdateError);
-        } else {
-          console.log(`Stock updated: ${product.name} - Added ${returnRecord.quantity} units. New stock: ${newStockQuantity}`);
+          return res.status(200).json({
+            ...updatedReturn,
+            warning: 'Return processed but could not update inventory: ' + stockUpdateError.message
+          });
         }
+
+        console.log(`✅ Stock updated successfully: ${product.name} - Added ${returnRecord.quantity} units. New stock: ${newStockQuantity}`);
+        
+        return res.status(200).json({
+          ...updatedReturn,
+          inventoryUpdated: true,
+          productName: product.name,
+          quantityRestored: returnRecord.quantity,
+          newStock: newStockQuantity
+        });
       } else {
-        console.warn(`Product not found: ${returnRecord.product_name}`);
+        console.warn(`⚠️ Product not found in inventory: "${returnRecord.product_name}"`);
+        return res.status(200).json({
+          ...updatedReturn,
+          warning: `Return processed but product "${returnRecord.product_name}" not found in inventory`
+        });
       }
     }
 
