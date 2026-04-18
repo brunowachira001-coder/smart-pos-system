@@ -26,7 +26,7 @@ interface CartItem {
 export default function POSPage() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
-  const [priceMode, setPriceMode] = useState<'retail' | 'wholesale'>('retail');
+  const [priceMode, setPriceMode] = useState<'retail' | 'wholesale' | 'all'>('all');
   const [products, setProducts] = useState<Product[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [cartTotal, setCartTotal] = useState(0);
@@ -84,10 +84,12 @@ export default function POSPage() {
     }
   };
 
-  const addToCart = async (product: Product) => {
+  const addToCart = async (product: Product, selectedPriceType?: 'retail' | 'wholesale') => {
     setLoading(true);
     try {
-      const unitPrice = priceMode === 'retail' ? product.retail_price : product.wholesale_price;
+      // If priceMode is 'all', use the selectedPriceType, otherwise use priceMode
+      const priceType = selectedPriceType || (priceMode === 'all' ? 'retail' : priceMode);
+      const unitPrice = priceType === 'retail' ? product.retail_price : product.wholesale_price;
       
       const response = await fetch('/api/pos/cart', {
         method: 'POST',
@@ -99,7 +101,7 @@ export default function POSPage() {
           sku: product.sku,
           quantity: 1,
           unitPrice,
-          priceType: priceMode
+          priceType
         })
       });
 
@@ -225,9 +227,10 @@ export default function POSPage() {
             />
             <select
               value={priceMode}
-              onChange={(e) => setPriceMode(e.target.value as 'retail' | 'wholesale')}
+              onChange={(e) => setPriceMode(e.target.value as 'retail' | 'wholesale' | 'all')}
               className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg px-4 py-2.5 text-sm text-[var(--text-primary)]"
             >
+              <option value="all">All</option>
               <option value="retail">Retail</option>
               <option value="wholesale">Wholesale</option>
             </select>
@@ -267,28 +270,77 @@ export default function POSPage() {
 
                   {/* Price Display */}
                   <div className="mb-2">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xs px-2 py-0.5 bg-blue-500/20 text-blue-400 rounded">
-                        {priceMode === 'retail' ? 'Retail' : 'Wholesale'}
-                      </span>
-                      <span className="text-xs font-semibold text-[var(--text-primary)]">
-                        KSH {(priceMode === 'retail' ? product.retail_price : product.wholesale_price).toFixed(2)}
-                      </span>
-                    </div>
-                    <div className="text-xs text-[var(--text-secondary)]">
-                      {priceMode === 'retail' ? 'Wholesale' : 'Retail'}: KSH {(priceMode === 'retail' ? product.wholesale_price : product.retail_price).toFixed(2)}
-                    </div>
+                    {priceMode === 'all' ? (
+                      // Show both prices when "All" is selected
+                      <div className="space-y-1">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs px-2 py-0.5 bg-blue-500/20 text-blue-400 rounded">
+                            Retail
+                          </span>
+                          <span className="text-xs font-semibold text-[var(--text-primary)]">
+                            KSH {product.retail_price.toFixed(2)}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs px-2 py-0.5 bg-green-500/20 text-green-400 rounded">
+                            Wholesale
+                          </span>
+                          <span className="text-xs font-semibold text-[var(--text-primary)]">
+                            KSH {product.wholesale_price.toFixed(2)}
+                          </span>
+                        </div>
+                      </div>
+                    ) : (
+                      // Show selected price mode
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-xs px-2 py-0.5 bg-blue-500/20 text-blue-400 rounded">
+                          {priceMode === 'retail' ? 'Retail' : 'Wholesale'}
+                        </span>
+                        <span className="text-xs font-semibold text-[var(--text-primary)]">
+                          KSH {(priceMode === 'retail' ? product.retail_price : product.wholesale_price).toFixed(2)}
+                        </span>
+                      </div>
+                    )}
                   </div>
 
-                  {/* Add to Cart Button - Icon Only */}
-                  <button 
-                    onClick={() => addToCart(product)}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm py-2 rounded-lg transition-colors flex items-center justify-center"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                    </svg>
-                  </button>
+                  {/* Add to Cart Button - Icon Only or Split buttons for "All" mode */}
+                  {priceMode === 'all' ? (
+                    <div className="grid grid-cols-2 gap-1">
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          addToCart(product, 'retail');
+                        }}
+                        className="bg-blue-600 hover:bg-blue-700 text-white text-xs py-2 rounded-lg transition-colors flex items-center justify-center gap-1"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                        <span className="text-xs">R</span>
+                      </button>
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          addToCart(product, 'wholesale');
+                        }}
+                        className="bg-green-600 hover:bg-green-700 text-white text-xs py-2 rounded-lg transition-colors flex items-center justify-center gap-1"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                        <span className="text-xs">W</span>
+                      </button>
+                    </div>
+                  ) : (
+                    <button 
+                      onClick={() => addToCart(product)}
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm py-2 rounded-lg transition-colors flex items-center justify-center"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                      </svg>
+                    </button>
+                  )}
                 </div>
               ))}
         </div>
