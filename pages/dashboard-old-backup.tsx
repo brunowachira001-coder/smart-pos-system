@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import type { GetServerSideProps } from 'next';
 
+// Dashboard - Real-time business metrics
 interface DashboardStats {
   sales: {
     totalSales: number;
@@ -33,6 +33,7 @@ export default function Dashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [buildVersion] = useState('v2.0.1-' + Date.now());
 
   useEffect(() => {
     fetchDashboardData();
@@ -86,7 +87,8 @@ export default function Dashboard() {
     <div className="space-y-6 p-6">
       <div>
         <h1 className="text-3xl font-bold text-[var(--text-primary)]">Dashboard</h1>
-        <p className="text-[var(--text-secondary)] mt-1">Real-time business metrics from Supabase</p>
+        <p className="text-[var(--text-secondary)] mt-1">Welcome back! Here's your business overview</p>
+        <p className="text-xs text-[var(--text-secondary)] mt-1">Build: {buildVersion}</p>
       </div>
 
       {/* Key Metrics */}
@@ -220,10 +222,3 @@ export default function Dashboard() {
     </div>
   );
 }
-
-// Force server-side rendering - no static generation
-export const getServerSideProps: GetServerSideProps = async () => {
-  return {
-    props: {},
-  };
-};
