@@ -1,7 +1,10 @@
-import { PrismaClient } from '@prisma/client';
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { createClient } from '@supabase/supabase-js';
 
-const prisma = new PrismaClient();
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
@@ -9,54 +12,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const { q, category, branchId = 1 } = req.query;
+    const { q } = req.query;
     const searchTerm = (q as string)?.toLowerCase() || '';
 
-    let where: any = { status: 'ACTIVE' };
+    let query = supabase
+      .from('products')
+      .select('*')
+      .limit(50);
 
     if (searchTerm) {
-      where.OR = [
-        { name: { contains: searchTerm, mode: 'insensitive' } },
-        { sku: { contains: searchTerm, mode: 'insensitive' } },
-        { barcode: { contains: searchTerm, mode: 'insensitive' } },
-      ];
+      query = query.or(`name.ilike.%${searchTerm}%,sku.ilike.%${searchTerm}%,barcode.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`);
     }
 
-    if (category) {
-      where.category = { categoryName: category };
-    }
+    const { data, error } = await query;
 
-    const products = await prisma.product.findMany({
-      where,
-      include: {
-        category: true,
-        branchInventory: {
-          where: { branchId: parseInt(branchId as string) },
-        },
-        branchPricing: {
-          where: { branchId: parseInt(branchId as string) },
-        },
-      },
-      take: 50,
-    });
+    if (error) throw error;
 
-    const formattedProducts = products.map((product) => ({
-      id: product.id,
-      sku: product.sku,
-      name: product.name,
-      description: product.description,
-      category: product.category?.categoryName,
-      price: product.branchPricing[0]?.retailPrice || product.retailPrice,
-      wholesalePrice: product.branchPricing[0]?.wholesalePrice || product.wholesalePrice,
-      costPrice: product.costPrice,
-      stock: product.branchInventory[0]?.stockLevel || 0,
-      barcode: product.barcode,
-      imageUrl: product.imageUrl,
-    }));
-
-    res.status(200).json({ success: true, data: formattedProducts });
-  } catch (error) {
+    res.status(200).json({ products: data || [] });
+  } catch (error: any) {
     console.error('Product search error:', error);
-    res.status(500).json({ error: 'Failed to search products' });
+    res.status(500).json({ error: 'Failed to search products', products: [] });
   }
 }
