@@ -77,9 +77,10 @@ export default function Returns() {
 
       setReturns(returnsData);
       
-      // Set available products for the dropdown
-      if (Array.isArray(productsData)) {
-        setAvailableProducts(productsData.map((p: any) => ({
+      // Set available products for the dropdown - API returns { products: [...] }
+      const productsList = productsData.products || [];
+      if (Array.isArray(productsList)) {
+        setAvailableProducts(productsList.map((p: any) => ({
           id: p.id,
           name: p.name,
           stock: p.stock_quantity || 0,
