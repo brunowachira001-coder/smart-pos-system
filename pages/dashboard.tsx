@@ -33,6 +33,7 @@ export default function Dashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [buildVersion] = useState('v2.0.1-' + Date.now());
 
   useEffect(() => {
     fetchDashboardData();
@@ -87,7 +88,7 @@ export default function Dashboard() {
       <div>
         <h1 className="text-3xl font-bold text-[var(--text-primary)]">Dashboard</h1>
         <p className="text-[var(--text-secondary)] mt-1">Welcome back! Here's your business overview</p>
-        <p className="text-xs text-[var(--text-secondary)] mt-1">Version: 2.0 (Real Data)</p>
+        <p className="text-xs text-[var(--text-secondary)] mt-1">Build: {buildVersion}</p>
       </div>
 
       {/* Key Metrics */}

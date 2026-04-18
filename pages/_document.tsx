@@ -8,6 +8,9 @@ export default function Document() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="description" content="Smart POS System - AI-Powered Point of Sale" />
         <meta name="theme-color" content="#2563eb" />
+        <meta httpEquiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+        <meta httpEquiv="Pragma" content="no-cache" />
+        <meta httpEquiv="Expires" content="0" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <body>
