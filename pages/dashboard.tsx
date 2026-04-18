@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 
+// Dashboard - Real-time business metrics
 interface DashboardStats {
   sales: {
     totalSales: number;
