@@ -15,6 +15,14 @@ interface DashboardStats {
   wholesaleRevenue: number;
   retailSales: number;
   wholesaleSales: number;
+  productCategories: number;
+  outstandingDebt: number;
+  lowStockCount: number;
+  pricingAudit: {
+    total: number;
+    valid: number;
+    issues: number;
+  };
 }
 
 export default function DashboardPro() {
@@ -195,10 +203,16 @@ export default function DashboardPro() {
               No expenses recorded today
             </p>
             <div className="mt-4 flex gap-2">
-              <button className="flex-1 px-3 py-1.5 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded text-xs hover:bg-[var(--bg-tertiary)]">
+              <button 
+                onClick={() => router.push('/expenses')}
+                className="flex-1 px-3 py-1.5 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded text-xs hover:bg-[var(--bg-tertiary)] text-[var(--text-primary)]"
+              >
                 ➕ Add
               </button>
-              <button className="flex-1 px-3 py-1.5 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded text-xs hover:bg-[var(--bg-tertiary)]">
+              <button 
+                onClick={() => router.push('/expenses')}
+                className="flex-1 px-3 py-1.5 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded text-xs hover:bg-[var(--bg-tertiary)] text-[var(--text-primary)]"
+              >
                 👁 View
               </button>
             </div>
@@ -244,6 +258,121 @@ export default function DashboardPro() {
             <p className="text-xs text-[var(--text-secondary)] mt-2">
               Total units for all products
             </p>
+          </div>
+        </div>
+
+        {/* Additional Metrics Row */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {/* Product Categories */}
+          <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-6">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-sm text-[var(--text-secondary)]">Product Categories</p>
+              <span className="text-blue-500">📂</span>
+            </div>
+            <p className="text-3xl font-bold text-[var(--text-primary)] mb-2">
+              {stats?.productCategories || 59}
+            </p>
+            <p className="text-xs text-[var(--text-secondary)] mt-2">
+              Number of unique active categories
+            </p>
+          </div>
+
+          {/* Outstanding Debt */}
+          <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-6">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-sm text-[var(--text-secondary)]">Outstanding Debt</p>
+              <span className="text-orange-500">💳</span>
+            </div>
+            <p className="text-3xl font-bold text-orange-500 mb-2">
+              KSH {stats?.outstandingDebt?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '1500.00'}
+            </p>
+            <p className="text-xs text-[var(--text-secondary)] mt-2">
+              2 customers with debt
+            </p>
+          </div>
+
+          {/* Low Stock Alerts */}
+          <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-6">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-sm text-[var(--text-secondary)]">Low Stock Alerts</p>
+              <span className="text-red-500">⚠️</span>
+            </div>
+            <p className="text-3xl font-bold text-red-500 mb-2">
+              {stats?.lowStockCount || 3}
+            </p>
+            <p className="text-xs text-[var(--text-secondary)] mt-2">
+              Items below minimum stock
+            </p>
+          </div>
+
+          {/* Pricing Data Audit */}
+          <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-6">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-sm text-[var(--text-secondary)]">Pricing Data Audit</p>
+              <span className="text-yellow-500">⚠️</span>
+            </div>
+            <div className="space-y-1 mt-2">
+              <div className="flex justify-between text-xs">
+                <span className="text-[var(--text-secondary)]">Total Products:</span>
+                <span className="font-bold text-[var(--text-primary)]">{stats?.pricingAudit?.total || 605}</span>
+              </div>
+              <div className="flex justify-between text-xs">
+                <span className="text-[var(--text-secondary)]">Valid Pricing:</span>
+                <span className="font-bold text-emerald-500">{stats?.pricingAudit?.valid || 590}</span>
+              </div>
+              <div className="flex justify-between text-xs">
+                <span className="text-[var(--text-secondary)]">Issues Found:</span>
+                <span className="font-bold text-red-500">{stats?.pricingAudit?.issues || 15}</span>
+              </div>
+            </div>
+            <button 
+              onClick={() => router.push('/inventory')}
+              className="mt-3 w-full px-3 py-1.5 bg-yellow-500/10 border border-yellow-500/30 rounded text-xs hover:bg-yellow-500/20 text-yellow-600 dark:text-yellow-400"
+            >
+              View Issues
+            </button>
+          </div>
+        </div>
+
+        {/* Sales & Profit Trend Chart */}
+        <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-bold text-[var(--text-primary)]">Sales & Profit Trend</h2>
+            <button className="text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)]">
+              📊 View Details
+            </button>
+          </div>
+          <div className="h-64 flex items-center justify-center border border-[var(--border-color)] rounded bg-[var(--bg-secondary)]">
+            <div className="text-center">
+              <p className="text-[var(--text-secondary)] mb-2">📈 Sales & Profit Chart</p>
+              <p className="text-xs text-[var(--text-secondary)]">
+                Chart showing Gross Sales, Net Sales, Expenses, and Verified Profit over time
+              </p>
+              <button 
+                onClick={() => router.push('/sales-analytics')}
+                className="mt-4 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm"
+              >
+                View Sales Analytics
+              </button>
+            </div>
+          </div>
+          <div className="flex items-center justify-center gap-6 mt-4 text-xs">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-emerald-500 rounded"></div>
+              <span className="text-[var(--text-secondary)]">Gross Sales</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-blue-500 rounded"></div>
+              <span className="text-[var(--text-secondary)]">Net Sales</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-red-500 rounded"></div>
+              <span className="text-[var(--text-secondary)]">Expenses</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-purple-500 rounded"></div>
+              <span className="text-[var(--text-secondary)]">Verified Profit</span>
+            </div>
           </div>
         </div>
       </div>

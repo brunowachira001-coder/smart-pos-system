@@ -106,6 +106,37 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       todayExpenses = 0;
     }
 
+    // Count product categories
+    const categories = new Set(products?.map(p => p.category).filter(Boolean));
+    const productCategories = categories.size;
+
+    // Count low stock items
+    const lowStockCount = products?.filter(p => 
+      p.stock_quantity <= (p.minimum_stock_level || 10)
+    ).length || 0;
+
+    // Fetch outstanding debt
+    let outstandingDebt = 0;
+    try {
+      const { data: debts } = await supabase
+        .from('debts')
+        .select('amount')
+        .eq('status', 'pending');
+      
+      outstandingDebt = debts?.reduce((sum, d) => sum + (parseFloat(d.amount) || 0), 0) || 0;
+    } catch (e) {
+      outstandingDebt = 0;
+    }
+
+    // Pricing audit
+    const totalProducts = products?.length || 0;
+    const validPricing = products?.filter(p => {
+      const cost = parseFloat(p.cost_price) || 0;
+      const retail = parseFloat(p.retail_price) || 0;
+      return cost > 0 && retail > cost;
+    }).length || 0;
+    const pricingIssues = totalProducts - validPricing;
+
     res.status(200).json({
       success: true,
       data: {
@@ -120,7 +151,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         retailRevenue,
         wholesaleRevenue,
         retailSales,
-        wholesaleSales
+        wholesaleSales,
+        productCategories,
+        outstandingDebt,
+        lowStockCount,
+        pricingAudit: {
+          total: totalProducts,
+          valid: validPricing,
+          issues: pricingIssues
+        }
       }
     });
   } catch (error: any) {
@@ -140,7 +179,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         retailRevenue: 0,
         wholesaleRevenue: 0,
         retailSales: 0,
-        wholesaleSales: 0
+        wholesaleSales: 0,
+        productCategories: 0,
+        outstandingDebt: 0,
+        lowStockCount: 0,
+        pricingAudit: {
+          total: 0,
+          valid: 0,
+          issues: 0
+        }
       }
     });
   }
