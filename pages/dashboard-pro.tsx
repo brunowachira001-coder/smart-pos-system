@@ -1,324 +1,364 @@
-import React, { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import DateRangeFilter, { getDateRange } from '../components/DateRangeFilter';
+
+interface DashboardData {
+  todaySales: number;
+  todayTransactions: number;
+  lowStockItems: number;
+  totalCustomers: number;
+  todayProfit: number;
+  todayTax: number;
+  avgTransaction: number;
+  totalProducts: number;
+  inStockProducts: number;
+  recentTransactions: Array<{
+    id: string;
+    number: string;
+    customer: string;
+    items: number;
+    total: number;
+    date: string;
+  }>;
+}
 
 export default function DashboardPro() {
   const router = useRouter();
-  const [showReportModal, setShowReportModal] = useState(false);
-  const [showPricingAudit, setShowPricingAudit] = useState(false);
-  const [dateRange, setDateRange] = useState('today');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-  const [stats, setStats] = useState({
-    verifiedProfit: 1626987.04,
-    potentialProfit: 9244459.94,
-    grossRevenue: 10041182.94,
-    netRevenue: 1650.00,
-    expenses: 0.00,
-    inventoryValueCost: 19131430.06,
-    inventoryValueSelling: 28325905.00,
-    totalUnits: 165984,
-    productCategories: 59,
-    outstandingDebt: 1500.00,
-    lowStockItems: 4
-  });
+  const [data, setData] = useState<DashboardData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [lastUpdate, setLastUpdate] = useState('');
 
-  const [revenueBreakdown, setRevenueBreakdown] = useState([
-    { label: 'Gross Revenue', value: 1650.00 },
-    { label: 'Returns', value: -0.00 },
-    { label: 'Business Expenses', value: -0.00 },
-    { label: 'Personal Expenses', value: -0.00 },
-    { label: 'Net Revenue (All)', value: 1650.00 }
-  ]);
+  useEffect(() => {
+    loadDashboard();
+    // Auto-refresh every 30 seconds
+    const interval = setInterval(loadDashboard, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const loadDashboard = async () => {
+    try {
+      setLoading(true);
+      // Force fresh data with timestamp
+      const timestamp = Date.now();
+      const response = await fetch(`/api/dashboard/stats?v=${timestamp}`, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch dashboard data');
+      }
+
+      const result = await response.json();
+      
+      if (result.success && result.data) {
+        setData({
+          todaySales: result.data.sales.totalSales || 0,
+          todayTransactions: result.data.sales.transactionCount || 0,
+          lowStockItems: result.data.inventory.lowStockCount || 0,
+          totalCustomers: result.data.customers.totalCustomers || 0,
+          todayProfit: result.data.sales.totalProfit || 0,
+          todayTax: result.data.sales.totalTax || 0,
+          avgTransaction: result.data.sales.averageTransaction || 0,
+          totalProducts: result.data.inventory.totalProducts || 0,
+          inStockProducts: result.data.inventory.inStockCount || 0,
+          recentTransactions: result.data.recentTransactions.map((t: any) => ({
+            id: t.id,
+            number: t.transactionNumber,
+            customer: t.customer,
+            items: t.itemCount,
+            total: t.total,
+            date: t.createdAt
+          }))
+        });
+        setLastUpdate(new Date().toLocaleTimeString());
+        setError('');
+      } else {
+        throw new Error('Invalid response format');
+      }
+    } catch (err: any) {
+      console.error('Dashboard error:', err);
+      setError(err.message || 'Failed to load dashboard');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading && !data) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[var(--bg-primary)]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-emerald-500 mx-auto mb-4"></div>
+          <p className="text-[var(--text-secondary)] text-lg">Loading dashboard data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error && !data) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[var(--bg-primary)] p-6">
+        <div className="bg-red-50 dark:bg-red-900/20 border-2 border-red-300 dark:border-red-700 rounded-xl p-8 max-w-md">
+          <div className="text-5xl mb-4 text-center">⚠️</div>
+          <h2 className="text-xl font-bold text-red-800 dark:text-red-300 mb-2 text-center">Error Loading Dashboard</h2>
+          <p className="text-red-600 dark:text-red-400 mb-4 text-center">{error}</p>
+          <button
+            onClick={loadDashboard}
+            className="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-[var(--bg-secondary)]">
-      <div className="p-6 space-y-6">
+    <div className="min-h-screen bg-[var(--bg-primary)] p-6">
+      <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-start">
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight">Dashboard Overview</h1>
-            <p className="text-[var(--text-secondary)] text-sm mt-1">A summary of your business performance</p>
+            <h1 className="text-4xl font-bold text-[var(--text-primary)] mb-2">
+              📊 Business Dashboard
+            </h1>
+            <p className="text-[var(--text-secondary)]">
+              Live data from Supabase • Last updated: {lastUpdate}
+            </p>
+            <div className="mt-2 inline-block px-3 py-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 text-xs font-medium rounded-full">
+              ✓ Connected to Database
+            </div>
           </div>
-          <div className="flex items-center gap-4">
-            <select className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg px-4 py-2 text-sm">
-              <option>Retail</option>
-              <option>Wholesale</option>
-            </select>
-            <DateRangeFilter 
-              value={dateRange} 
-              onChange={setDateRange}
-              startDate={startDate}
-              endDate={endDate}
-              onDateChange={(start, end) => {
-                setStartDate(start);
-                setEndDate(end);
-              }}
-            />
-            <button className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg px-4 py-2 text-sm hover:bg-[var(--bg-tertiary)]">
-              📄 Export Summary
+          <button
+            onClick={loadDashboard}
+            disabled={loading}
+            className="px-4 py-2 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg hover:bg-[var(--bg-secondary)] text-[var(--text-primary)] disabled:opacity-50"
+          >
+            {loading ? '🔄 Refreshing...' : '🔄 Refresh'}
+          </button>
+        </div>
+
+        {/* Main Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {/* Today's Sales */}
+          <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl shadow-lg p-6 text-white">
+            <div className="flex items-center justify-between mb-4">
+              <div className="text-5xl">💰</div>
+              <div className="text-emerald-100 text-sm font-medium">TODAY</div>
+            </div>
+            <p className="text-emerald-100 text-sm mb-1">Total Sales</p>
+            <p className="text-4xl font-bold">KES {data?.todaySales.toLocaleString()}</p>
+          </div>
+
+          {/* Transactions */}
+          <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg p-6 text-white">
+            <div className="flex items-center justify-between mb-4">
+              <div className="text-5xl">🛒</div>
+              <div className="text-blue-100 text-sm font-medium">TODAY</div>
+            </div>
+            <p className="text-blue-100 text-sm mb-1">Transactions</p>
+            <p className="text-4xl font-bold">{data?.todayTransactions}</p>
+          </div>
+
+          {/* Low Stock */}
+          <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl shadow-lg p-6 text-white">
+            <div className="flex items-center justify-between mb-4">
+              <div className="text-5xl">📦</div>
+              <div className="text-orange-100 text-sm font-medium">ALERT</div>
+            </div>
+            <p className="text-orange-100 text-sm mb-1">Low Stock Items</p>
+            <p className="text-4xl font-bold">{data?.lowStockItems}</p>
+          </div>
+
+          {/* Customers */}
+          <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg p-6 text-white">
+            <div className="flex items-center justify-between mb-4">
+              <div className="text-5xl">👥</div>
+              <div className="text-purple-100 text-sm font-medium">TOTAL</div>
+            </div>
+            <p className="text-purple-100 text-sm mb-1">Customers</p>
+            <p className="text-4xl font-bold">{data?.totalCustomers}</p>
+          </div>
+        </div>
+
+        {/* Secondary Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-xl p-6">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-[var(--text-secondary)] font-medium">Today's Profit</p>
+              <span className="text-2xl">💵</span>
+            </div>
+            <p className="text-3xl font-bold text-emerald-600">
+              KES {data?.todayProfit.toLocaleString()}
+            </p>
+          </div>
+
+          <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-xl p-6">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-[var(--text-secondary)] font-medium">Tax Collected</p>
+              <span className="text-2xl">🧾</span>
+            </div>
+            <p className="text-3xl font-bold text-blue-600">
+              KES {data?.todayTax.toLocaleString()}
+            </p>
+          </div>
+
+          <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-xl p-6">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-[var(--text-secondary)] font-medium">Avg Transaction</p>
+              <span className="text-2xl">📈</span>
+            </div>
+            <p className="text-3xl font-bold text-purple-600">
+              KES {data?.avgTransaction.toLocaleString()}
+            </p>
+          </div>
+        </div>
+
+        {/* Recent Transactions */}
+        <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-xl p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-[var(--text-primary)]">
+              🕒 Recent Transactions
+            </h2>
+            <button
+              onClick={() => router.push('/transactions')}
+              className="text-sm text-emerald-600 hover:text-emerald-700 font-medium"
+            >
+              View All →
             </button>
           </div>
-        </div>
 
-      {/* Top Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* All Time Verified Profit */}
-        <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-6">
-          <div className="flex justify-between items-start mb-2">
-            <p className="text-[var(--text-secondary)] text-sm font-medium">All Time Verified Profit</p>
-            <span className="text-emerald-500">📈</span>
-          </div>
-          <p className="text-3xl font-semibold text-emerald-500">KSH {stats.verifiedProfit.toLocaleString()}</p>
-          <div className="mt-4 space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-[var(--text-secondary)]">Retail</span>
-              <span className="text-[var(--text-primary)]">KSH 147350.34</span>
+          {!data?.recentTransactions || data.recentTransactions.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="text-6xl mb-4">📭</div>
+              <p className="text-[var(--text-secondary)] text-lg">No transactions yet</p>
+              <p className="text-[var(--text-secondary)] text-sm mt-2">
+                Start selling to see transactions here
+              </p>
+              <button
+                onClick={() => router.push('/pos')}
+                className="mt-4 px-6 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 font-medium"
+              >
+                Go to POS
+              </button>
             </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-[var(--text-secondary)]">Wholesale</span>
-              <span className="text-[var(--text-primary)]">KSH 1479636.70</span>
-            </div>
-          </div>
-          <p className="text-xs text-[var(--text-secondary)] mt-4">✓ Strict validation applied • Excludes invalid pricing</p>
-        </div>
-
-        {/* Potential Profit */}
-        <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-6">
-          <div className="flex justify-between items-start mb-2">
-            <p className="text-[var(--text-secondary)] text-sm font-medium">Potential Profit</p>
-            <span className="text-emerald-500">📈</span>
-          </div>
-          <p className="text-3xl font-semibold">KSH {stats.potentialProfit.toLocaleString()}</p>
-          <p className="text-sm text-[var(--text-secondary)] mt-2">
-            Potential profit from current inventory at retail prices
-          </p>
-          <p className="text-xs text-[var(--text-secondary)] mt-4">
-            ⚠ Profit is reduced due to pricing issues
-          </p>
-        </div>
-
-        {/* Gross Sales Revenue */}
-        <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-6">
-          <div className="flex justify-between items-start mb-2">
-            <p className="text-[var(--text-secondary)] text-sm font-medium">Gross Sales Revenue</p>
-            <span className="text-emerald-500">📈</span>
-          </div>
-          <p className="text-3xl font-semibold">KSH {stats.grossRevenue.toLocaleString()}</p>
-          <p className="text-sm text-[var(--text-secondary)] mt-2">
-            Wholesale: KSH 5872270 • Retail: KSH 944662.24
-          </p>
-          <p className="text-xs text-[var(--text-secondary)] mt-4">
-            Total sales before returns & expenses
-          </p>
-        </div>
-
-        {/* Today's Net Revenue */}
-        <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-6">
-          <div className="flex justify-between items-start mb-2">
-            <p className="text-[var(--text-secondary)] text-sm font-medium">Today's Net Revenue</p>
-            <span className="text-emerald-500">📈</span>
-          </div>
-          <p className="text-3xl font-semibold text-emerald-500">KSH {stats.netRevenue.toFixed(2)}</p>
-          <div className="mt-4 space-y-2 bg-[var(--bg-primary)] rounded-lg p-3">
-            {revenueBreakdown.map((item, idx) => (
-              <div key={idx} className="flex justify-between text-sm">
-                <span className="text-[var(--text-secondary)]">{item.label}</span>
-                <span className={item.value < 0 ? 'text-red-500' : 'text-[var(--text-primary)]'}>
-                  {item.value < 0 ? '-' : ''}KSH {Math.abs(item.value).toFixed(2)}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Middle Row Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {/* Product Categories */}
-        <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-6">
-          <div className="flex justify-between items-start mb-2">
-            <p className="text-[var(--text-secondary)] text-sm font-medium">Product Categories</p>
-            <span className="text-blue-400">📦</span>
-          </div>
-          <p className="text-4xl font-semibold">{stats.productCategories}</p>
-          <p className="text-sm text-[var(--text-secondary)] mt-2">Number of unique active categories</p>
-        </div>
-
-        {/* Outstanding Debt */}
-        <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-6">
-          <div className="flex justify-between items-start mb-2">
-            <p className="text-[var(--text-secondary)] text-sm font-medium">Outstanding Debt</p>
-            <span className="text-orange-400">💳</span>
-          </div>
-          <p className="text-4xl font-semibold">KSH {stats.outstandingDebt.toFixed(2)}</p>
-          <p className="text-sm text-[var(--text-secondary)] mt-2">2 customers with debt</p>
-        </div>
-
-        {/* Low Stock Alerts */}
-        <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-6">
-          <div className="flex justify-between items-start mb-2">
-            <p className="text-[var(--text-secondary)] text-sm font-medium">Low Stock Alerts</p>
-            <span className="text-yellow-400">⚠️</span>
-          </div>
-          <p className="text-4xl font-semibold text-yellow-400">{stats.lowStockItems}</p>
-          <p className="text-sm text-[var(--text-secondary)] mt-2">Items below minimum stock</p>
-        </div>
-      </div>
-
-      {/* Sales & Profit Trend + Pricing Audit */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Sales & Profit Trend Chart */}
-        <div className="lg:col-span-2 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-6">
-          <h2 className="text-lg font-bold mb-4">Sales & Profit Trend</h2>
-          <div className="h-64 bg-[var(--bg-primary)] rounded-lg p-4 relative">
-            <div className="absolute inset-0 flex items-end justify-around p-4">
-              {[45, 38, 62, 48, 72, 55, 68, 52, 78, 65, 58, 70].map((height, idx) => (
-                <div key={idx} className="flex flex-col items-center gap-1" style={{ width: '7%' }}>
-                  <div className="w-full bg-emerald-500 rounded-t" style={{ height: `${height}%` }}></div>
-                  <div className="w-full bg-blue-500 rounded-t" style={{ height: `${height * 0.7}%` }}></div>
+          ) : (
+            <div className="space-y-3">
+              {data.recentTransactions.map((txn) => (
+                <div
+                  key={txn.id}
+                  className="flex items-center justify-between p-4 bg-[var(--bg-secondary)] rounded-lg hover:bg-[var(--bg-tertiary)] transition-colors"
+                >
+                  <div className="flex-1">
+                    <p className="font-bold text-[var(--text-primary)] mb-1">
+                      {txn.number}
+                    </p>
+                    <p className="text-sm text-[var(--text-secondary)]">
+                      {txn.customer} • {txn.items} items • {new Date(txn.date).toLocaleString()}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-2xl font-bold text-emerald-600">
+                      KES {txn.total.toLocaleString()}
+                    </p>
+                  </div>
                 </div>
               ))}
             </div>
-          </div>
-          <div className="flex justify-center gap-6 mt-4 text-sm">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-emerald-500 rounded"></div>
-              <span className="text-[var(--text-secondary)]">Gross Sales</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-blue-500 rounded"></div>
-              <span className="text-[var(--text-secondary)]">Net Sales</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-red-500 rounded"></div>
-              <span className="text-[var(--text-secondary)]">Expenses</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-purple-500 rounded"></div>
-              <span className="text-[var(--text-secondary)]">Verified Profit</span>
-            </div>
-          </div>
+          )}
         </div>
 
-        {/* Pricing Data Audit */}
-        <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-bold">Pricing Data Audit</h2>
-            <button onClick={() => setShowPricingAudit(!showPricingAudit)} className="text-[var(--text-secondary)] hover:text-[var(--text-primary)]">
-              👁️
+        {/* Inventory Summary */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-xl p-6">
+            <h3 className="text-xl font-bold text-[var(--text-primary)] mb-4">
+              📦 Inventory Status
+            </h3>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-[var(--text-secondary)]">Total Products</span>
+                <span className="text-2xl font-bold text-[var(--text-primary)]">
+                  {data?.totalProducts}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-[var(--text-secondary)]">In Stock</span>
+                <span className="text-2xl font-bold text-emerald-600">
+                  {data?.inStockProducts}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-[var(--text-secondary)]">Low Stock</span>
+                <span className="text-2xl font-bold text-orange-600">
+                  {data?.lowStockItems}
+                </span>
+              </div>
+            </div>
+            <button
+              onClick={() => router.push('/inventory')}
+              className="mt-4 w-full px-4 py-2 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg hover:bg-[var(--bg-secondary)] text-[var(--text-primary)] font-medium"
+            >
+              Manage Inventory
             </button>
           </div>
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-[var(--text-secondary)]">Total Products:</span>
-              <span className="text-[var(--text-primary)] font-semibold">605</span>
+
+          {/* Low Stock Alert */}
+          {data && data.lowStockItems > 0 && (
+            <div className="bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 border-2 border-orange-300 dark:border-orange-700 rounded-xl p-6">
+              <div className="flex items-start">
+                <div className="text-5xl mr-4">⚠️</div>
+                <div className="flex-1">
+                  <h3 className="text-xl font-bold text-orange-900 dark:text-orange-300 mb-2">
+                    Low Stock Alert!
+                  </h3>
+                  <p className="text-orange-800 dark:text-orange-400 mb-4">
+                    You have {data.lowStockItems} product(s) running low on stock. 
+                    Reorder soon to avoid stockouts.
+                  </p>
+                  <button
+                    onClick={() => router.push('/inventory')}
+                    className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 font-medium"
+                  >
+                    View Low Stock Items →
+                  </button>
+                </div>
+              </div>
             </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-[var(--text-secondary)]">Valid Pricing:</span>
-              <span className="text-emerald-500 font-semibold">590</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-[var(--text-secondary)]">Issues Found:</span>
-              <span className="text-red-500 font-semibold">15</span>
-            </div>
-          </div>
-          
-          {showPricingAudit && (
-            <div className="mt-4 bg-amber-50 border border-amber-200 rounded-lg p-4">
-              <p className="text-sm font-semibold text-amber-900 mb-2">Issues Found:</p>
-              <ul className="text-xs text-amber-800 space-y-1">
-                <li>• 4 products missing cost price</li>
-                <li>• 3 products with zero selling price</li>
-                <li>• 12 products selling below cost</li>
-                <li>• 4 products with unrealistic markup</li>
-              </ul>
+          )}
+
+          {/* Quick Actions */}
+          {(!data || data.lowStockItems === 0) && (
+            <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-xl p-6">
+              <h3 className="text-xl font-bold text-[var(--text-primary)] mb-4">
+                ⚡ Quick Actions
+              </h3>
+              <div className="space-y-3">
+                <button
+                  onClick={() => router.push('/pos')}
+                  className="w-full px-4 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 font-medium text-left"
+                >
+                  🛒 New Sale
+                </button>
+                <button
+                  onClick={() => router.push('/inventory')}
+                  className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium text-left"
+                >
+                  📦 Manage Inventory
+                </button>
+                <button
+                  onClick={() => router.push('/customers')}
+                  className="w-full px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium text-left"
+                >
+                  👥 View Customers
+                </button>
+              </div>
             </div>
           )}
         </div>
       </div>
-
-      {/* Bottom Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Today's Expenses */}
-        <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-6">
-          <div className="flex justify-between items-start mb-2">
-            <p className="text-[var(--text-secondary)] text-sm font-medium">Today's Expenses</p>
-            <span className="text-red-500">📉</span>
-          </div>
-          <p className="text-3xl font-semibold text-red-500">KSH {stats.expenses.toFixed(2)}</p>
-          <p className="text-sm text-[var(--text-secondary)] mt-2">No expenses recorded today</p>
-          <button className="mt-4 text-sm text-emerald-500 hover:text-emerald-400">+ Add</button>
-        </div>
-
-        {/* Total Inventory Value (Cost) */}
-        <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-6">
-          <div className="flex justify-between items-start mb-2">
-            <p className="text-[var(--text-secondary)] text-sm font-medium">Total Inventory Value (Cost)</p>
-            <span className="text-blue-500">💰</span>
-          </div>
-          <p className="text-3xl font-semibold">KSH {stats.inventoryValueCost.toLocaleString()}</p>
-          <p className="text-sm text-[var(--text-secondary)] mt-2">Current value at buying price</p>
-        </div>
-
-        {/* Total Inventory Value (Selling) */}
-        <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-6">
-          <div className="flex justify-between items-start mb-2">
-            <p className="text-[var(--text-secondary)] text-sm font-medium">Total Inventory Value (Selling)</p>
-            <span className="text-purple-500">💵</span>
-          </div>
-          <p className="text-3xl font-semibold">KSH {stats.inventoryValueSelling.toLocaleString()}</p>
-          <p className="text-sm text-[var(--text-secondary)] mt-2">Current value at retail price</p>
-        </div>
-
-        {/* Total Units in Stock */}
-        <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-6">
-          <div className="flex justify-between items-start mb-2">
-            <p className="text-[var(--text-secondary)] text-sm font-medium">Total Units in Stock</p>
-            <span className="text-orange-500">📦</span>
-          </div>
-          <p className="text-4xl font-semibold">{stats.totalUnits.toLocaleString()}</p>
-          <p className="text-sm text-[var(--text-secondary)] mt-2">Total units for all products</p>
-        </div>
-      </div>
-      </div>
-
-      {showReportModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
-          <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-6 max-w-md w-full mx-4">
-            <h2 className="text-xl font-bold mb-4">Generate Report</h2>
-            <div className="space-y-3">
-              <button 
-                onClick={() => { alert('Sales report generated!'); setShowReportModal(false); }}
-                className="w-full px-4 py-3 text-left bg-[var(--bg-primary)] hover:bg-[var(--bg-tertiary)] rounded-lg border border-[var(--border-color)]"
-              >
-                <p className="font-semibold">Sales Report</p>
-                <p className="text-sm text-[var(--text-secondary)]">Download sales summary</p>
-              </button>
-              <button 
-                onClick={() => { alert('Inventory report generated!'); setShowReportModal(false); }}
-                className="w-full px-4 py-3 text-left bg-[var(--bg-primary)] hover:bg-[var(--bg-tertiary)] rounded-lg border border-[var(--border-color)]"
-              >
-                <p className="font-semibold">Inventory Report</p>
-                <p className="text-sm text-[var(--text-secondary)]">Download inventory status</p>
-              </button>
-              <button 
-                onClick={() => { alert('Customer report generated!'); setShowReportModal(false); }}
-                className="w-full px-4 py-3 text-left bg-[var(--bg-primary)] hover:bg-[var(--bg-tertiary)] rounded-lg border border-[var(--border-color)]"
-              >
-                <p className="font-semibold">Customer Report</p>
-                <p className="text-sm text-[var(--text-secondary)]">Download customer data</p>
-              </button>
-            </div>
-            <button
-              onClick={() => setShowReportModal(false)}
-              className="w-full mt-4 px-4 py-2 border border-[var(--border-color)] rounded-lg hover:bg-[var(--bg-tertiary)]"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
