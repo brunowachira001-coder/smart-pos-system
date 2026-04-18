@@ -40,12 +40,12 @@ export default function DashboardPro() {
 
   useEffect(() => {
     fetchStats();
-  }, []);
+  }, [dateRange]);
 
   const fetchStats = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/dashboard/comprehensive-stats?t=${Date.now()}`);
+      const response = await fetch(`/api/dashboard/comprehensive-stats?range=${dateRange}&t=${Date.now()}`);
       const data = await response.json();
       
       if (data.success) {

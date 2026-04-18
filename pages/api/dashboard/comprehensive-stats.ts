@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
+import { getDateRange } from '../../components/DateRangeFilter';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -15,6 +16,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
+    const range = (req.query.range as string) || 'all';
+    const { startDate, endDate } = getDateRange(range);
+
     // Get today's date range
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -46,10 +50,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Potential profit (if all inventory sold at retail)
     const potentialProfit = inventoryValueSelling - inventoryValueCost;
 
-    // Fetch all sales transactions for all-time profit
-    const { data: allTransactions, error: allTxnError } = await supabase
-      .from('sales_transactions')
-      .select('*');
+    // Fetch all sales transactions for all-time profit (or filtered by date range)
+    let allTransactionsQuery = supabase.from('sales_transactions').select('*');
+    
+    if (startDate && endDate) {
+      allTransactionsQuery = allTransactionsQuery
+        .gte('created_at', startDate.toISOString())
+        .lte('created_at', endDate.toISOString());
+    }
+
+    const { data: allTransactions, error: allTxnError } = await allTransactionsQuery;
 
     if (allTxnError) throw allTxnError;
 
@@ -137,6 +147,46 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }).length || 0;
     const pricingIssues = totalProducts - validPricing;
 
+    // Get sales trend data (based on date range or last 30 days)
+    let trendStartDate: Date;
+    if (startDate) {
+      trendStartDate = startDate;
+    } else {
+      trendStartDate = new Date();
+      trendStartDate.setDate(trendStartDate.getDate() - 30);
+    }
+
+    const trendEndDate = endDate || new Date();
+
+    const { data: trendTransactions, error: trendError } = await supabase
+      .from('sales_transactions')
+      .select('created_at, total, subtotal, tax')
+      .gte('created_at', trendStartDate.toISOString())
+      .lte('created_at', trendEndDate.toISOString())
+      .order('created_at', { ascending: true });
+
+    if (trendError) console.error('Trend error:', trendError);
+
+    // Group transactions by date
+    const salesByDate: { [key: string]: { gross: number; net: number; expenses: number; profit: number } } = {};
+    
+    trendTransactions?.forEach(t => {
+      const date = new Date(t.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      if (!salesByDate[date]) {
+        salesByDate[date] = { gross: 0, net: 0, expenses: 0, profit: 0 };
+      }
+      const total = parseFloat(t.total) || 0;
+      const subtotal = parseFloat(t.subtotal) || 0;
+      salesByDate[date].gross += total;
+      salesByDate[date].net += subtotal;
+      salesByDate[date].profit += (total - subtotal);
+    });
+
+    // Convert to array and get last 11 data points
+    const chartData = Object.entries(salesByDate)
+      .map(([date, values]) => ({ date, ...values }))
+      .slice(-11);
+
     res.status(200).json({
       success: true,
       data: {
@@ -159,7 +209,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           total: totalProducts,
           valid: validPricing,
           issues: pricingIssues
-        }
+        },
+        chartData
       }
     });
   } catch (error: any) {
