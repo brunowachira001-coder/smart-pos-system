@@ -40,6 +40,9 @@ export default function Returns() {
   }>>([{ productName: '', quantity: 1, amount: 0 }]);
   const [createFormErrors, setCreateFormErrors] = useState<string>('');
   const [submitting, setSubmitting] = useState(false);
+  const [transactionItems, setTransactionItems] = useState<Array<any>>([]);
+  const [loadingTransaction, setLoadingTransaction] = useState(false);
+  const [productSearchTerms, setProductSearchTerms] = useState<string[]>(['']);
 
   const [stats, setStats] = useState({
     totalReturns: 0,
@@ -193,6 +196,8 @@ export default function Returns() {
           reason: '',
         });
         setReturnItems([{ productName: '', quantity: 1, amount: 0 }]);
+        setTransactionItems([]);
+        setProductSearchTerms(['']);
         fetchData();
       }
     } catch (error) {
@@ -201,6 +206,64 @@ export default function Returns() {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const fetchTransactionDetails = async (transactionId: string) => {
+    if (!transactionId.trim()) {
+      setTransactionItems([]);
+      return;
+    }
+
+    setLoadingTransaction(true);
+    try {
+      const response = await fetch(`/api/transactions/${encodeURIComponent(transactionId)}`);
+      if (response.ok) {
+        const data = await response.json();
+        setTransactionItems(data.items || []);
+        
+        // Auto-fill customer name if available
+        if (data.transaction.customer_name) {
+          setCreateFormData(prev => ({
+            ...prev,
+            customerName: data.transaction.customer_name
+          }));
+        }
+      } else {
+        setTransactionItems([]);
+        console.log('Transaction not found');
+      }
+    } catch (error) {
+      console.error('Error fetching transaction:', error);
+      setTransactionItems([]);
+    } finally {
+      setLoadingTransaction(false);
+    }
+  };
+
+  const handleProductSelect = (index: number, productName: string) => {
+    const newItems = [...returnItems];
+    newItems[index].productName = productName;
+
+    // Auto-fill quantity and price from transaction if available
+    const transactionItem = transactionItems.find(
+      item => item.product_name === productName
+    );
+
+    if (transactionItem) {
+      newItems[index].quantity = transactionItem.quantity;
+      newItems[index].amount = parseFloat(transactionItem.subtotal);
+    }
+
+    setReturnItems(newItems);
+  };
+
+  const getFilteredProducts = (searchTerm: string) => {
+    if (!searchTerm) return availableProducts;
+    
+    const term = searchTerm.toLowerCase();
+    return availableProducts.filter(product =>
+      product.name.toLowerCase().includes(term)
+    );
   };
 
   const getStatusColor = (status: string) => {
@@ -343,14 +406,29 @@ export default function Returns() {
                 <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                   Transaction ID <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="text"
-                  value={createFormData.transactionId}
-                  onChange={(e) => setCreateFormData({ ...createFormData, transactionId: e.target.value })}
-                  placeholder="e.g., TXN-001"
-                  className="w-full px-4 py-2 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-lg text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  required
-                />
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={createFormData.transactionId}
+                    onChange={(e) => {
+                      setCreateFormData({ ...createFormData, transactionId: e.target.value });
+                      fetchTransactionDetails(e.target.value);
+                    }}
+                    placeholder="e.g., TXN-001 or paste transaction number"
+                    className="w-full px-4 py-2 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-lg text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    required
+                  />
+                  {loadingTransaction && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      <div className="animate-spin h-4 w-4 border-2 border-emerald-500 border-t-transparent rounded-full"></div>
+                    </div>
+                  )}
+                </div>
+                {transactionItems.length > 0 && (
+                  <p className="text-xs text-emerald-600 mt-1">
+                    ✓ Transaction found with {transactionItems.length} items
+                  </p>
+                )}
               </div>
 
               {/* Customer Name */}
@@ -397,12 +475,30 @@ export default function Returns() {
                   </label>
                   <button
                     type="button"
-                    onClick={() => setReturnItems([...returnItems, { productName: '', quantity: 1, amount: 0 }])}
+                    onClick={() => {
+                      setReturnItems([...returnItems, { productName: '', quantity: 1, amount: 0 }]);
+                      setProductSearchTerms([...productSearchTerms, '']);
+                    }}
                     className="text-sm text-emerald-600 hover:text-emerald-700 font-medium"
                   >
                     + Add Item
                   </button>
                 </div>
+
+                {transactionItems.length > 0 && (
+                  <div className="mb-3 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                    <p className="text-xs text-blue-700 dark:text-blue-300 font-medium mb-2">
+                      📦 Items from Transaction:
+                    </p>
+                    <div className="space-y-1">
+                      {transactionItems.map((item, idx) => (
+                        <div key={idx} className="text-xs text-blue-600 dark:text-blue-400">
+                          • {item.product_name} - Qty: {item.quantity} - KES {parseFloat(item.subtotal).toFixed(2)}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 <div className="space-y-3">
                   {returnItems.map((item, index) => (
@@ -412,7 +508,10 @@ export default function Returns() {
                         {returnItems.length > 1 && (
                           <button
                             type="button"
-                            onClick={() => setReturnItems(returnItems.filter((_, i) => i !== index))}
+                            onClick={() => {
+                              setReturnItems(returnItems.filter((_, i) => i !== index));
+                              setProductSearchTerms(productSearchTerms.filter((_, i) => i !== index));
+                            }}
                             className="text-red-500 hover:text-red-600 text-sm"
                           >
                             Remove
@@ -421,32 +520,78 @@ export default function Returns() {
                       </div>
 
                       <div className="space-y-3">
-                        {/* Product Name */}
+                        {/* Product Search and Select */}
                         <div>
-                          <label className="block text-xs text-[var(--text-secondary)] mb-1">Product</label>
-                          <select
-                            value={item.productName}
+                          <label className="block text-xs text-[var(--text-secondary)] mb-1">
+                            Product {transactionItems.length > 0 && '(auto-fills from transaction)'}
+                          </label>
+                          
+                          {/* Search Input */}
+                          <input
+                            type="text"
+                            value={productSearchTerms[index] || ''}
                             onChange={(e) => {
-                              const newItems = [...returnItems];
-                              newItems[index].productName = e.target.value;
-                              setReturnItems(newItems);
+                              const newSearchTerms = [...productSearchTerms];
+                              newSearchTerms[index] = e.target.value;
+                              setProductSearchTerms(newSearchTerms);
                             }}
-                            className="w-full px-3 py-2 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                            required
-                          >
-                            <option value="">Select a product</option>
-                            {availableProducts.map((product) => (
-                              <option key={product.id} value={product.name}>
-                                {product.name} (Stock: {product.stock})
-                              </option>
-                            ))}
-                          </select>
+                            placeholder="🔍 Type to search products..."
+                            className="w-full px-3 py-2 mb-2 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                          />
+
+                          {/* Filtered Product List */}
+                          <div className="max-h-40 overflow-y-auto border border-[var(--border-color)] rounded bg-[var(--bg-tertiary)]">
+                            {getFilteredProducts(productSearchTerms[index]).length > 0 ? (
+                              getFilteredProducts(productSearchTerms[index]).map((product) => {
+                                const isFromTransaction = transactionItems.some(
+                                  ti => ti.product_name === product.name
+                                );
+                                return (
+                                  <button
+                                    key={product.id}
+                                    type="button"
+                                    onClick={() => {
+                                      handleProductSelect(index, product.name);
+                                      const newSearchTerms = [...productSearchTerms];
+                                      newSearchTerms[index] = product.name;
+                                      setProductSearchTerms(newSearchTerms);
+                                    }}
+                                    className={`w-full text-left px-3 py-2 text-sm hover:bg-[var(--bg-secondary)] border-b border-[var(--border-color)] last:border-b-0 ${
+                                      item.productName === product.name ? 'bg-emerald-500/10 text-emerald-600' : 'text-[var(--text-primary)]'
+                                    } ${isFromTransaction ? 'font-medium' : ''}`}
+                                  >
+                                    <div className="flex justify-between items-center">
+                                      <span>
+                                        {isFromTransaction && '✓ '}
+                                        {product.name}
+                                      </span>
+                                      <span className="text-xs text-[var(--text-secondary)]">
+                                        Stock: {product.stock}
+                                      </span>
+                                    </div>
+                                  </button>
+                                );
+                              })
+                            ) : (
+                              <div className="px-3 py-2 text-sm text-[var(--text-secondary)]">
+                                {productSearchTerms[index] ? 'No products found' : 'Start typing to search...'}
+                              </div>
+                            )}
+                          </div>
+
+                          {item.productName && (
+                            <p className="text-xs text-emerald-600 mt-1">
+                              Selected: {item.productName}
+                            </p>
+                          )}
                         </div>
 
                         {/* Quantity and Amount */}
                         <div className="grid grid-cols-2 gap-3">
                           <div>
-                            <label className="block text-xs text-[var(--text-secondary)] mb-1">Quantity</label>
+                            <label className="block text-xs text-[var(--text-secondary)] mb-1">
+                              Quantity {transactionItems.length > 0 && '(auto-filled)'}
+                            </label>
                             <input
                               type="number"
                               min="1"
@@ -461,7 +606,9 @@ export default function Returns() {
                             />
                           </div>
                           <div>
-                            <label className="block text-xs text-[var(--text-secondary)] mb-1">Amount (KES)</label>
+                            <label className="block text-xs text-[var(--text-secondary)] mb-1">
+                              Amount (KES) {transactionItems.length > 0 && '(auto-filled)'}
+                            </label>
                             <input
                               type="number"
                               min="0"
@@ -483,7 +630,7 @@ export default function Returns() {
                 </div>
 
                 <p className="text-xs text-[var(--text-secondary)] mt-2">
-                  💡 Tip: You can return multiple items from the same transaction
+                  💡 Tip: Enter transaction ID to auto-fill product details, or search products manually
                 </p>
               </div>
 
@@ -513,6 +660,8 @@ export default function Returns() {
                       reason: '',
                     });
                     setReturnItems([{ productName: '', quantity: 1, amount: 0 }]);
+                    setTransactionItems([]);
+                    setProductSearchTerms(['']);
                     setCreateFormErrors('');
                   }}
                   className="px-4 py-2 border border-[var(--border-color)] rounded-lg hover:bg-[var(--bg-secondary)] text-[var(--text-primary)]"
