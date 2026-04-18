@@ -187,8 +187,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (trendError) console.error('Trend error:', trendError);
 
-    // Fetch transaction items for profit calculation
-    let trendTransactionIds: string[] = [];
+    // Prepare chart data
+    let chartData: Array<{ date: string; gross: number; net: number; expenses: number; profit: number }> = [];
+
     if (trendTransactions && trendTransactions.length > 0) {
       // We need to get transaction IDs, but we only selected created_at, total, subtotal, tax
       // Let's fetch transactions again with IDs
@@ -199,111 +200,86 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .lte('created_at', trendEndDate.toISOString())
         .order('created_at', { ascending: true });
 
-      trendTransactionIds = trendTransactionsWithIds?.map(t => t.id) || [];
+      const trendTransactionIds = trendTransactionsWithIds?.map(t => t.id) || [];
 
-      // Fetch transaction items
-      const { data: trendItems } = await supabase
-        .from('sales_transaction_items')
-        .select('transaction_id, product_id, quantity, unit_price')
-        .in('transaction_id', trendTransactionIds);
+      if (trendTransactionIds.length > 0) {
+        // Fetch transaction items
+        const { data: trendItems } = await supabase
+          .from('sales_transaction_items')
+          .select('transaction_id, product_id, quantity, unit_price')
+          .in('transaction_id', trendTransactionIds);
 
-      // Create a map of transaction_id to profit
-      const profitByTransaction: { [key: string]: number } = {};
-      
-      if (trendItems) {
-        for (const item of trendItems) {
-          const product = products?.find(p => p.id === item.product_id);
-          if (product) {
-            const costPrice = parseFloat(product.cost_price) || 0;
-            const sellingPrice = parseFloat(item.unit_price) || 0;
-            const quantity = item.quantity || 0;
-            const itemProfit = (sellingPrice - costPrice) * quantity;
-            
-            if (!profitByTransaction[item.transaction_id]) {
-              profitByTransaction[item.transaction_id] = 0;
+        // Create a map of transaction_id to profit
+        const profitByTransaction: { [key: string]: number } = {};
+        
+        if (trendItems) {
+          for (const item of trendItems) {
+            const product = products?.find(p => p.id === item.product_id);
+            if (product) {
+              const costPrice = parseFloat(product.cost_price) || 0;
+              const sellingPrice = parseFloat(item.unit_price) || 0;
+              const quantity = item.quantity || 0;
+              const itemProfit = (sellingPrice - costPrice) * quantity;
+              
+              if (!profitByTransaction[item.transaction_id]) {
+                profitByTransaction[item.transaction_id] = 0;
+              }
+              profitByTransaction[item.transaction_id] += itemProfit;
             }
-            profitByTransaction[item.transaction_id] += itemProfit;
           }
         }
-      }
 
-      // Group transactions by date with actual profit
-      const salesByDate: { [key: string]: { gross: number; net: number; expenses: number; profit: number } } = {};
-      
-      trendTransactionsWithIds?.forEach(t => {
-        const date = new Date(t.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-        if (!salesByDate[date]) {
-          salesByDate[date] = { gross: 0, net: 0, expenses: 0, profit: 0 };
-        }
-        const total = parseFloat(t.total) || 0;
-        const subtotal = parseFloat(t.subtotal) || 0;
-        const profit = profitByTransaction[t.id] || 0;
+        // Group transactions by date with actual profit
+        const salesByDate: { [key: string]: { gross: number; net: number; expenses: number; profit: number } } = {};
         
-        salesByDate[date].gross += total;
-        salesByDate[date].net += subtotal;
-        salesByDate[date].profit += profit;
-      });
+        trendTransactionsWithIds?.forEach(t => {
+          const date = new Date(t.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+          if (!salesByDate[date]) {
+            salesByDate[date] = { gross: 0, net: 0, expenses: 0, profit: 0 };
+          }
+          const total = parseFloat(t.total) || 0;
+          const subtotal = parseFloat(t.subtotal) || 0;
+          const profit = profitByTransaction[t.id] || 0;
+          
+          salesByDate[date].gross += total;
+          salesByDate[date].net += subtotal;
+          salesByDate[date].profit += profit;
+        });
 
-      // Convert to array and get last 11 data points
-      const chartData = Object.entries(salesByDate)
-        .map(([date, values]) => ({ date, ...values }))
-        .slice(-11);
-
-      res.status(200).json({
-        success: true,
-        data: {
-          allTimeProfit,
-          potentialProfit,
-          grossRevenue,
-          todayNetRevenue,
-          todayExpenses,
-          inventoryValueCost,
-          inventoryValueSelling,
-          totalUnits,
-          retailRevenue,
-          wholesaleRevenue,
-          retailSales,
-          wholesaleSales,
-          productCategories,
-          outstandingDebt,
-          lowStockCount,
-          pricingAudit: {
-            total: totalProducts,
-            valid: validPricing,
-            issues: pricingIssues
-          },
-          chartData
-        }
-      });
-    } else {
-      // No transactions, return empty chart
-      res.status(200).json({
-        success: true,
-        data: {
-          allTimeProfit,
-          potentialProfit,
-          grossRevenue,
-          todayNetRevenue,
-          todayExpenses,
-          inventoryValueCost,
-          inventoryValueSelling,
-          totalUnits,
-          retailRevenue,
-          wholesaleRevenue,
-          retailSales,
-          wholesaleSales,
-          productCategories,
-          outstandingDebt,
-          lowStockCount,
-          pricingAudit: {
-            total: totalProducts,
-            valid: validPricing,
-            issues: pricingIssues
-          },
-          chartData: []
-        }
-      });
+        // Convert to array and get last 11 data points
+        chartData = Object.entries(salesByDate)
+          .map(([date, values]) => ({ date, ...values }))
+          .slice(-11);
+      }
     }
+
+    // Send response
+    res.status(200).json({
+      success: true,
+      data: {
+        allTimeProfit,
+        potentialProfit,
+        grossRevenue,
+        todayNetRevenue,
+        todayExpenses,
+        inventoryValueCost,
+        inventoryValueSelling,
+        totalUnits,
+        retailRevenue,
+        wholesaleRevenue,
+        retailSales,
+        wholesaleSales,
+        productCategories,
+        outstandingDebt,
+        lowStockCount,
+        pricingAudit: {
+          total: totalProducts,
+          valid: validPricing,
+          issues: pricingIssues
+        },
+        chartData
+      }
+    });
   } catch (error: any) {
     console.error('Comprehensive stats error:', error);
     res.status(500).json({
