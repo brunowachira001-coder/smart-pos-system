@@ -211,14 +211,14 @@ export default function POSPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--bg-secondary)]">
+    <div className="min-h-screen bg-[var(--bg-secondary)] pb-20">
       <div className="p-6">
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-4 flex-1">
             <input
               type="text"
-              placeholder="Search by name, SKU, or description... [retail mode]"
+              placeholder="Search by name, SKU, or description... ({priceMode} mode)"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="flex-1 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg px-4 py-2.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -234,15 +234,12 @@ export default function POSPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Products Grid */}
-          <div className="lg:col-span-2">
-            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+        {/* Products Grid - Full Width */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
               {products.map((product) => (
                 <div
                   key={product.id}
-                  className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-4 hover:border-blue-500 transition-colors cursor-pointer"
-                  onClick={() => addToCart(product)}
+                  className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-3 hover:border-blue-500 transition-colors"
                 >
                   {/* Stock Badge */}
                   <div className="text-xs text-[var(--text-secondary)] mb-2">
@@ -250,11 +247,11 @@ export default function POSPage() {
                   </div>
 
                   {/* Product Image Placeholder */}
-                  <div className="w-full h-32 bg-[var(--bg-primary)] rounded-lg mb-3 flex items-center justify-center">
+                  <div className="w-full h-24 bg-[var(--bg-primary)] rounded-lg mb-2 flex items-center justify-center">
                     {product.image_url ? (
                       <img src={product.image_url} alt={product.name} className="w-full h-full object-cover rounded-lg" />
                     ) : (
-                      <svg className="w-12 h-12 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-10 h-10 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                       </svg>
                     )}
@@ -262,36 +259,32 @@ export default function POSPage() {
 
                   {/* Product Info */}
                   <div className="mb-2">
-                    <h3 className="font-semibold text-sm text-[var(--text-primary)] mb-1 line-clamp-2">
+                    <h3 className="font-semibold text-xs text-[var(--text-primary)] mb-1 line-clamp-1">
                       {product.name}
                     </h3>
                     <p className="text-xs text-[var(--text-secondary)]">SKU: {product.sku}</p>
                   </div>
 
-                  {/* Prices */}
-                  <div className="space-y-1 mb-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs text-[var(--text-secondary)]">
-                        {priceMode === 'retail' ? 'Retail' : 'Wholesale'}:
+                  {/* Price Display */}
+                  <div className="mb-2">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xs px-2 py-0.5 bg-blue-500/20 text-blue-400 rounded">
+                        {priceMode === 'retail' ? 'Retail' : 'Wholesale'}
                       </span>
-                      <span className="text-xs text-[var(--text-primary)]">
-                        KSH {priceMode === 'retail' ? product.retail_price.toFixed(2) : product.wholesale_price.toFixed(2)}
+                      <span className="text-xs font-semibold text-[var(--text-primary)]">
+                        KSH {(priceMode === 'retail' ? product.retail_price : product.wholesale_price).toFixed(2)}
                       </span>
+                    </div>
+                    <div className="text-xs text-[var(--text-secondary)]">
+                      {priceMode === 'retail' ? 'Wholesale' : 'Retail'}: KSH {(priceMode === 'retail' ? product.wholesale_price : product.retail_price).toFixed(2)}
                     </div>
                   </div>
 
-                  {/* Selected Price */}
-                  <div className="text-center py-2 bg-[var(--bg-primary)] rounded">
-                    <span className="text-sm font-semibold text-[var(--text-primary)]">
-                      KSH {(priceMode === 'retail' ? product.retail_price : product.wholesale_price).toFixed(2)}
-                    </span>
-                    <p className="text-xs text-[var(--text-secondary)] mt-1">
-                      {priceMode === 'retail' ? 'Retail' : 'Wholesale'} Price
-                    </p>
-                  </div>
-
-                  {/* Add to Cart Button */}
-                  <button className="w-full mt-3 bg-blue-600 hover:bg-blue-700 text-white text-sm py-2 rounded-lg transition-colors flex items-center justify-center gap-2">
+                  {/* Add to Cart Button - Icon Only */}
+                  <button 
+                    onClick={() => addToCart(product)}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm py-2 rounded-lg transition-colors flex items-center justify-center"
+                  >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                     </svg>
@@ -300,12 +293,44 @@ export default function POSPage() {
               ))}
             </div>
           </div>
+        </div>
+      </div>
 
-          {/* Cart Sidebar */}
-          <div className="lg:col-span-1">
-            <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-4 sticky top-6">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-semibold">Cart</h2>
+      {/* Floating Cart Button */}
+      <button
+        onClick={() => setShowCheckout(true)}
+        className="fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-full shadow-lg transition-all z-40 flex items-center justify-center"
+      >
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+        </svg>
+        {cart.length > 0 && (
+          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
+            {cart.length}
+          </span>
+        )}
+      </button>
+
+      {/* Cart/Checkout Modal */}
+      {showCheckout && (
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+          <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">Cart & Checkout</h2>
+              <button
+                onClick={() => setShowCheckout(false)}
+                className="text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Cart Items */}
+            <div className="mb-6">
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="font-semibold">Cart Items</h3>
                 <button
                   onClick={clearCart}
                   className="text-sm text-red-500 hover:text-red-400"
@@ -314,8 +339,7 @@ export default function POSPage() {
                 </button>
               </div>
 
-              {/* Cart Items */}
-              <div className="space-y-3 mb-4 max-h-96 overflow-y-auto">
+              <div className="space-y-3 mb-4 max-h-60 overflow-y-auto">
                 {cart.length === 0 ? (
                   <p className="text-center text-[var(--text-secondary)] py-8">Cart is empty</p>
                 ) : (
@@ -370,104 +394,92 @@ export default function POSPage() {
                   <span className="text-2xl font-bold text-emerald-500">KSH {cartTotal.toFixed(2)}</span>
                 </div>
               </div>
-
-              {/* Checkout Button */}
-              <button
-                onClick={() => setShowCheckout(true)}
-                disabled={cart.length === 0}
-                className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white py-3 rounded-lg font-semibold transition-colors"
-              >
-                Proceed to Checkout
-              </button>
             </div>
-          </div>
-        </div>
-      </div>
 
-      {/* Checkout Modal */}
-      {showCheckout && (
-        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
-          <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-6 max-w-md w-full">
-            <h2 className="text-xl font-bold mb-4">Complete Payment</h2>
+            {/* Checkout Form */}
+            {cart.length > 0 && (
+              <div className="border-t border-[var(--border-color)] pt-4">
+                <h3 className="font-semibold mb-4">Payment Details</h3>
+                <div className="space-y-4 mb-6">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Customer Name (Optional)</label>
+                    <input
+                      type="text"
+                      value={customerName}
+                      onChange={(e) => setCustomerName(e.target.value)}
+                      className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-sm"
+                      placeholder="Walk-in Customer"
+                    />
+                  </div>
 
-            <div className="space-y-4 mb-6">
-              <div>
-                <label className="block text-sm font-medium mb-2">Customer Name (Optional)</label>
-                <input
-                  type="text"
-                  value={customerName}
-                  onChange={(e) => setCustomerName(e.target.value)}
-                  className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-sm"
-                  placeholder="Walk-in Customer"
-                />
-              </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Phone Number (Optional)</label>
+                    <input
+                      type="tel"
+                      value={customerPhone}
+                      onChange={(e) => setCustomerPhone(e.target.value)}
+                      className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-sm"
+                      placeholder="+254..."
+                    />
+                  </div>
 
-              <div>
-                <label className="block text-sm font-medium mb-2">Phone Number (Optional)</label>
-                <input
-                  type="tel"
-                  value={customerPhone}
-                  onChange={(e) => setCustomerPhone(e.target.value)}
-                  className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-sm"
-                  placeholder="+254..."
-                />
-              </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Payment Method</label>
+                    <select
+                      value={paymentMethod}
+                      onChange={(e) => setPaymentMethod(e.target.value)}
+                      className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-sm"
+                    >
+                      <option value="cash">Cash</option>
+                      <option value="mpesa">M-Pesa</option>
+                      <option value="card">Card</option>
+                      <option value="bank">Bank Transfer</option>
+                    </select>
+                  </div>
 
-              <div>
-                <label className="block text-sm font-medium mb-2">Payment Method</label>
-                <select
-                  value={paymentMethod}
-                  onChange={(e) => setPaymentMethod(e.target.value)}
-                  className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-sm"
-                >
-                  <option value="cash">Cash</option>
-                  <option value="mpesa">M-Pesa</option>
-                  <option value="card">Card</option>
-                  <option value="bank">Bank Transfer</option>
-                </select>
-              </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Amount Paid *</label>
+                    <input
+                      type="number"
+                      value={amountPaid}
+                      onChange={(e) => setAmountPaid(e.target.value)}
+                      className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-sm"
+                      placeholder="0.00"
+                      step="0.01"
+                    />
+                  </div>
 
-              <div>
-                <label className="block text-sm font-medium mb-2">Amount Paid *</label>
-                <input
-                  type="number"
-                  value={amountPaid}
-                  onChange={(e) => setAmountPaid(e.target.value)}
-                  className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-sm"
-                  placeholder="0.00"
-                  step="0.01"
-                />
-              </div>
-
-              <div className="bg-[var(--bg-primary)] rounded-lg p-3">
-                <div className="flex justify-between mb-2">
-                  <span className="text-sm">Total:</span>
-                  <span className="text-sm font-semibold">KSH {cartTotal.toFixed(2)}</span>
+                  <div className="bg-[var(--bg-primary)] rounded-lg p-3">
+                    <div className="flex justify-between mb-2">
+                      <span className="text-sm">Total:</span>
+                      <span className="text-sm font-semibold">KSH {cartTotal.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm">Change:</span>
+                      <span className="text-sm font-semibold text-emerald-500">
+                        KSH {Math.max(0, (parseFloat(amountPaid) || 0) - cartTotal).toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-sm">Change:</span>
-                  <span className="text-sm font-semibold text-emerald-500">
-                    KSH {Math.max(0, (parseFloat(amountPaid) || 0) - cartTotal).toFixed(2)}
-                  </span>
+
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowCheckout(false)}
+                    className="flex-1 bg-[var(--bg-primary)] border border-[var(--border-color)] py-2 rounded-lg hover:bg-[var(--bg-secondary)]"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleCheckout}
+                    disabled={loading || !amountPaid || parseFloat(amountPaid) < cartTotal}
+                    className="flex-1 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-600 text-white py-2 rounded-lg font-semibold"
+                  >
+                    {loading ? 'Processing...' : 'Complete Sale'}
+                  </button>
                 </div>
               </div>
-            </div>
-
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowCheckout(false)}
-                className="flex-1 bg-[var(--bg-primary)] border border-[var(--border-color)] py-2 rounded-lg hover:bg-[var(--bg-secondary)]"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleCheckout}
-                disabled={loading || !amountPaid || parseFloat(amountPaid) < cartTotal}
-                className="flex-1 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-600 text-white py-2 rounded-lg font-semibold"
-              >
-                {loading ? 'Processing...' : 'Complete Sale'}
-              </button>
-            </div>
+            )}
           </div>
         </div>
       )}
