@@ -45,28 +45,34 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Fetch today's transactions
     const { data: todayTransactions, error: transactionsError } = await supabase
-      .from('transactions')
+      .from('sales_transactions')
       .select('*')
       .gte('created_at', today.toISOString())
       .lt('created_at', tomorrow.toISOString());
 
-    if (transactionsError) throw transactionsError;
+    if (transactionsError) {
+      console.error('Transactions error:', transactionsError);
+      throw transactionsError;
+    }
 
     // Calculate today's sales stats
-    const todaySales = todayTransactions?.reduce((sum, t) => sum + (t.total || 0), 0) || 0;
-    const todayProfit = todayTransactions?.reduce((sum, t) => sum + (t.profit || 0), 0) || 0;
-    const todayTax = todayTransactions?.reduce((sum, t) => sum + (t.tax || 0), 0) || 0;
+    const todaySales = todayTransactions?.reduce((sum, t) => sum + (parseFloat(t.total) || 0), 0) || 0;
+    const todayProfit = todayTransactions?.reduce((sum, t) => sum + (parseFloat(t.total) - parseFloat(t.subtotal || 0)), 0) || 0;
+    const todayTax = todayTransactions?.reduce((sum, t) => sum + (parseFloat(t.tax) || 0), 0) || 0;
     const transactionCount = todayTransactions?.length || 0;
     const avgTransaction = transactionCount > 0 ? todaySales / transactionCount : 0;
 
     // Fetch recent transactions (last 5)
     const { data: recentTransactions, error: recentError } = await supabase
-      .from('transactions')
+      .from('sales_transactions')
       .select('*')
       .order('created_at', { ascending: false })
       .limit(5);
 
-    if (recentError) throw recentError;
+    if (recentError) {
+      console.error('Recent transactions error:', recentError);
+      throw recentError;
+    }
 
     // Format response
     res.status(200).json({
@@ -91,8 +97,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           id: t.id,
           transactionNumber: t.transaction_number || `TXN-${t.id}`,
           customer: t.customer_name || 'Walk-in Customer',
-          itemCount: t.items_count || 0,
-          total: t.total || 0,
+          itemCount: 0, // We'll need to count items separately
+          total: parseFloat(t.total) || 0,
           createdAt: t.created_at
         })) || []
       }
