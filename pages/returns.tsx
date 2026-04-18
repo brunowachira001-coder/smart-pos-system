@@ -239,6 +239,24 @@ export default function Returns() {
         </div>
       </div>
 
+      {/* Create Return Modal */}
+      {showCreateModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-[var(--card-bg)] rounded-lg p-6 max-w-md w-full mx-4 border border-[var(--border-color)]">
+            <h2 className="text-xl font-bold text-[var(--text-primary)] mb-4">Create Return</h2>
+            <p className="text-[var(--text-secondary)] mb-4">
+              Return creation feature coming soon. This will allow you to process returns directly from this interface.
+            </p>
+            <button
+              onClick={() => setShowCreateModal(false)}
+              className="w-full px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Process Modal */}
       {showProcessModal && selectedReturn && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
