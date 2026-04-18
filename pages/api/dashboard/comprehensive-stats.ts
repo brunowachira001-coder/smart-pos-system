@@ -66,14 +66,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Calculate actual profit by fetching transaction items and comparing with cost prices
     let allTimeProfit = 0;
     
+    console.log('=== PROFIT CALCULATION DEBUG ===');
+    console.log('Total transactions:', allTransactions?.length || 0);
+    
     if (allTransactions && allTransactions.length > 0) {
       const transactionIds = allTransactions.map(t => t.id);
+      console.log('Transaction IDs:', transactionIds.length);
       
       // Fetch all transaction items for these transactions
-      const { data: transactionItems } = await supabase
+      const { data: transactionItems, error: itemsError } = await supabase
         .from('sales_transaction_items')
-        .select('product_id, quantity, unit_price')
+        .select('product_id, quantity, unit_price, transaction_id')
         .in('transaction_id', transactionIds);
+
+      console.log('Transaction items found:', transactionItems?.length || 0);
+      if (itemsError) console.error('Items error:', itemsError);
 
       if (transactionItems && transactionItems.length > 0) {
         // Calculate profit for each item
@@ -84,11 +91,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             const sellingPrice = parseFloat(item.unit_price) || 0;
             const quantity = item.quantity || 0;
             const itemProfit = (sellingPrice - costPrice) * quantity;
+            
+            console.log(`Item: ${product.name}, Cost: ${costPrice}, Selling: ${sellingPrice}, Qty: ${quantity}, Profit: ${itemProfit}`);
+            
             allTimeProfit += itemProfit;
+          } else {
+            console.log(`Product not found for item with product_id: ${item.product_id}`);
           }
         }
       }
     }
+    
+    console.log('Total calculated profit:', allTimeProfit);
+    console.log('=== END DEBUG ===');
 
     // Calculate gross revenue
     const grossRevenue = allTransactions?.reduce((sum, t) => {
