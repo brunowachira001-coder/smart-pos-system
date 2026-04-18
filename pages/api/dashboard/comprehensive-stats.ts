@@ -66,12 +66,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Calculate actual profit by fetching transaction items and comparing with cost prices
     let allTimeProfit = 0;
     
-    console.log('=== PROFIT CALCULATION DEBUG ===');
-    console.log('Total transactions:', allTransactions?.length || 0);
-    
     if (allTransactions && allTransactions.length > 0) {
       const transactionIds = allTransactions.map(t => t.id);
-      console.log('Transaction IDs:', transactionIds.length);
       
       // Fetch all transaction items for these transactions
       const { data: transactionItems, error: itemsError } = await supabase
@@ -79,31 +75,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .select('product_id, quantity, unit_price, transaction_id')
         .in('transaction_id', transactionIds);
 
-      console.log('Transaction items found:', transactionItems?.length || 0);
-      if (itemsError) console.error('Items error:', itemsError);
-
       if (transactionItems && transactionItems.length > 0) {
+        // Create a map of product IDs to cost prices for faster lookup
+        const productCostMap = new Map();
+        products?.forEach(p => {
+          productCostMap.set(p.id, parseFloat(p.cost_price) || 0);
+        });
+
         // Calculate profit for each item
         for (const item of transactionItems) {
-          const product = products?.find(p => p.id === item.product_id);
-          if (product) {
-            const costPrice = parseFloat(product.cost_price) || 0;
-            const sellingPrice = parseFloat(item.unit_price) || 0;
-            const quantity = item.quantity || 0;
-            const itemProfit = (sellingPrice - costPrice) * quantity;
-            
-            console.log(`Item: ${product.name}, Cost: ${costPrice}, Selling: ${sellingPrice}, Qty: ${quantity}, Profit: ${itemProfit}`);
-            
-            allTimeProfit += itemProfit;
-          } else {
-            console.log(`Product not found for item with product_id: ${item.product_id}`);
-          }
+          const costPrice = productCostMap.get(item.product_id) || 0;
+          const sellingPrice = parseFloat(item.unit_price) || 0;
+          const quantity = item.quantity || 0;
+          const itemProfit = (sellingPrice - costPrice) * quantity;
+          allTimeProfit += itemProfit;
         }
       }
     }
-    
-    console.log('Total calculated profit:', allTimeProfit);
-    console.log('=== END DEBUG ===');
 
     // Calculate gross revenue
     const grossRevenue = allTransactions?.reduce((sum, t) => {
@@ -206,8 +194,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     let chartData: Array<{ date: string; gross: number; net: number; expenses: number; profit: number }> = [];
 
     if (trendTransactions && trendTransactions.length > 0) {
-      // We need to get transaction IDs, but we only selected created_at, total, subtotal, tax
-      // Let's fetch transactions again with IDs
+      // Fetch transactions with IDs for chart
       const { data: trendTransactionsWithIds } = await supabase
         .from('sales_transactions')
         .select('id, created_at, total, subtotal')
@@ -224,23 +211,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           .select('transaction_id, product_id, quantity, unit_price')
           .in('transaction_id', trendTransactionIds);
 
+        // Create a map of product IDs to cost prices
+        const productCostMap = new Map();
+        products?.forEach(p => {
+          productCostMap.set(p.id, parseFloat(p.cost_price) || 0);
+        });
+
         // Create a map of transaction_id to profit
         const profitByTransaction: { [key: string]: number } = {};
         
         if (trendItems) {
           for (const item of trendItems) {
-            const product = products?.find(p => p.id === item.product_id);
-            if (product) {
-              const costPrice = parseFloat(product.cost_price) || 0;
-              const sellingPrice = parseFloat(item.unit_price) || 0;
-              const quantity = item.quantity || 0;
-              const itemProfit = (sellingPrice - costPrice) * quantity;
-              
-              if (!profitByTransaction[item.transaction_id]) {
-                profitByTransaction[item.transaction_id] = 0;
-              }
-              profitByTransaction[item.transaction_id] += itemProfit;
+            const costPrice = productCostMap.get(item.product_id) || 0;
+            const sellingPrice = parseFloat(item.unit_price) || 0;
+            const quantity = item.quantity || 0;
+            const itemProfit = (sellingPrice - costPrice) * quantity;
+            
+            if (!profitByTransaction[item.transaction_id]) {
+              profitByTransaction[item.transaction_id] = 0;
             }
+            profitByTransaction[item.transaction_id] += itemProfit;
           }
         }
 
