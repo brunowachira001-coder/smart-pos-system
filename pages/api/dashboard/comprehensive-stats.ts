@@ -1,11 +1,53 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
-import { getDateRange } from '../../components/DateRangeFilter';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
+
+// Date range helper function
+function getDateRange(range: string): { startDate: Date | null; endDate: Date | null } {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  
+  switch (range) {
+    case 'today':
+      return { startDate: today, endDate: now };
+    
+    case 'yesterday':
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+      return { startDate: yesterday, endDate: today };
+    
+    case 'last7days':
+      const last7 = new Date(today);
+      last7.setDate(last7.getDate() - 7);
+      return { startDate: last7, endDate: now };
+    
+    case 'last30days':
+      const last30 = new Date(today);
+      last30.setDate(last30.getDate() - 30);
+      return { startDate: last30, endDate: now };
+    
+    case 'thisMonth':
+      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+      return { startDate: monthStart, endDate: now };
+    
+    case 'lastMonth':
+      const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+      return { startDate: lastMonthStart, endDate: lastMonthEnd };
+    
+    case 'thisYear':
+      const yearStart = new Date(now.getFullYear(), 0, 1);
+      return { startDate: yearStart, endDate: now };
+    
+    case 'all':
+    default:
+      return { startDate: null, endDate: null };
+  }
+}
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
