@@ -99,7 +99,17 @@ export default function DashboardPro() {
           {/* All Time Verified Profit */}
           <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-6">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-sm text-[var(--text-secondary)]">All Time Verified Profit</p>
+              <p className="text-sm text-[var(--text-secondary)]">
+                {dateRange === 'all' ? 'All Time Verified Profit' : 
+                 dateRange === 'today' ? "Today's Verified Profit" :
+                 dateRange === 'yesterday' ? "Yesterday's Verified Profit" :
+                 dateRange === 'last7days' ? 'Last 7 Days Verified Profit' :
+                 dateRange === 'last30days' ? 'Last 30 Days Verified Profit' :
+                 dateRange === 'thisMonth' ? 'This Month Verified Profit' :
+                 dateRange === 'lastMonth' ? 'Last Month Verified Profit' :
+                 dateRange === 'thisYear' ? 'This Year Verified Profit' :
+                 'Verified Profit'}
+              </p>
               <span className="text-emerald-500">📈</span>
             </div>
             <p className="text-3xl font-bold text-emerald-500 mb-2">
@@ -143,7 +153,12 @@ export default function DashboardPro() {
           {/* Gross Sales Revenue */}
           <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-6">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-sm text-[var(--text-secondary)]">Gross Sales Revenue</p>
+              <p className="text-sm text-[var(--text-secondary)]">
+                {dateRange === 'all' ? 'Gross Sales Revenue' :
+                 dateRange === 'today' ? "Today's Gross Sales" :
+                 dateRange === 'yesterday' ? "Yesterday's Gross Sales" :
+                 'Gross Sales Revenue'}
+              </p>
               <span className="text-purple-500">💰</span>
             </div>
             <p className="text-3xl font-bold text-purple-500 mb-2">
@@ -151,12 +166,12 @@ export default function DashboardPro() {
             </p>
             <div className="space-y-1 text-xs mt-2">
               <div className="flex justify-between">
-                <span className="text-[var(--text-secondary)]">Sold</span>
-                <span className="text-[var(--text-secondary)]">58722.70</span>
+                <span className="text-[var(--text-secondary)]">Retail</span>
+                <span className="text-[var(--text-secondary)]">KSH {stats?.retailRevenue.toLocaleString()}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-[var(--text-secondary)]">Wholesale</span>
-                <span className="text-[var(--text-secondary)]">9446662.24</span>
+                <span className="text-[var(--text-secondary)]">KSH {stats?.wholesaleRevenue.toLocaleString()}</span>
               </div>
             </div>
             <p className="text-xs text-[var(--text-secondary)] mt-2">
@@ -167,7 +182,11 @@ export default function DashboardPro() {
           {/* Today's Net Revenue */}
           <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-6">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-sm text-[var(--text-secondary)]">Today's Net Revenue</p>
+              <p className="text-sm text-[var(--text-secondary)]">
+                {dateRange === 'today' ? "Today's Net Revenue" :
+                 dateRange === 'yesterday' ? "Yesterday's Net Revenue" :
+                 'Net Revenue'}
+              </p>
               <span className="text-emerald-500">💵</span>
             </div>
             <p className="text-3xl font-bold text-emerald-500 mb-2">
@@ -176,7 +195,7 @@ export default function DashboardPro() {
             <div className="bg-[var(--bg-secondary)] rounded p-2 space-y-1 text-xs mt-2">
               <div className="flex justify-between">
                 <span className="text-[var(--text-secondary)]">Gross Revenue</span>
-                <span className="text-[var(--text-primary)]">KSH {stats?.todayNetRevenue.toLocaleString()}</span>
+                <span className="text-[var(--text-primary)]">KSH {stats?.grossRevenue.toLocaleString()}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-[var(--text-secondary)]">Returns</span>
@@ -184,7 +203,7 @@ export default function DashboardPro() {
               </div>
               <div className="flex justify-between">
                 <span className="text-[var(--text-secondary)]">Business Expenses</span>
-                <span className="text-red-500">-KSH 0.00</span>
+                <span className="text-red-500">-KSH {stats?.todayExpenses.toLocaleString()}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-[var(--text-secondary)]">Personal Expenses</span>
@@ -192,7 +211,7 @@ export default function DashboardPro() {
               </div>
               <div className="flex justify-between font-semibold pt-1 border-t border-[var(--border-color)]">
                 <span className="text-[var(--text-primary)]">Net Revenue (All)</span>
-                <span className="text-emerald-500">KSH {stats?.todayNetRevenue.toLocaleString()}</span>
+                <span className="text-emerald-500">KSH {(stats?.grossRevenue - stats?.todayExpenses).toLocaleString()}</span>
               </div>
             </div>
           </div>
@@ -203,14 +222,18 @@ export default function DashboardPro() {
           {/* Today's Expenses */}
           <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-6">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-sm text-[var(--text-secondary)]">Today's Expenses</p>
+              <p className="text-sm text-[var(--text-secondary)]">
+                {dateRange === 'today' ? "Today's Expenses" :
+                 dateRange === 'yesterday' ? "Yesterday's Expenses" :
+                 'Expenses'}
+              </p>
               <span className="text-red-500">📉</span>
             </div>
             <p className="text-3xl font-bold text-red-500 mb-2">
               KSH {stats?.todayExpenses.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </p>
             <p className="text-xs text-[var(--text-secondary)] mt-2">
-              No expenses recorded today
+              {stats?.todayExpenses === 0 ? 'No expenses recorded' : 'Total expenses for selected period'}
             </p>
             <div className="mt-4 flex gap-2">
               <button 
