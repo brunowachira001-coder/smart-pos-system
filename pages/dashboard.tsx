@@ -41,7 +41,9 @@ export default function Dashboard() {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/dashboard/stats');
+      // Add timestamp to prevent caching
+      const timestamp = new Date().getTime();
+      const response = await fetch(`/api/dashboard/stats?t=${timestamp}`);
       const data = await response.json();
 
       if (data.success) {
