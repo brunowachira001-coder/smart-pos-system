@@ -23,6 +23,13 @@ interface DashboardStats {
     valid: number;
     issues: number;
   };
+  chartData?: Array<{
+    date: string;
+    gross: number;
+    net: number;
+    expenses: number;
+    profit: number;
+  }>;
 }
 
 export default function DashboardPro() {
@@ -348,65 +355,107 @@ export default function DashboardPro() {
           
           {/* Chart Area */}
           <div className="relative h-64 bg-[var(--bg-secondary)] rounded border border-[var(--border-color)] p-4">
-            {/* Y-axis labels */}
-            <div className="absolute left-0 top-0 bottom-8 w-16 flex flex-col justify-between text-xs text-[var(--text-secondary)]">
-              <span>KSH 140k</span>
-              <span>KSH 120k</span>
-              <span>KSH 105k</span>
-              <span>KSH 90k</span>
-              <span>KSH 70k</span>
-              <span>KSH 0</span>
-            </div>
+            {(() => {
+              const chartData = stats?.chartData || [];
+              
+              // Calculate max value for Y-axis scaling
+              const maxValue = Math.max(
+                ...chartData.map(d => Math.max(d.gross, d.net, d.expenses, d.profit)),
+                1000 // Minimum scale
+              );
+              
+              // Round up to nearest nice number
+              const scale = Math.ceil(maxValue / 1000) * 1000;
+              const yLabels = [
+                scale,
+                Math.round(scale * 0.85),
+                Math.round(scale * 0.7),
+                Math.round(scale * 0.5),
+                Math.round(scale * 0.3),
+                0
+              ];
 
-            {/* Chart bars */}
-            <div className="ml-16 h-full flex items-end justify-between gap-1">
-              {/* Generate sample bars based on months */}
-              {['Sep 9', 'Sep 27', 'Oct 15', 'Nov 3', 'Nov 21', 'Dec 11', 'Jan 13', 'Feb 11', 'Mar 2', 'Mar 21', 'Apr 18'].map((date, i) => {
-                const heights = [60, 75, 45, 80, 55, 70, 50, 85, 40, 65, 55]; // Random heights
-                return (
-                  <div key={i} className="flex-1 flex flex-col items-center justify-end h-full group relative">
-                    {/* Bars */}
-                    <div className="w-full flex gap-0.5 items-end">
-                      {/* Gross Sales (Green) */}
-                      <div 
-                        className="flex-1 bg-emerald-500 rounded-t transition-all hover:opacity-80"
-                        style={{ height: `${heights[i]}%` }}
-                      ></div>
-                      {/* Net Sales (Blue) */}
-                      <div 
-                        className="flex-1 bg-blue-500 rounded-t transition-all hover:opacity-80"
-                        style={{ height: `${heights[i] - 10}%` }}
-                      ></div>
-                      {/* Expenses (Red) */}
-                      <div 
-                        className="flex-1 bg-red-500 rounded-t transition-all hover:opacity-80"
-                        style={{ height: `${heights[i] - 50}%` }}
-                      ></div>
-                      {/* Verified Profit (Purple) */}
-                      <div 
-                        className="flex-1 bg-purple-500 rounded-t transition-all hover:opacity-80"
-                        style={{ height: `${heights[i] - 20}%` }}
-                      ></div>
-                    </div>
+              // Format currency
+              const formatCurrency = (val: number) => {
+                if (val >= 1000000) return `KSH ${(val / 1000000).toFixed(1)}M`;
+                if (val >= 1000) return `KSH ${(val / 1000).toFixed(0)}k`;
+                return `KSH ${val}`;
+              };
+
+              return (
+                <>
+                  {/* Y-axis labels */}
+                  <div className="absolute left-0 top-0 bottom-8 w-16 flex flex-col justify-between text-xs text-[var(--text-secondary)]">
+                    {yLabels.map((label, i) => (
+                      <span key={i}>{formatCurrency(label)}</span>
+                    ))}
                   </div>
-                );
-              })}
-            </div>
 
-            {/* X-axis labels */}
-            <div className="ml-16 mt-2 flex justify-between text-xs text-[var(--text-secondary)]">
-              <span>Sep 9</span>
-              <span>Sep 27</span>
-              <span>Oct 15</span>
-              <span>Nov 3</span>
-              <span>Nov 21</span>
-              <span>Dec 11</span>
-              <span>Jan 13</span>
-              <span>Feb 11</span>
-              <span>Mar 2</span>
-              <span>Mar 21</span>
-              <span>Apr 18</span>
-            </div>
+                  {/* Chart bars */}
+                  <div className="ml-16 h-full flex items-end justify-between gap-1">
+                    {chartData.length > 0 ? (
+                      chartData.map((data, i) => {
+                        // Calculate heights as percentage of scale
+                        const grossHeight = (data.gross / scale) * 100;
+                        const netHeight = (data.net / scale) * 100;
+                        const expensesHeight = (data.expenses / scale) * 100;
+                        const profitHeight = (data.profit / scale) * 100;
+
+                        return (
+                          <div key={i} className="flex-1 flex flex-col items-center justify-end h-full group relative">
+                            {/* Tooltip on hover */}
+                            <div className="absolute bottom-full mb-2 hidden group-hover:block bg-gray-900 text-white text-xs rounded p-2 whitespace-nowrap z-10">
+                              <div>{data.date}</div>
+                              <div className="text-emerald-400">Gross: {formatCurrency(data.gross)}</div>
+                              <div className="text-blue-400">Net: {formatCurrency(data.net)}</div>
+                              <div className="text-red-400">Expenses: {formatCurrency(data.expenses)}</div>
+                              <div className="text-purple-400">Profit: {formatCurrency(data.profit)}</div>
+                            </div>
+                            
+                            {/* Bars */}
+                            <div className="w-full flex gap-0.5 items-end">
+                              {/* Gross Sales (Green) */}
+                              <div 
+                                className="flex-1 bg-emerald-500 rounded-t transition-all hover:opacity-80"
+                                style={{ height: `${Math.max(grossHeight, 2)}%` }}
+                              ></div>
+                              {/* Net Sales (Blue) */}
+                              <div 
+                                className="flex-1 bg-blue-500 rounded-t transition-all hover:opacity-80"
+                                style={{ height: `${Math.max(netHeight, 2)}%` }}
+                              ></div>
+                              {/* Expenses (Red) */}
+                              <div 
+                                className="flex-1 bg-red-500 rounded-t transition-all hover:opacity-80"
+                                style={{ height: `${Math.max(expensesHeight, 1)}%` }}
+                              ></div>
+                              {/* Verified Profit (Purple) */}
+                              <div 
+                                className="flex-1 bg-purple-500 rounded-t transition-all hover:opacity-80"
+                                style={{ height: `${Math.max(profitHeight, 2)}%` }}
+                              ></div>
+                            </div>
+                          </div>
+                        );
+                      })
+                    ) : (
+                      <div className="flex-1 flex items-center justify-center text-[var(--text-secondary)] text-sm">
+                        No transaction data available
+                      </div>
+                    )}
+                  </div>
+
+                  {/* X-axis labels */}
+                  {chartData.length > 0 && (
+                    <div className="ml-16 mt-2 flex justify-between text-xs text-[var(--text-secondary)]">
+                      {chartData.map((data, i) => (
+                        <span key={i}>{data.date}</span>
+                      ))}
+                    </div>
+                  )}
+                </>
+              );
+            })()}
           </div>
 
           {/* Legend */}
