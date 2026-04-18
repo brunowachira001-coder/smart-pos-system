@@ -63,14 +63,34 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (allTxnError) throw allTxnError;
 
-    // Calculate all-time verified profit
-    const allTimeProfit = allTransactions?.reduce((sum, t) => {
-      const total = parseFloat(t.total) || 0;
-      const subtotal = parseFloat(t.subtotal) || 0;
-      return sum + (total - subtotal);
-    }, 0) || 0;
+    // Calculate actual profit by fetching transaction items and comparing with cost prices
+    let allTimeProfit = 0;
+    
+    if (allTransactions && allTransactions.length > 0) {
+      const transactionIds = allTransactions.map(t => t.id);
+      
+      // Fetch all transaction items for these transactions
+      const { data: transactionItems } = await supabase
+        .from('sales_transaction_items')
+        .select('product_id, quantity, unit_price')
+        .in('transaction_id', transactionIds);
 
-    // Calculate gross revenue (all-time)
+      if (transactionItems && transactionItems.length > 0) {
+        // Calculate profit for each item
+        for (const item of transactionItems) {
+          const product = products?.find(p => p.id === item.product_id);
+          if (product) {
+            const costPrice = parseFloat(product.cost_price) || 0;
+            const sellingPrice = parseFloat(item.unit_price) || 0;
+            const quantity = item.quantity || 0;
+            const itemProfit = (sellingPrice - costPrice) * quantity;
+            allTimeProfit += itemProfit;
+          }
+        }
+      }
+    }
+
+    // Calculate gross revenue
     const grossRevenue = allTransactions?.reduce((sum, t) => {
       return sum + (parseFloat(t.total) || 0);
     }, 0) || 0;
@@ -167,52 +187,123 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (trendError) console.error('Trend error:', trendError);
 
-    // Group transactions by date
-    const salesByDate: { [key: string]: { gross: number; net: number; expenses: number; profit: number } } = {};
-    
-    trendTransactions?.forEach(t => {
-      const date = new Date(t.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-      if (!salesByDate[date]) {
-        salesByDate[date] = { gross: 0, net: 0, expenses: 0, profit: 0 };
-      }
-      const total = parseFloat(t.total) || 0;
-      const subtotal = parseFloat(t.subtotal) || 0;
-      salesByDate[date].gross += total;
-      salesByDate[date].net += subtotal;
-      salesByDate[date].profit += (total - subtotal);
-    });
+    // Fetch transaction items for profit calculation
+    let trendTransactionIds: string[] = [];
+    if (trendTransactions && trendTransactions.length > 0) {
+      // We need to get transaction IDs, but we only selected created_at, total, subtotal, tax
+      // Let's fetch transactions again with IDs
+      const { data: trendTransactionsWithIds } = await supabase
+        .from('sales_transactions')
+        .select('id, created_at, total, subtotal')
+        .gte('created_at', trendStartDate.toISOString())
+        .lte('created_at', trendEndDate.toISOString())
+        .order('created_at', { ascending: true });
 
-    // Convert to array and get last 11 data points
-    const chartData = Object.entries(salesByDate)
-      .map(([date, values]) => ({ date, ...values }))
-      .slice(-11);
+      trendTransactionIds = trendTransactionsWithIds?.map(t => t.id) || [];
 
-    res.status(200).json({
-      success: true,
-      data: {
-        allTimeProfit,
-        potentialProfit,
-        grossRevenue,
-        todayNetRevenue,
-        todayExpenses,
-        inventoryValueCost,
-        inventoryValueSelling,
-        totalUnits,
-        retailRevenue,
-        wholesaleRevenue,
-        retailSales,
-        wholesaleSales,
-        productCategories,
-        outstandingDebt,
-        lowStockCount,
-        pricingAudit: {
-          total: totalProducts,
-          valid: validPricing,
-          issues: pricingIssues
-        },
-        chartData
+      // Fetch transaction items
+      const { data: trendItems } = await supabase
+        .from('sales_transaction_items')
+        .select('transaction_id, product_id, quantity, unit_price')
+        .in('transaction_id', trendTransactionIds);
+
+      // Create a map of transaction_id to profit
+      const profitByTransaction: { [key: string]: number } = {};
+      
+      if (trendItems) {
+        for (const item of trendItems) {
+          const product = products?.find(p => p.id === item.product_id);
+          if (product) {
+            const costPrice = parseFloat(product.cost_price) || 0;
+            const sellingPrice = parseFloat(item.unit_price) || 0;
+            const quantity = item.quantity || 0;
+            const itemProfit = (sellingPrice - costPrice) * quantity;
+            
+            if (!profitByTransaction[item.transaction_id]) {
+              profitByTransaction[item.transaction_id] = 0;
+            }
+            profitByTransaction[item.transaction_id] += itemProfit;
+          }
+        }
       }
-    });
+
+      // Group transactions by date with actual profit
+      const salesByDate: { [key: string]: { gross: number; net: number; expenses: number; profit: number } } = {};
+      
+      trendTransactionsWithIds?.forEach(t => {
+        const date = new Date(t.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        if (!salesByDate[date]) {
+          salesByDate[date] = { gross: 0, net: 0, expenses: 0, profit: 0 };
+        }
+        const total = parseFloat(t.total) || 0;
+        const subtotal = parseFloat(t.subtotal) || 0;
+        const profit = profitByTransaction[t.id] || 0;
+        
+        salesByDate[date].gross += total;
+        salesByDate[date].net += subtotal;
+        salesByDate[date].profit += profit;
+      });
+
+      // Convert to array and get last 11 data points
+      const chartData = Object.entries(salesByDate)
+        .map(([date, values]) => ({ date, ...values }))
+        .slice(-11);
+
+      res.status(200).json({
+        success: true,
+        data: {
+          allTimeProfit,
+          potentialProfit,
+          grossRevenue,
+          todayNetRevenue,
+          todayExpenses,
+          inventoryValueCost,
+          inventoryValueSelling,
+          totalUnits,
+          retailRevenue,
+          wholesaleRevenue,
+          retailSales,
+          wholesaleSales,
+          productCategories,
+          outstandingDebt,
+          lowStockCount,
+          pricingAudit: {
+            total: totalProducts,
+            valid: validPricing,
+            issues: pricingIssues
+          },
+          chartData
+        }
+      });
+    } else {
+      // No transactions, return empty chart
+      res.status(200).json({
+        success: true,
+        data: {
+          allTimeProfit,
+          potentialProfit,
+          grossRevenue,
+          todayNetRevenue,
+          todayExpenses,
+          inventoryValueCost,
+          inventoryValueSelling,
+          totalUnits,
+          retailRevenue,
+          wholesaleRevenue,
+          retailSales,
+          wholesaleSales,
+          productCategories,
+          outstandingDebt,
+          lowStockCount,
+          pricingAudit: {
+            total: totalProducts,
+            valid: validPricing,
+            issues: pricingIssues
+          },
+          chartData: []
+        }
+      });
+    }
   } catch (error: any) {
     console.error('Comprehensive stats error:', error);
     res.status(500).json({
@@ -238,7 +329,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           total: 0,
           valid: 0,
           issues: 0
-        }
+        },
+        chartData: []
       }
     });
   }
