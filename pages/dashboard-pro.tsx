@@ -48,6 +48,9 @@ export default function DashboardPro() {
       const response = await fetch(`/api/dashboard/comprehensive-stats?range=${dateRange}&t=${Date.now()}`);
       const data = await response.json();
       
+      console.log('Dashboard API Response:', data);
+      console.log('Chart Data:', data.data?.chartData);
+      
       if (data.success) {
         setStats(data.data);
       }
