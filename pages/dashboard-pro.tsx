@@ -45,10 +45,19 @@ export default function DashboardPro() {
   const fetchStats = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/dashboard/comprehensive-stats?range=${dateRange}&t=${Date.now()}`);
+      // Add timestamp to force cache bypass
+      const timestamp = new Date().getTime();
+      const response = await fetch(`/api/dashboard/comprehensive-stats?range=${dateRange}&t=${timestamp}`, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      });
       const data = await response.json();
       
       console.log('Dashboard API Response:', data);
+      console.log('Server Time:', data.serverTime);
       console.log('Chart Data:', data.data?.chartData);
       
       if (data.success) {

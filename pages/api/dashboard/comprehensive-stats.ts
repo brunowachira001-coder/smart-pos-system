@@ -50,8 +50,10 @@ function getDateRange(range: string): { startDate: Date | null; endDate: Date | 
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
   res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  res.setHeader('Surrogate-Control', 'no-store');
 
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -59,7 +61,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     const range = (req.query.range as string) || 'all';
+    
+    // Log current server time for debugging
+    const serverTime = new Date();
+    console.log('Server time:', serverTime.toISOString());
+    console.log('Date range requested:', range);
+    
     const { startDate, endDate } = getDateRange(range);
+    
+    console.log('Start date:', startDate?.toISOString());
+    console.log('End date:', endDate?.toISOString());
 
     // Get today's date range
     const today = new Date();
@@ -303,6 +314,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Send response
     res.status(200).json({
       success: true,
+      serverTime: new Date().toISOString(),
       data: {
         allTimeProfit,
         potentialProfit,
