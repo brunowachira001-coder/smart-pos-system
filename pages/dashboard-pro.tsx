@@ -338,24 +338,78 @@ export default function DashboardPro() {
         <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-bold text-[var(--text-primary)]">Sales & Profit Trend</h2>
-            <button className="text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)]">
+            <button 
+              onClick={() => router.push('/sales-analytics')}
+              className="text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+            >
               📊 View Details
             </button>
           </div>
-          <div className="h-64 flex items-center justify-center border border-[var(--border-color)] rounded bg-[var(--bg-secondary)]">
-            <div className="text-center">
-              <p className="text-[var(--text-secondary)] mb-2">📈 Sales & Profit Chart</p>
-              <p className="text-xs text-[var(--text-secondary)]">
-                Chart showing Gross Sales, Net Sales, Expenses, and Verified Profit over time
-              </p>
-              <button 
-                onClick={() => router.push('/sales-analytics')}
-                className="mt-4 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm"
-              >
-                View Sales Analytics
-              </button>
+          
+          {/* Chart Area */}
+          <div className="relative h-64 bg-[var(--bg-secondary)] rounded border border-[var(--border-color)] p-4">
+            {/* Y-axis labels */}
+            <div className="absolute left-0 top-0 bottom-8 w-16 flex flex-col justify-between text-xs text-[var(--text-secondary)]">
+              <span>KSH 140k</span>
+              <span>KSH 120k</span>
+              <span>KSH 105k</span>
+              <span>KSH 90k</span>
+              <span>KSH 70k</span>
+              <span>KSH 0</span>
+            </div>
+
+            {/* Chart bars */}
+            <div className="ml-16 h-full flex items-end justify-between gap-1">
+              {/* Generate sample bars based on months */}
+              {['Sep 9', 'Sep 27', 'Oct 15', 'Nov 3', 'Nov 21', 'Dec 11', 'Jan 13', 'Feb 11', 'Mar 2', 'Mar 21', 'Apr 18'].map((date, i) => {
+                const heights = [60, 75, 45, 80, 55, 70, 50, 85, 40, 65, 55]; // Random heights
+                return (
+                  <div key={i} className="flex-1 flex flex-col items-center justify-end h-full group relative">
+                    {/* Bars */}
+                    <div className="w-full flex gap-0.5 items-end">
+                      {/* Gross Sales (Green) */}
+                      <div 
+                        className="flex-1 bg-emerald-500 rounded-t transition-all hover:opacity-80"
+                        style={{ height: `${heights[i]}%` }}
+                      ></div>
+                      {/* Net Sales (Blue) */}
+                      <div 
+                        className="flex-1 bg-blue-500 rounded-t transition-all hover:opacity-80"
+                        style={{ height: `${heights[i] - 10}%` }}
+                      ></div>
+                      {/* Expenses (Red) */}
+                      <div 
+                        className="flex-1 bg-red-500 rounded-t transition-all hover:opacity-80"
+                        style={{ height: `${heights[i] - 50}%` }}
+                      ></div>
+                      {/* Verified Profit (Purple) */}
+                      <div 
+                        className="flex-1 bg-purple-500 rounded-t transition-all hover:opacity-80"
+                        style={{ height: `${heights[i] - 20}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* X-axis labels */}
+            <div className="ml-16 mt-2 flex justify-between text-xs text-[var(--text-secondary)]">
+              <span>Sep 9</span>
+              <span>Sep 27</span>
+              <span>Oct 15</span>
+              <span>Nov 3</span>
+              <span>Nov 21</span>
+              <span>Dec 11</span>
+              <span>Jan 13</span>
+              <span>Feb 11</span>
+              <span>Mar 2</span>
+              <span>Mar 21</span>
+              <span>Apr 18</span>
             </div>
           </div>
+
+          {/* Legend */}
           <div className="flex items-center justify-center gap-6 mt-4 text-xs">
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 bg-emerald-500 rounded"></div>
