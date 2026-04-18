@@ -27,6 +27,7 @@ export default function Returns() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showProcessModal, setShowProcessModal] = useState(false);
   const [selectedReturn, setSelectedReturn] = useState<Return | null>(null);
+  const [availableProducts, setAvailableProducts] = useState<Array<{ id: string; name: string; stock: number }>>([]);
   const [createFormData, setCreateFormData] = useState({
     transactionId: '',
     productName: '',
@@ -56,13 +57,15 @@ export default function Returns() {
 
   const fetchData = async () => {
     try {
-      const [statsRes, returnsRes] = await Promise.all([
+      const [statsRes, returnsRes, productsRes] = await Promise.all([
         fetch('/api/returns/stats'),
         fetch('/api/returns'),
+        fetch('/api/products/list'),
       ]);
 
       const statsData = await statsRes.json();
       const returnsData = await returnsRes.json();
+      const productsData = await productsRes.json();
 
       setStats({
         totalReturns: statsData.totalReturns || 0,
@@ -73,6 +76,15 @@ export default function Returns() {
       });
 
       setReturns(returnsData);
+      
+      // Set available products for the dropdown
+      if (Array.isArray(productsData)) {
+        setAvailableProducts(productsData.map((p: any) => ({
+          id: p.id,
+          name: p.name,
+          stock: p.stock_quantity || 0,
+        })));
+      }
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
@@ -347,14 +359,22 @@ export default function Returns() {
                 <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                   Product Name <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="text"
+                <select
                   value={createFormData.productName}
                   onChange={(e) => setCreateFormData({ ...createFormData, productName: e.target.value })}
-                  placeholder="e.g., iPhone 13 Pro"
                   className="w-full px-4 py-2 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-lg text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   required
-                />
+                >
+                  <option value="">Select a product</option>
+                  {availableProducts.map((product) => (
+                    <option key={product.id} value={product.name}>
+                      {product.name} (Stock: {product.stock})
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-[var(--text-secondary)] mt-1">
+                  Select from inventory to ensure stock updates correctly
+                </p>
               </div>
 
               {/* Quantity and Amount */}
