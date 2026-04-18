@@ -30,12 +30,14 @@ export default function Returns() {
   const [availableProducts, setAvailableProducts] = useState<Array<{ id: string; name: string; stock: number }>>([]);
   const [createFormData, setCreateFormData] = useState({
     transactionId: '',
-    productName: '',
-    quantity: 1,
-    reason: '',
     customerName: '',
-    amount: 0,
+    reason: '',
   });
+  const [returnItems, setReturnItems] = useState<Array<{
+    productName: string;
+    quantity: number;
+    amount: number;
+  }>>([{ productName: '', quantity: 1, amount: 0 }]);
   const [createFormErrors, setCreateFormErrors] = useState<string>('');
   const [submitting, setSubmitting] = useState(false);
 
@@ -79,12 +81,17 @@ export default function Returns() {
       
       // Set available products for the dropdown - API returns { products: [...] }
       const productsList = productsData.products || [];
-      if (Array.isArray(productsList)) {
-        setAvailableProducts(productsList.map((p: any) => ({
+      console.log('Products fetched:', productsList.length, 'items');
+      if (Array.isArray(productsList) && productsList.length > 0) {
+        const mappedProducts = productsList.map((p: any) => ({
           id: p.id,
           name: p.name,
           stock: p.stock_quantity || 0,
-        })));
+        }));
+        console.log('Mapped products:', mappedProducts);
+        setAvailableProducts(mappedProducts);
+      } else {
+        console.warn('No products found or invalid format');
       }
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -140,52 +147,57 @@ export default function Returns() {
     setSubmitting(true);
 
     // Validation
-    if (!createFormData.transactionId || !createFormData.productName || !createFormData.reason) {
-      setCreateFormErrors('Please fill in all required fields');
+    if (!createFormData.transactionId || !createFormData.reason) {
+      setCreateFormErrors('Please fill in transaction ID and return reason');
       setSubmitting(false);
       return;
     }
 
-    if (createFormData.quantity < 1) {
-      setCreateFormErrors('Quantity must be at least 1');
+    // Validate at least one item
+    const validItems = returnItems.filter(item => item.productName && item.quantity > 0);
+    if (validItems.length === 0) {
+      setCreateFormErrors('Please add at least one product to return');
       setSubmitting(false);
       return;
     }
 
     try {
-      const response = await fetch('/api/returns', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          transaction_id: createFormData.transactionId,
-          product_name: createFormData.productName,
-          customer_name: createFormData.customerName || 'Walk-in Customer',
-          quantity: createFormData.quantity,
-          amount: createFormData.amount,
-          reason: createFormData.reason,
-          status: 'Pending',
-        }),
-      });
+      // Create a return for each item
+      const promises = validItems.map(item =>
+        fetch('/api/returns', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            transaction_id: createFormData.transactionId,
+            product_name: item.productName,
+            customer_name: createFormData.customerName || 'Walk-in Customer',
+            quantity: item.quantity,
+            amount: item.amount,
+            reason: createFormData.reason,
+            status: 'Pending',
+          }),
+        })
+      );
 
-      const data = await response.json();
+      const responses = await Promise.all(promises);
+      const failedResponses = responses.filter(r => !r.ok);
 
-      if (response.ok) {
+      if (failedResponses.length > 0) {
+        const errorData = await failedResponses[0].json();
+        setCreateFormErrors(errorData.error || 'Failed to create some returns');
+      } else {
         setShowCreateModal(false);
         setCreateFormData({
           transactionId: '',
-          productName: '',
-          quantity: 1,
-          reason: '',
           customerName: '',
-          amount: 0,
+          reason: '',
         });
+        setReturnItems([{ productName: '', quantity: 1, amount: 0 }]);
         fetchData();
-      } else {
-        setCreateFormErrors(data.error || 'Failed to create return');
       }
     } catch (error) {
-      console.error('Error creating return:', error);
-      setCreateFormErrors('Failed to create return. Please try again.');
+      console.error('Error creating returns:', error);
+      setCreateFormErrors('Failed to create returns. Please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -322,7 +334,7 @@ export default function Returns() {
       {/* Create Return Modal */}
       {showCreateModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-[var(--card-bg)] rounded-lg p-6 max-w-lg w-full mx-4 border border-[var(--border-color)] max-h-[90vh] overflow-y-auto">
+          <div className="bg-[var(--card-bg)] rounded-lg p-6 max-w-2xl w-full mx-4 border border-[var(--border-color)] max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-bold text-[var(--text-primary)] mb-4">Create Return</h2>
             
             <form onSubmit={handleCreateReturn} className="space-y-4">
@@ -355,61 +367,7 @@ export default function Returns() {
                 />
               </div>
 
-              {/* Product Name */}
-              <div>
-                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                  Product Name <span className="text-red-500">*</span>
-                </label>
-                <select
-                  value={createFormData.productName}
-                  onChange={(e) => setCreateFormData({ ...createFormData, productName: e.target.value })}
-                  className="w-full px-4 py-2 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-lg text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  required
-                >
-                  <option value="">Select a product</option>
-                  {availableProducts.map((product) => (
-                    <option key={product.id} value={product.name}>
-                      {product.name} (Stock: {product.stock})
-                    </option>
-                  ))}
-                </select>
-                <p className="text-xs text-[var(--text-secondary)] mt-1">
-                  Select from inventory to ensure stock updates correctly
-                </p>
-              </div>
-
-              {/* Quantity and Amount */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                    Quantity <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    value={createFormData.quantity}
-                    onChange={(e) => setCreateFormData({ ...createFormData, quantity: parseInt(e.target.value) || 1 })}
-                    className="w-full px-4 py-2 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-lg text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                    Amount (KES)
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={createFormData.amount}
-                    onChange={(e) => setCreateFormData({ ...createFormData, amount: parseFloat(e.target.value) || 0 })}
-                    placeholder="0.00"
-                    className="w-full px-4 py-2 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-lg text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  />
-                </div>
-              </div>
-
-              {/* Reason */}
+              {/* Return Reason */}
               <div>
                 <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                   Return Reason <span className="text-red-500">*</span>
@@ -431,6 +389,104 @@ export default function Returns() {
                 </select>
               </div>
 
+              {/* Items to Return */}
+              <div className="border-t border-[var(--border-color)] pt-4">
+                <div className="flex justify-between items-center mb-3">
+                  <label className="block text-sm font-medium text-[var(--text-secondary)]">
+                    Items to Return <span className="text-red-500">*</span>
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setReturnItems([...returnItems, { productName: '', quantity: 1, amount: 0 }])}
+                    className="text-sm text-emerald-600 hover:text-emerald-700 font-medium"
+                  >
+                    + Add Item
+                  </button>
+                </div>
+
+                <div className="space-y-3">
+                  {returnItems.map((item, index) => (
+                    <div key={index} className="bg-[var(--bg-secondary)] p-4 rounded-lg border border-[var(--border-color)]">
+                      <div className="flex justify-between items-start mb-3">
+                        <span className="text-sm font-medium text-[var(--text-primary)]">Item {index + 1}</span>
+                        {returnItems.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => setReturnItems(returnItems.filter((_, i) => i !== index))}
+                            className="text-red-500 hover:text-red-600 text-sm"
+                          >
+                            Remove
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="space-y-3">
+                        {/* Product Name */}
+                        <div>
+                          <label className="block text-xs text-[var(--text-secondary)] mb-1">Product</label>
+                          <select
+                            value={item.productName}
+                            onChange={(e) => {
+                              const newItems = [...returnItems];
+                              newItems[index].productName = e.target.value;
+                              setReturnItems(newItems);
+                            }}
+                            className="w-full px-3 py-2 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                            required
+                          >
+                            <option value="">Select a product</option>
+                            {availableProducts.map((product) => (
+                              <option key={product.id} value={product.name}>
+                                {product.name} (Stock: {product.stock})
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        {/* Quantity and Amount */}
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-xs text-[var(--text-secondary)] mb-1">Quantity</label>
+                            <input
+                              type="number"
+                              min="1"
+                              value={item.quantity}
+                              onChange={(e) => {
+                                const newItems = [...returnItems];
+                                newItems[index].quantity = parseInt(e.target.value) || 1;
+                                setReturnItems(newItems);
+                              }}
+                              className="w-full px-3 py-2 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                              required
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs text-[var(--text-secondary)] mb-1">Amount (KES)</label>
+                            <input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              value={item.amount}
+                              onChange={(e) => {
+                                const newItems = [...returnItems];
+                                newItems[index].amount = parseFloat(e.target.value) || 0;
+                                setReturnItems(newItems);
+                              }}
+                              placeholder="0.00"
+                              className="w-full px-3 py-2 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <p className="text-xs text-[var(--text-secondary)] mt-2">
+                  💡 Tip: You can return multiple items from the same transaction
+                </p>
+              </div>
+
               {/* Error Message */}
               {createFormErrors && (
                 <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
@@ -445,7 +501,7 @@ export default function Returns() {
                   disabled={submitting}
                   className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
                 >
-                  {submitting ? 'Creating...' : 'Create Return'}
+                  {submitting ? 'Creating...' : `Create Return (${returnItems.filter(i => i.productName).length} items)`}
                 </button>
                 <button
                   type="button"
@@ -453,12 +509,10 @@ export default function Returns() {
                     setShowCreateModal(false);
                     setCreateFormData({
                       transactionId: '',
-                      productName: '',
-                      quantity: 1,
-                      reason: '',
                       customerName: '',
-                      amount: 0,
+                      reason: '',
                     });
+                    setReturnItems([{ productName: '', quantity: 1, amount: 0 }]);
                     setCreateFormErrors('');
                   }}
                   className="px-4 py-2 border border-[var(--border-color)] rounded-lg hover:bg-[var(--bg-secondary)] text-[var(--text-primary)]"
