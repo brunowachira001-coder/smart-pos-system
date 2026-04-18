@@ -87,6 +87,7 @@ export default function Dashboard() {
       <div>
         <h1 className="text-3xl font-bold text-[var(--text-primary)]">Dashboard</h1>
         <p className="text-[var(--text-secondary)] mt-1">Welcome back! Here's your business overview</p>
+        <p className="text-xs text-[var(--text-secondary)] mt-1">Version: 2.0 (Real Data)</p>
       </div>
 
       {/* Key Metrics */}
