@@ -218,7 +218,7 @@ export default function POSPage() {
           <div className="flex items-center gap-4 flex-1">
             <input
               type="text"
-              placeholder="Search by name, SKU, or description... ({priceMode} mode)"
+              placeholder={`Search by name, SKU, or description... (${priceMode} mode)`}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="flex-1 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg px-4 py-2.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -291,8 +291,6 @@ export default function POSPage() {
                   </button>
                 </div>
               ))}
-            </div>
-          </div>
         </div>
       </div>
 
