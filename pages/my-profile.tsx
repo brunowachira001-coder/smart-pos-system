@@ -257,10 +257,10 @@ export default function MyProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--bg-primary)]">
-      <div className="max-w-4xl mx-auto p-6">
+    <div className="min-h-screen bg-[var(--bg-primary)] flex flex-col">
+      <div className="flex-1 flex flex-col p-6">
         {/* Header */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-4">
           <h1 className="text-3xl font-semibold tracking-tight mb-2 text-[var(--text-primary)]">Settings & Profile</h1>
           <p className="text-sm text-[var(--text-secondary)]">
             Manage your account settings, profile information, and theme preferences
@@ -268,7 +268,7 @@ export default function MyProfilePage() {
         </div>
 
         {/* Tabs */}
-        <div className="flex justify-center gap-2 mb-8">
+        <div className="flex justify-center gap-2 mb-4">
           <button
             onClick={() => setActiveTab('profile')}
             className={`px-6 py-2.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
@@ -303,51 +303,53 @@ export default function MyProfilePage() {
 
         {/* Profile Tab Content */}
         {activeTab === 'profile' && (
-          <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-12 max-w-2xl mx-auto">
-            {/* Avatar Section - Centered */}
-            <div className="flex flex-col items-center">
-              <div className="relative mb-6">
-                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center text-white text-3xl font-bold shadow-lg">
-                  {getInitials(profile.full_name)}
+          <div className="flex-1 flex items-center justify-center">
+            <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-12 w-full max-w-2xl">
+              {/* Avatar Section - Centered */}
+              <div className="flex flex-col items-center">
+                <div className="relative mb-6">
+                  <div className="w-24 h-24 rounded-full bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center text-white text-3xl font-bold shadow-lg">
+                    {getInitials(profile.full_name)}
+                  </div>
+                  <button className="absolute bottom-0 right-0 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-lg border-2 border-[var(--card-bg)] hover:bg-gray-100 transition-colors">
+                    <svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                  </button>
                 </div>
-                <button className="absolute bottom-0 right-0 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-lg border-2 border-[var(--card-bg)] hover:bg-gray-100 transition-colors">
-                  <svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                </button>
-              </div>
 
-              {/* Name and Email */}
-              <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-1">{profile.full_name}</h2>
-              <p className="text-sm text-[var(--text-secondary)] mb-8">{profile.email}</p>
+                {/* Name and Email */}
+                <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-1">{profile.full_name}</h2>
+                <p className="text-sm text-[var(--text-secondary)] mb-8">{profile.email}</p>
 
-              {/* Role and Member Since - Side by Side */}
-              <div className="flex gap-16 w-full justify-center mb-8">
-                <div className="text-center">
-                  <p className="text-xs text-[var(--text-secondary)] uppercase tracking-wider mb-2 font-medium">Role</p>
-                  <p className="text-sm font-medium text-[var(--text-primary)]">{profile.role}</p>
+                {/* Role and Member Since - Side by Side */}
+                <div className="flex gap-16 w-full justify-center mb-8">
+                  <div className="text-center">
+                    <p className="text-xs text-[var(--text-secondary)] uppercase tracking-wider mb-2 font-medium">Role</p>
+                    <p className="text-sm font-medium text-[var(--text-primary)]">{profile.role}</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-xs text-[var(--text-secondary)] uppercase tracking-wider mb-2 font-medium">Member Since</p>
+                    <p className="text-sm font-medium text-[var(--text-primary)]">{formatDate(profile.created_at)}</p>
+                  </div>
                 </div>
-                <div className="text-center">
-                  <p className="text-xs text-[var(--text-secondary)] uppercase tracking-wider mb-2 font-medium">Member Since</p>
-                  <p className="text-sm font-medium text-[var(--text-primary)]">{formatDate(profile.created_at)}</p>
-                </div>
-              </div>
 
-              {/* Action Buttons */}
-              <div className="flex gap-3">
-                <button
-                  onClick={handleEditClick}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm"
-                >
-                  Edit Profile
-                </button>
-                <button
-                  onClick={() => setShowPasswordModal(true)}
-                  className="bg-white text-gray-900 px-8 py-2 rounded-lg text-sm font-medium hover:bg-gray-100 transition-colors shadow-sm border border-gray-300"
-                >
-                  Change Password
-                </button>
+                {/* Action Buttons */}
+                <div className="flex gap-3">
+                  <button
+                    onClick={handleEditClick}
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm"
+                  >
+                    Edit Profile
+                  </button>
+                  <button
+                    onClick={() => setShowPasswordModal(true)}
+                    className="bg-white text-gray-900 px-8 py-2 rounded-lg text-sm font-medium hover:bg-gray-100 transition-colors shadow-sm border border-gray-300"
+                  >
+                    Change Password
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -355,15 +357,15 @@ export default function MyProfilePage() {
 
         {/* Themes Tab Content */}
         {activeTab === 'themes' && (
-          <div className="px-4 py-6">
-            <div className="text-center mb-6">
+          <div className="flex-1 flex flex-col">
+            <div className="text-center mb-4">
               <p className="text-sm text-[var(--text-secondary)]">
                 Choose from our collection of professional themes designed for optimal readability
               </p>
             </div>
 
-            {/* Theme Grid - 2 rows of 3 */}
-            <div className="grid grid-cols-3 gap-6 mb-8">
+            {/* Theme Grid - 2 rows of 3 - fills available space */}
+            <div className="flex-1 grid grid-cols-3 gap-6 mb-4 content-start">
               {/* Light Theme */}
               <ThemeCard
                 name="Light"
@@ -432,8 +434,8 @@ export default function MyProfilePage() {
             </div>
 
             {/* Theme Features - Simple bottom text */}
-            <div className="text-center pt-6 border-t border-[var(--border-color)]">
-              <h4 className="text-lg font-semibold text-[var(--text-primary)] mb-4">Theme Features</h4>
+            <div className="text-center pt-4 border-t border-[var(--border-color)] mt-auto">
+              <h4 className="text-lg font-semibold text-[var(--text-primary)] mb-3">Theme Features</h4>
               <div className="flex justify-center gap-12 text-sm text-[var(--text-secondary)]">
                 <span>✓ High contrast ratios</span>
                 <span>✓ Consistent color schemes</span>
@@ -446,7 +448,8 @@ export default function MyProfilePage() {
 
         {/* App Tab Content */}
         {activeTab === 'app' && (
-          <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-8">
+          <div className="flex-1 flex items-center justify-center">
+            <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-8 w-full max-w-2xl">
             <h3 className="text-xl font-semibold mb-6 text-center text-[var(--text-primary)]">App Settings</h3>
             <div className="max-w-md mx-auto space-y-4">
               <div className="p-4 bg-[var(--bg-secondary)] rounded-lg border border-[var(--border-color)]">
