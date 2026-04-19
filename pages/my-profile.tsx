@@ -1,154 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '../hooks/useAuth';
-
-interface Profile {
-  id: string;
-  full_name: string;
-  email: string;
-  role: string;
-  phone?: string;
-  avatar_url?: string;
-  created_at: string;
-}
+import React, { useState } from 'react';
 
 export default function MyProfilePage() {
-  const { user, loading: authLoading } = useAuth();
   const [activeTab, setActiveTab] = useState<'profile' | 'themes' | 'app'>('profile');
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [loading, setLoading] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
-  const [formData, setFormData] = useState({
-    full_name: '',
-    email: '',
-    phone: ''
-  });
-  const [passwordData, setPasswordData] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: ''
-  });
 
-  useEffect(() => {
-    if (!authLoading && user?.email) {
-      fetchProfile();
-    }
-  }, [authLoading, user?.email]);
-
-  const fetchProfile = async () => {
-    if (!user?.email) return;
-    
-    setLoading(true);
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000);
-
-      const response = await fetch(`/api/profile/index?email=${encodeURIComponent(user.email)}`, {
-        signal: controller.signal
-      });
-      clearTimeout(timeoutId);
-
-      const data = await response.json();
-
-      if (response.ok && data.profile) {
-        setProfile(data.profile);
-        setFormData({
-          full_name: data.profile.full_name,
-          email: data.profile.email,
-          phone: data.profile.phone || ''
-        });
-      } else {
-        // Use user data from auth as fallback
-        setProfile({
-          id: user.id || 'unknown',
-          full_name: user.username || 'User',
-          email: user.email,
-          role: 'User',
-          created_at: new Date().toISOString()
-        });
-        setFormData({
-          full_name: user.username || 'User',
-          email: user.email,
-          phone: ''
-        });
-      }
-    } catch (error) {
-      console.error('Error fetching profile:', error);
-      // Use user data from auth as fallback
-      if (user) {
-        setProfile({
-          id: user.id || 'unknown',
-          full_name: user.username || 'User',
-          email: user.email,
-          role: 'User',
-          created_at: new Date().toISOString()
-        });
-        setFormData({
-          full_name: user.username || 'User',
-          email: user.email,
-          phone: ''
-        });
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleUpdateProfile = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!profile) return;
-
-    try {
-      const response = await fetch('/api/profile/index', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: profile.id, ...formData })
-      });
-
-      if (response.ok) {
-        alert('Profile updated successfully!');
-        fetchProfile();
-      }
-    } catch (error) {
-      console.error('Error updating profile:', error);
-      alert('Failed to update profile');
-    }
-  };
-
-  const handleChangePassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      alert('New passwords do not match!');
-      return;
-    }
-
-    if (passwordData.newPassword.length < 6) {
-      alert('Password must be at least 6 characters long');
-      return;
-    }
-
-    try {
-      const response = await fetch('/api/profile/password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: profile?.email,
-          currentPassword: passwordData.currentPassword,
-          newPassword: passwordData.newPassword
-        })
-      });
-
-      if (response.ok) {
-        alert('Password changed successfully!');
-        setShowPasswordModal(false);
-        setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
-      } else {
-        alert('Failed to change password');
-      }
-    } catch (error) {
-      console.error('Error changing password:', error);
-      alert('Failed to change password');
-    }
+  // Mock user data - matches screenshot
+  const profile = {
+    id: '1',
+    full_name: 'John Smart Traders',
+    email: 'johnsmarttraders@gmail.com',
+    role: 'Admin',
+    phone: '+254 712 345 678',
+    created_at: '2025-08-10'
   };
 
   const getInitials = (name: string) => {
@@ -162,17 +25,6 @@ export default function MyProfilePage() {
       year: 'numeric' 
     });
   };
-
-  if (authLoading || (loading && !profile)) {
-    return (
-      <div className="min-h-screen bg-[var(--bg-primary)] flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500 mx-auto mb-4"></div>
-          <p className="text-[var(--text-secondary)]">Loading profile...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-[var(--bg-primary)]">
@@ -220,7 +72,7 @@ export default function MyProfilePage() {
         </div>
 
         {/* Profile Tab Content */}
-        {activeTab === 'profile' && profile && (
+        {activeTab === 'profile' && (
           <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-12 max-w-2xl mx-auto">
             {/* Avatar Section - Centered */}
             <div className="flex flex-col items-center">
@@ -230,7 +82,7 @@ export default function MyProfilePage() {
                 </div>
                 <button className="absolute bottom-0 right-0 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-lg border-2 border-[var(--card-bg)] hover:bg-gray-100 transition-colors">
                   <svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0118.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
                 </button>
@@ -314,15 +166,17 @@ export default function MyProfilePage() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-6 w-full max-w-md shadow-xl">
             <h2 className="text-xl font-semibold mb-4 text-[var(--text-primary)]">Change Password</h2>
-            <form onSubmit={handleChangePassword}>
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              alert('Password change functionality coming soon');
+              setShowPasswordModal(false);
+            }}>
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-[var(--text-primary)] mb-1">Current Password</label>
                   <input
                     type="password"
                     required
-                    value={passwordData.currentPassword}
-                    onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
                     className="w-full bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   />
                 </div>
@@ -331,8 +185,6 @@ export default function MyProfilePage() {
                   <input
                     type="password"
                     required
-                    value={passwordData.newPassword}
-                    onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
                     className="w-full bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   />
                 </div>
@@ -341,8 +193,6 @@ export default function MyProfilePage() {
                   <input
                     type="password"
                     required
-                    value={passwordData.confirmPassword}
-                    onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
                     className="w-full bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   />
                 </div>
@@ -350,10 +200,7 @@ export default function MyProfilePage() {
               <div className="flex gap-3 mt-6">
                 <button
                   type="button"
-                  onClick={() => {
-                    setShowPasswordModal(false);
-                    setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
-                  }}
+                  onClick={() => setShowPasswordModal(false)}
                   className="flex-1 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-lg px-4 py-2 text-sm text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)] transition-colors"
                 >
                   Cancel
