@@ -422,17 +422,14 @@ export default function DashboardPro() {
               };
 
               // SVG dimensions
-              const barWidth = 12;
-              const barSpacing = 8;
-              const groupSpacing = 50;
-              const svgWidth = Math.max(900, chartData.length * groupSpacing + 100);
+              const svgWidth = Math.max(900, chartData.length * 60 + 100);
               const svgHeight = 280;
               const padding = { top: 20, right: 30, bottom: 40, left: 70 };
               const plotWidth = svgWidth - padding.left - padding.right;
               const plotHeight = svgHeight - padding.top - padding.bottom;
 
               const getY = (value: number) => padding.top + plotHeight - (value / scale) * plotHeight;
-              const getX = (index: number) => padding.left + (index * groupSpacing) + groupSpacing / 2;
+              const getX = (index: number) => padding.left + (index / (chartData.length - 1 || 1)) * plotWidth;
 
               return (
                 <div className="flex h-full">
@@ -461,64 +458,59 @@ export default function DashboardPro() {
                         />
                       ))}
 
-                      {/* Candlestick bars for each day */}
+                      {/* Gross Sales line (Green) */}
+                      <polyline
+                        points={chartData.map((data, i) => `${getX(i)},${getY(data.gross)}`).join(' ')}
+                        fill="none"
+                        stroke="#10b981"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        opacity="0.9"
+                      />
+
+                      {/* Net Sales line (Blue) */}
+                      <polyline
+                        points={chartData.map((data, i) => `${getX(i)},${getY(data.net)}`).join(' ')}
+                        fill="none"
+                        stroke="#3b82f6"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        opacity="0.9"
+                      />
+
+                      {/* Expenses line (Red) */}
+                      <polyline
+                        points={chartData.map((data, i) => `${getX(i)},${getY(data.expenses)}`).join(' ')}
+                        fill="none"
+                        stroke="#ef4444"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        opacity="0.9"
+                      />
+
+                      {/* Profit line (Purple) */}
+                      <polyline
+                        points={chartData.map((data, i) => `${getX(i)},${getY(data.profit)}`).join(' ')}
+                        fill="none"
+                        stroke="#a855f7"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        opacity="0.9"
+                      />
+
+                      {/* Data points for each line */}
                       {chartData.map((data, i) => {
                         const x = getX(i);
-                        
-                        // Gross Sales (Green)
-                        const grossY = getY(data.gross);
-                        const grossBaseY = getY(0);
-                        
-                        // Net Sales (Blue)
-                        const netY = getY(data.net);
-                        
-                        // Expenses (Red)
-                        const expensesY = getY(data.expenses);
-                        
-                        // Profit (Purple)
-                        const profitY = getY(data.profit);
-
                         return (
-                          <g key={`candle-${i}`}>
-                            {/* Gross Sales bar (Green) */}
-                            <rect
-                              x={x - barWidth * 1.5 - barSpacing}
-                              y={Math.min(grossY, grossBaseY)}
-                              width={barWidth}
-                              height={Math.abs(grossBaseY - grossY)}
-                              fill="#10b981"
-                              opacity="0.85"
-                            />
-
-                            {/* Net Sales bar (Blue) */}
-                            <rect
-                              x={x - barWidth * 0.5 - barSpacing / 2}
-                              y={Math.min(netY, grossBaseY)}
-                              width={barWidth}
-                              height={Math.abs(grossBaseY - netY)}
-                              fill="#3b82f6"
-                              opacity="0.85"
-                            />
-
-                            {/* Expenses bar (Red) */}
-                            <rect
-                              x={x + barWidth * 0.5 + barSpacing / 2}
-                              y={Math.min(expensesY, grossBaseY)}
-                              width={barWidth}
-                              height={Math.abs(grossBaseY - expensesY)}
-                              fill="#ef4444"
-                              opacity="0.85"
-                            />
-
-                            {/* Profit bar (Purple) */}
-                            <rect
-                              x={x + barWidth * 1.5 + barSpacing}
-                              y={Math.min(profitY, grossBaseY)}
-                              width={barWidth}
-                              height={Math.abs(grossBaseY - profitY)}
-                              fill="#a855f7"
-                              opacity="0.85"
-                            />
+                          <g key={`points-${i}`}>
+                            <circle cx={x} cy={getY(data.gross)} r="3" fill="#10b981" opacity="0.8" />
+                            <circle cx={x} cy={getY(data.net)} r="3" fill="#3b82f6" opacity="0.8" />
+                            <circle cx={x} cy={getY(data.expenses)} r="3" fill="#ef4444" opacity="0.8" />
+                            <circle cx={x} cy={getY(data.profit)} r="3" fill="#a855f7" opacity="0.8" />
                           </g>
                         );
                       })}
