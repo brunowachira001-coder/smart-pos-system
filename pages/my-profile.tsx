@@ -103,6 +103,13 @@ export default function MyProfilePage() {
 
     setSaving(true);
     try {
+      console.log('Updating profile with data:', {
+        id: profile.id,
+        full_name: editForm.full_name,
+        email: editForm.email,
+        phone: editForm.phone
+      });
+
       const response = await fetch('/api/profile/index', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -113,8 +120,11 @@ export default function MyProfilePage() {
           phone: editForm.phone
         })
       });
+      
       const data = await response.json();
-      if (response.ok) {
+      console.log('API Response:', data);
+      
+      if (response.ok && data.profile) {
         setProfile(data.profile);
         
         // Update localStorage user data
@@ -132,11 +142,12 @@ export default function MyProfilePage() {
         // Reload page to update sidebar/topbar
         setTimeout(() => window.location.reload(), 500);
       } else {
-        alert('Failed to update profile: ' + data.error);
+        console.error('Update failed:', data);
+        alert('Failed to update profile: ' + (data.error || 'Unknown error'));
       }
     } catch (error) {
       console.error('Error updating profile:', error);
-      alert('Failed to update profile');
+      alert('Failed to update profile: ' + (error instanceof Error ? error.message : 'Network error'));
     } finally {
       setSaving(false);
     }

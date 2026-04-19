@@ -46,9 +46,16 @@ async function getProfile(req: NextApiRequest, res: NextApiResponse) {
 async function updateProfile(req: NextApiRequest, res: NextApiResponse) {
   const { id, full_name, email, phone, avatar_url } = req.body;
 
-  if (!id) {
-    return res.status(400).json({ error: 'User ID is required' });
+  if (!email) {
+    return res.status(400).json({ error: 'Email is required' });
   }
+
+  // First, check if user exists
+  const { data: existingUser } = await supabase
+    .from('users')
+    .select('*')
+    .eq('email', email)
+    .single();
 
   const updates: any = {};
   if (full_name !== undefined) updates.full_name = full_name;
@@ -56,17 +63,44 @@ async function updateProfile(req: NextApiRequest, res: NextApiResponse) {
   if (phone !== undefined) updates.phone = phone;
   if (avatar_url !== undefined) updates.avatar_url = avatar_url;
 
-  const { data, error } = await supabase
-    .from('users')
-    .update(updates)
-    .eq('id', id)
-    .select()
-    .single();
+  let result;
+  
+  if (existingUser) {
+    // Update existing user
+    const { data, error } = await supabase
+      .from('users')
+      .update(updates)
+      .eq('email', email)
+      .select()
+      .single();
 
-  if (error) {
-    console.error('Error updating profile:', error);
-    return res.status(500).json({ error: error.message });
+    if (error) {
+      console.error('Error updating profile:', error);
+      return res.status(500).json({ error: error.message });
+    }
+    result = data;
+  } else {
+    // Create new user if doesn't exist
+    const newUser = {
+      full_name: full_name || 'User',
+      email: email,
+      phone: phone || '',
+      role: 'Admin',
+      is_active: true
+    };
+
+    const { data, error } = await supabase
+      .from('users')
+      .insert([newUser])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error creating profile:', error);
+      return res.status(500).json({ error: error.message });
+    }
+    result = data;
   }
 
-  res.status(200).json({ profile: data });
+  res.status(200).json({ profile: result });
 }
