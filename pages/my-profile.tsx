@@ -303,16 +303,16 @@ export default function MyProfilePage() {
 
         {/* Profile Tab Content */}
         {activeTab === 'profile' && (
-          <div className="flex-1 flex items-center justify-center py-8">
-            <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-16 w-full max-w-3xl">
+          <div className="flex-1 flex items-center justify-center">
+            <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-10 w-full max-w-2xl">
               {/* Avatar Section - Centered */}
               <div className="flex flex-col items-center">
-                <div className="relative mb-8">
-                  <div className="w-32 h-32 rounded-full bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center text-white text-4xl font-bold shadow-xl">
+                <div className="relative mb-5">
+                  <div className="w-28 h-28 rounded-full bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center text-white text-3xl font-bold shadow-lg">
                     {getInitials(profile.full_name)}
                   </div>
-                  <button className="absolute bottom-0 right-0 w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-lg border-2 border-[var(--card-bg)] hover:bg-gray-100 transition-colors">
-                    <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <button className="absolute bottom-0 right-0 w-9 h-9 bg-white rounded-full flex items-center justify-center shadow-lg border-2 border-[var(--card-bg)] hover:bg-gray-100 transition-colors">
+                    <svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
@@ -320,32 +320,32 @@ export default function MyProfilePage() {
                 </div>
 
                 {/* Name and Email */}
-                <h2 className="text-2xl font-semibold text-[var(--text-primary)] mb-2">{profile.full_name}</h2>
-                <p className="text-base text-[var(--text-secondary)] mb-12">{profile.email}</p>
+                <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-1">{profile.full_name}</h2>
+                <p className="text-sm text-[var(--text-secondary)] mb-8">{profile.email}</p>
 
                 {/* Role and Member Since - Side by Side */}
-                <div className="flex gap-24 w-full justify-center mb-12">
+                <div className="flex gap-20 w-full justify-center mb-8">
                   <div className="text-center">
-                    <p className="text-sm text-[var(--text-secondary)] uppercase tracking-wider mb-3 font-medium">Role</p>
-                    <p className="text-base font-semibold text-[var(--text-primary)]">{profile.role}</p>
+                    <p className="text-xs text-[var(--text-secondary)] uppercase tracking-wider mb-2 font-medium">Role</p>
+                    <p className="text-sm font-semibold text-[var(--text-primary)]">{profile.role}</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-sm text-[var(--text-secondary)] uppercase tracking-wider mb-3 font-medium">Member Since</p>
-                    <p className="text-base font-semibold text-[var(--text-primary)]">{formatDate(profile.created_at)}</p>
+                    <p className="text-xs text-[var(--text-secondary)] uppercase tracking-wider mb-2 font-medium">Member Since</p>
+                    <p className="text-sm font-semibold text-[var(--text-primary)]">{formatDate(profile.created_at)}</p>
                   </div>
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex gap-4">
+                <div className="flex gap-3">
                   <button
                     onClick={handleEditClick}
-                    className="bg-emerald-600 hover:bg-emerald-700 text-white px-10 py-3 rounded-lg text-base font-medium transition-colors shadow-sm"
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-2.5 rounded-lg text-sm font-medium transition-colors shadow-sm"
                   >
                     Edit Profile
                   </button>
                   <button
                     onClick={() => setShowPasswordModal(true)}
-                    className="bg-white text-gray-900 px-10 py-3 rounded-lg text-base font-medium hover:bg-gray-100 transition-colors shadow-sm border border-gray-300"
+                    className="bg-white text-gray-900 px-8 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-100 transition-colors shadow-sm border border-gray-300"
                   >
                     Change Password
                   </button>
@@ -448,18 +448,18 @@ export default function MyProfilePage() {
 
         {/* App Tab Content */}
         {activeTab === 'app' && (
-          <div className="flex-1 flex items-center justify-center py-8">
-            <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-16 w-full max-w-3xl">
-              <h3 className="text-2xl font-semibold mb-3 text-center text-[var(--text-primary)]">App Management</h3>
-              <p className="text-center text-[var(--text-secondary)] mb-12">Manage app cache and fix loading issues</p>
+          <div className="flex-1 flex items-center justify-center">
+            <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-10 w-full max-w-2xl">
+              <h3 className="text-xl font-semibold mb-2 text-center text-[var(--text-primary)]">App Management</h3>
+              <p className="text-center text-sm text-[var(--text-secondary)] mb-8">Manage app cache and fix loading issues</p>
 
               {/* What does this do? */}
-              <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-6 mb-8">
-                <div className="flex items-start gap-3 mb-4">
-                  <span className="text-amber-500 text-xl">⚠️</span>
+              <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-5 mb-6">
+                <div className="flex items-start gap-3 mb-3">
+                  <span className="text-amber-500 text-lg">⚠️</span>
                   <div>
-                    <h4 className="font-semibold text-[var(--text-primary)] mb-3">What does this do?</h4>
-                    <ul className="space-y-2 text-sm text-[var(--text-secondary)]">
+                    <h4 className="font-semibold text-[var(--text-primary)] mb-2 text-sm">What does this do?</h4>
+                    <ul className="space-y-1.5 text-xs text-[var(--text-secondary)]">
                       <li>• Clears all cached data and stored information</li>
                       <li>• Signs you out and restarts the app</li>
                       <li>• Preserves your theme preference</li>
@@ -470,9 +470,9 @@ export default function MyProfilePage() {
               </div>
 
               {/* When to use this */}
-              <div className="mb-8">
-                <h4 className="font-semibold text-[var(--text-primary)] mb-4">When to use this:</h4>
-                <ul className="space-y-2 text-sm text-[var(--text-secondary)] ml-4">
+              <div className="mb-6">
+                <h4 className="font-semibold text-[var(--text-primary)] mb-3 text-sm">When to use this:</h4>
+                <ul className="space-y-1.5 text-xs text-[var(--text-secondary)] ml-4">
                   <li>• App is stuck loading or not responding</li>
                   <li>• Data appears stale or outdated</li>
                   <li>• Experiencing authentication issues</li>
@@ -491,9 +491,9 @@ export default function MyProfilePage() {
                     setTimeout(() => window.location.href = '/login', 1000);
                   }
                 }}
-                className="w-full bg-red-600 hover:bg-red-700 text-white px-6 py-4 rounded-lg text-base font-medium transition-colors shadow-sm flex items-center justify-center gap-2"
+                className="w-full bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg text-sm font-medium transition-colors shadow-sm flex items-center justify-center gap-2"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
                 Clear Cache & Restart App
