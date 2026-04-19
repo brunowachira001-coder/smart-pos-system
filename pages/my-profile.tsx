@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../hooks/useAuth';
 
 interface Profile {
   id: string;
@@ -11,6 +12,7 @@ interface Profile {
 }
 
 export default function MyProfilePage() {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'profile' | 'themes' | 'app'>('profile');
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -27,13 +29,17 @@ export default function MyProfilePage() {
   });
 
   useEffect(() => {
-    fetchProfile();
-  }, []);
+    if (user?.email) {
+      fetchProfile();
+    }
+  }, [user]);
 
   const fetchProfile = async () => {
+    if (!user?.email) return;
+    
     setLoading(true);
     try {
-      const response = await fetch('/api/profile/index');
+      const response = await fetch(`/api/profile/index?email=${encodeURIComponent(user.email)}`);
       const data = await response.json();
 
       if (response.ok && data.profile) {
