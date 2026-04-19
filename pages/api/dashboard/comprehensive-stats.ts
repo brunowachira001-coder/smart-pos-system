@@ -311,12 +311,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
 
         // Group transactions by date with actual profit
-        const salesByDate: { [key: string]: { gross: number; net: number; expenses: number; profit: number } } = {};
+        const salesByDate: { [key: string]: { gross: number; net: number; expenses: number; profit: number; timestamp: number } } = {};
         
         trendTransactionsWithIds?.forEach(t => {
-          const date = new Date(t.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+          const dateObj = new Date(t.created_at);
+          const date = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
           if (!salesByDate[date]) {
-            salesByDate[date] = { gross: 0, net: 0, expenses: 0, profit: 0 };
+            salesByDate[date] = { gross: 0, net: 0, expenses: 0, profit: 0, timestamp: dateObj.getTime() };
           }
           const total = parseFloat(t.total) || 0;
           const subtotal = parseFloat(t.subtotal) || 0;
@@ -329,16 +330,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         // Add expenses by date
         trendExpenses.forEach(e => {
-          const date = new Date(e.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+          const dateObj = new Date(e.created_at);
+          const date = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
           if (!salesByDate[date]) {
-            salesByDate[date] = { gross: 0, net: 0, expenses: 0, profit: 0 };
+            salesByDate[date] = { gross: 0, net: 0, expenses: 0, profit: 0, timestamp: dateObj.getTime() };
           }
           salesByDate[date].expenses += parseFloat(e.amount) || 0;
         });
 
-        // Convert to array - get ALL data points for full trend visibility
+        // Convert to array and sort by timestamp - get ALL data points for full trend visibility
         chartData = Object.entries(salesByDate)
-          .map(([date, values]) => ({ date, ...values }));
+          .map(([date, values]) => ({ date, ...values }))
+          .sort((a, b) => a.timestamp - b.timestamp)
+          .map(({ timestamp, ...rest }) => rest);
         
         console.log('=== CHART DATA GENERATED ===');
         console.log('Total data points:', chartData.length);

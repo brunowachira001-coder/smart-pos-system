@@ -32,7 +32,7 @@ interface DashboardStats {
   }>;
 }
 
-export default function DashboardPro() {
+function DashboardPro() {
   const router = useRouter();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -45,7 +45,6 @@ export default function DashboardPro() {
   const fetchStats = async () => {
     try {
       setLoading(true);
-      // Add timestamp to force cache bypass
       const timestamp = new Date().getTime();
       const response = await fetch(`/api/dashboard/comprehensive-stats?range=${dateRange}&t=${timestamp}`, {
         cache: 'no-store',
@@ -55,11 +54,11 @@ export default function DashboardPro() {
         }
       });
       const data = await response.json();
-      
+
       console.log('Dashboard API Response:', data);
       console.log('Server Time:', data.serverTime);
       console.log('Chart Data:', data.data?.chartData);
-      
+
       if (data.success) {
         setStats(data.data);
       }
@@ -109,7 +108,7 @@ export default function DashboardPro() {
           <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-6">
             <div className="flex items-center justify-between mb-2">
               <p className="text-sm text-[var(--text-secondary)]">
-                {dateRange === 'all' ? 'All Time Verified Profit' : 
+                {dateRange === 'all' ? 'All Time Verified Profit' :
                  dateRange === 'today' ? "Today's Verified Profit" :
                  dateRange === 'yesterday' ? "Yesterday's Verified Profit" :
                  dateRange === 'last7days' ? 'Last 7 Days Verified Profit' :
@@ -245,13 +244,13 @@ export default function DashboardPro() {
               {stats?.todayExpenses === 0 ? 'No expenses recorded' : 'Total expenses for selected period'}
             </p>
             <div className="mt-4 flex gap-2">
-              <button 
+              <button
                 onClick={() => router.push('/expenses')}
                 className="flex-1 px-3 py-1.5 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded text-xs hover:bg-[var(--bg-tertiary)] text-[var(--text-primary)]"
               >
                 ➕ Add
               </button>
-              <button 
+              <button
                 onClick={() => router.push('/expenses')}
                 className="flex-1 px-3 py-1.5 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded text-xs hover:bg-[var(--bg-tertiary)] text-[var(--text-primary)]"
               >
@@ -367,7 +366,7 @@ export default function DashboardPro() {
                 <span className="font-bold text-red-500">{stats?.pricingAudit?.issues || 0}</span>
               </div>
             </div>
-            <button 
+            <button
               onClick={() => router.push('/inventory')}
               className="mt-3 w-full px-3 py-1.5 bg-yellow-500/10 border border-yellow-500/30 rounded text-xs hover:bg-yellow-500/20 text-yellow-600 dark:text-yellow-400"
             >
@@ -380,19 +379,19 @@ export default function DashboardPro() {
         <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-bold text-[var(--text-primary)]">Sales & Profit Trend</h2>
-            <button 
+            <button
               onClick={() => router.push('/sales-analytics')}
               className="text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
             >
               📊 View Details
             </button>
           </div>
-          
+
           {/* Chart Area */}
           <div className="relative bg-[var(--bg-secondary)] rounded border border-[var(--border-color)] p-4 overflow-x-auto" style={{ height: '340px' }}>
             {(() => {
               const chartData = stats?.chartData || [];
-              
+
               if (chartData.length === 0) {
                 return (
                   <div className="flex items-center justify-center h-full text-[var(--text-secondary)] text-sm">
@@ -400,16 +399,14 @@ export default function DashboardPro() {
                   </div>
                 );
               }
-              
-              // Calculate max value for Y-axis scaling
+
               const maxValue = Math.max(
                 ...chartData.map(d => Math.max(d.gross, d.net, d.expenses, d.profit)),
                 100
               );
-              
+
               const scale = maxValue * 1.2;
-              
-              // Generate Y-axis labels (5 labels)
+
               const yLabels = [];
               for (let i = 0; i <= 4; i++) {
                 yLabels.push(scale * (1 - i / 4));
@@ -421,29 +418,29 @@ export default function DashboardPro() {
                 return `KSH ${val.toFixed(0)}`;
               };
 
-              // SVG dimensions
-              const svgWidth = Math.max(900, chartData.length * 60 + 100);
+              const barWidth = 8;
+              const barSpacing = 4;
+              const groupSpacing = 50;
+              const svgWidth = Math.max(900, chartData.length * groupSpacing + 100);
               const svgHeight = 280;
               const padding = { top: 20, right: 30, bottom: 40, left: 70 };
               const plotWidth = svgWidth - padding.left - padding.right;
               const plotHeight = svgHeight - padding.top - padding.bottom;
 
               const getY = (value: number) => padding.top + plotHeight - (value / scale) * plotHeight;
-              const getX = (index: number) => padding.left + (index / (chartData.length - 1 || 1)) * plotWidth;
+              const getX = (index: number) => padding.left + (index * groupSpacing) + groupSpacing / 2;
+              const zeroY = getY(0);
 
               return (
                 <div className="flex h-full">
-                  {/* Y-axis labels */}
                   <div className="w-16 flex flex-col justify-between text-[10px] text-[var(--text-secondary)] pr-2 flex-shrink-0">
                     {yLabels.map((label, i) => (
                       <span key={i} className="text-right">{formatCurrency(label)}</span>
                     ))}
                   </div>
 
-                  {/* SVG Chart - scrollable */}
                   <div className="flex-1 overflow-x-auto">
                     <svg width={svgWidth} height={svgHeight} style={{ minWidth: '100%' }}>
-                      {/* Grid lines */}
                       {yLabels.map((label, i) => (
                         <line
                           key={`grid-${i}`}
@@ -458,59 +455,68 @@ export default function DashboardPro() {
                         />
                       ))}
 
-                      {/* Gross Sales line (Green) */}
-                      <polyline
-                        points={chartData.map((data, i) => `${getX(i)},${getY(data.gross)}`).join(' ')}
-                        fill="none"
-                        stroke="#10b981"
-                        strokeWidth="2.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        opacity="0.9"
+                      <line
+                        x1={padding.left}
+                        y1={zeroY}
+                        x2={svgWidth - padding.right}
+                        y2={zeroY}
+                        stroke="currentColor"
+                        strokeOpacity="0.3"
+                        strokeWidth="1"
                       />
 
-                      {/* Net Sales line (Blue) */}
-                      <polyline
-                        points={chartData.map((data, i) => `${getX(i)},${getY(data.net)}`).join(' ')}
-                        fill="none"
-                        stroke="#3b82f6"
-                        strokeWidth="2.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        opacity="0.9"
-                      />
-
-                      {/* Expenses line (Red) */}
-                      <polyline
-                        points={chartData.map((data, i) => `${getX(i)},${getY(data.expenses)}`).join(' ')}
-                        fill="none"
-                        stroke="#ef4444"
-                        strokeWidth="2.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        opacity="0.9"
-                      />
-
-                      {/* Profit line (Purple) */}
-                      <polyline
-                        points={chartData.map((data, i) => `${getX(i)},${getY(data.profit)}`).join(' ')}
-                        fill="none"
-                        stroke="#a855f7"
-                        strokeWidth="2.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        opacity="0.9"
-                      />
-
-                      {/* Data points for each line */}
                       {chartData.map((data, i) => {
                         const x = getX(i);
+                        const grossY = getY(data.gross);
+                        const netY = getY(data.net);
+                        const expensesY = getY(data.expenses);
+                        const profitY = getY(data.profit);
+
                         return (
-                          <g key={`points-${i}`}>
-                            <circle cx={x} cy={getY(data.gross)} r="3" fill="#10b981" opacity="0.8" />
-                            <circle cx={x} cy={getY(data.net)} r="3" fill="#3b82f6" opacity="0.8" />
-                            <circle cx={x} cy={getY(data.expenses)} r="3" fill="#ef4444" opacity="0.8" />
-                            <circle cx={x} cy={getY(data.profit)} r="3" fill="#a855f7" opacity="0.8" />
+                          <g key={`candle-${i}`}>
+                            <line
+                              x1={x - barWidth * 1.5 - barSpacing}
+                              y1={zeroY}
+                              x2={x - barWidth * 1.5 - barSpacing}
+                              y2={grossY}
+                              stroke="#10b981"
+                              strokeWidth="3"
+                              opacity="0.9"
+                              strokeLinecap="round"
+                            />
+
+                            <line
+                              x1={x - barWidth * 0.5}
+                              y1={zeroY}
+                              x2={x - barWidth * 0.5}
+                              y2={netY}
+                              stroke="#3b82f6"
+                              strokeWidth="3"
+                              opacity="0.9"
+                              strokeLinecap="round"
+                            />
+
+                            <line
+                              x1={x + barWidth * 0.5 + barSpacing}
+                              y1={zeroY}
+                              x2={x + barWidth * 0.5 + barSpacing}
+                              y2={expensesY}
+                              stroke="#ef4444"
+                              strokeWidth="3"
+                              opacity="0.9"
+                              strokeLinecap="round"
+                            />
+
+                            <line
+                              x1={x + barWidth * 1.5 + barSpacing * 2}
+                              y1={zeroY}
+                              x2={x + barWidth * 1.5 + barSpacing * 2}
+                              y2={profitY}
+                              stroke="#a855f7"
+                              strokeWidth="3"
+                              opacity="0.9"
+                              strokeLinecap="round"
+                            />
                           </g>
                         );
                       })}
@@ -521,7 +527,6 @@ export default function DashboardPro() {
             })()}
           </div>
 
-          {/* X-axis labels */}
           <div className="flex text-[10px] text-[var(--text-secondary)] mt-2 overflow-x-auto">
             <div className="w-16 flex-shrink-0"></div>
             <div className="flex-1 flex justify-between px-2">
@@ -535,22 +540,21 @@ export default function DashboardPro() {
             </div>
           </div>
 
-          {/* Legend */}
           <div className="flex items-center justify-center gap-8 mt-4 text-sm flex-wrap">
             <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-emerald-500"></div>
+              <div className="w-4 h-0.5 bg-emerald-500"></div>
               <span className="text-[var(--text-secondary)]">Gross Sales</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-blue-500"></div>
+              <div className="w-4 h-0.5 bg-blue-500"></div>
               <span className="text-[var(--text-secondary)]">Net Sales</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-red-500"></div>
+              <div className="w-4 h-0.5 bg-red-500"></div>
               <span className="text-[var(--text-secondary)]">Expenses</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-purple-500"></div>
+              <div className="w-4 h-0.5 bg-purple-500"></div>
               <span className="text-[var(--text-secondary)]">Verified Profit</span>
             </div>
           </div>
