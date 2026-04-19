@@ -431,7 +431,12 @@ export default function DashboardPro() {
 
               // Calculate points for each line
               const getY = (value: number) => padding.top + plotHeight - (value / scale) * plotHeight;
-              const getX = (index: number) => padding.left + (index / (chartData.length - 1 || 1)) * plotWidth;
+              const getX = (index: number) => {
+                if (chartData.length === 1) {
+                  return padding.left + plotWidth / 2;
+                }
+                return padding.left + (index / (chartData.length - 1)) * plotWidth;
+              };
 
               return (
                 <div className="flex h-full">
@@ -463,74 +468,78 @@ export default function DashboardPro() {
                       {/* Candlestick bars for each day */}
                       {chartData.map((data, i) => {
                         const x = getX(i);
-                        const barWidth = Math.min(pointSpacing * 0.6, 30);
+                        const barWidth = Math.max(8, Math.min(pointSpacing * 0.6, 20));
                         
                         // For each metric, draw a vertical line from min to max
                         // Gross Sales (Green)
                         const grossY = getY(data.gross);
-                        const grossMin = getY(data.gross * 0.7); // Show range
+                        const grossMin = getY(Math.max(data.gross * 0.5, 0)); // Show range
                         
                         // Net Sales (Blue)
                         const netY = getY(data.net);
-                        const netMin = getY(data.net * 0.7);
+                        const netMin = getY(Math.max(data.net * 0.5, 0));
                         
                         // Expenses (Red)
                         const expensesY = getY(data.expenses);
-                        const expensesMin = getY(data.expenses * 0.7);
+                        const expensesMin = getY(Math.max(data.expenses * 0.5, 0));
                         
                         // Profit (Purple)
                         const profitY = getY(data.profit);
-                        const profitMin = getY(data.profit * 0.7);
+                        const profitMin = getY(Math.max(data.profit * 0.5, 0));
 
                         return (
                           <g key={`candle-${i}`}>
-                            {/* Gross Sales vertical line (Green) */}
+                            {/* Gross Sales vertical line (Green) - THICKER */}
                             <line
                               x1={x - barWidth * 1.5}
                               y1={grossMin}
                               x2={x - barWidth * 1.5}
                               y2={grossY}
                               stroke="#10b981"
-                              strokeWidth="2"
-                              opacity="0.8"
+                              strokeWidth="4"
+                              opacity="1"
+                              strokeLinecap="round"
                             />
-                            <circle cx={x - barWidth * 1.5} cy={grossY} r="2" fill="#10b981" opacity="0.9" />
+                            <circle cx={x - barWidth * 1.5} cy={grossY} r="3" fill="#10b981" opacity="1" />
 
-                            {/* Net Sales vertical line (Blue) */}
+                            {/* Net Sales vertical line (Blue) - THICKER */}
                             <line
                               x1={x - barWidth * 0.5}
                               y1={netMin}
                               x2={x - barWidth * 0.5}
                               y2={netY}
                               stroke="#3b82f6"
-                              strokeWidth="2"
-                              opacity="0.8"
+                              strokeWidth="4"
+                              opacity="1"
+                              strokeLinecap="round"
                             />
-                            <circle cx={x - barWidth * 0.5} cy={netY} r="2" fill="#3b82f6" opacity="0.9" />
+                            <circle cx={x - barWidth * 0.5} cy={netY} r="3" fill="#3b82f6" opacity="1" />
 
-                            {/* Expenses vertical line (Red) */}
+                            {/* Expenses vertical line (Red) - THICKER */}
                             <line
                               x1={x + barWidth * 0.5}
                               y1={expensesMin}
                               x2={x + barWidth * 0.5}
                               y2={expensesY}
                               stroke="#ef4444"
-                              strokeWidth="2"
-                              opacity="0.8"
+                              strokeWidth="4"
+                              opacity="1"
+                              strokeLinecap="round"
                             />
-                            <circle cx={x + barWidth * 0.5} cy={expensesY} r="2" fill="#ef4444" opacity="0.9" />
+                            <circle cx={x + barWidth * 0.5} cy={expensesY} r="3" fill="#ef4444" opacity="1" />
 
-                            {/* Profit vertical line (Purple) */}
+                            {/* Profit vertical line (Purple) - THICKER */}
                             <line
                               x1={x + barWidth * 1.5}
                               y1={profitMin}
                               x2={x + barWidth * 1.5}
                               y2={profitY}
                               stroke="#a855f7"
-                              strokeWidth="2"
-                              opacity="0.8"
+                              strokeWidth="4"
+                              opacity="1"
+                              strokeLinecap="round"
                             />
-                            <circle cx={x + barWidth * 1.5} cy={profitY} r="2" fill="#a855f7" opacity="0.9" />
+                            <circle cx={x + barWidth * 1.5} cy={profitY} r="3" fill="#a855f7" opacity="1" />
                           </g>
                         );
                       })}

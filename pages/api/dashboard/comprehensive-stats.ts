@@ -232,13 +232,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }).length || 0;
     const pricingIssues = totalProducts - validPricing;
 
-    // Get sales trend data (based on date range or last 30 days)
+    // Get sales trend data (based on date range or all time)
     let trendStartDate: Date;
     if (startDate) {
       trendStartDate = startDate;
     } else {
-      trendStartDate = new Date();
-      trendStartDate.setDate(trendStartDate.getDate() - 30);
+      // For 'all' range, get from first transaction ever
+      trendStartDate = new Date('2000-01-01');
     }
 
     const trendEndDate = endDate || new Date();
