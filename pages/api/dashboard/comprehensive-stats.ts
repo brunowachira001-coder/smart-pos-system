@@ -336,12 +336,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           salesByDate[date].expenses += parseFloat(e.amount) || 0;
         });
 
-        // Convert to array and get last 11 data points
+        // Convert to array - get ALL data points for full trend visibility
         chartData = Object.entries(salesByDate)
-          .map(([date, values]) => ({ date, ...values }))
-          .slice(-11);
+          .map(([date, values]) => ({ date, ...values }));
         
         console.log('=== CHART DATA GENERATED ===');
+        console.log('Total data points:', chartData.length);
         console.log('Sales by date:', salesByDate);
         console.log('Final chart data:', JSON.stringify(chartData, null, 2));
       }

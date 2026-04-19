@@ -389,7 +389,7 @@ export default function DashboardPro() {
           </div>
           
           {/* Chart Area */}
-          <div className="relative bg-[var(--bg-secondary)] rounded border border-[var(--border-color)] p-4" style={{ height: '320px' }}>
+          <div className="relative bg-[var(--bg-secondary)] rounded border border-[var(--border-color)] p-4 overflow-x-auto" style={{ height: '320px' }}>
             {(() => {
               const chartData = stats?.chartData || [];
               
@@ -411,15 +411,13 @@ export default function DashboardPro() {
                 100
               );
               
-              const scale = maxValue * 1.1;
-              const yLabels = [
-                { value: scale, label: 0 },
-                { value: scale * 0.8, label: 1 },
-                { value: scale * 0.6, label: 2 },
-                { value: scale * 0.4, label: 3 },
-                { value: scale * 0.2, label: 4 },
-                { value: 0, label: 5 }
-              ];
+              const scale = maxValue * 1.15;
+              
+              // Generate more Y-axis labels for better readability
+              const yLabels = [];
+              for (let i = 0; i <= 10; i++) {
+                yLabels.push(scale * (1 - i / 10));
+              }
 
               const formatCurrency = (val: number) => {
                 if (val >= 1000000) return `KSH ${(val / 1000000).toFixed(1)}M`;
@@ -427,8 +425,9 @@ export default function DashboardPro() {
                 return `KSH ${val.toFixed(0)}`;
               };
 
-              // SVG dimensions
-              const svgWidth = 600;
+              // SVG dimensions - scale based on data points
+              const pointSpacing = Math.max(30, 600 / Math.max(chartData.length, 1));
+              const svgWidth = Math.max(600, pointSpacing * chartData.length);
               const svgHeight = 240;
               const padding = { top: 10, right: 20, bottom: 30, left: 60 };
               const plotWidth = svgWidth - padding.left - padding.right;
@@ -445,90 +444,109 @@ export default function DashboardPro() {
               const profitPath = chartData.map((d, i) => `${getX(i)},${getY(d.profit)}`).join(' L ');
 
               return (
-                <>
+                <div className="flex h-full">
                   {/* Y-axis labels */}
-                  <div className="absolute left-0 top-0 bottom-0 w-14 flex flex-col justify-between text-[10px] text-[var(--text-secondary)] pr-2">
+                  <div className="w-14 flex flex-col justify-between text-[9px] text-[var(--text-secondary)] pr-2 flex-shrink-0">
                     {yLabels.map((label, i) => (
-                      <span key={i} className="text-right">{formatCurrency(label.value)}</span>
+                      <span key={i} className="text-right">{formatCurrency(label)}</span>
                     ))}
                   </div>
 
-                  {/* SVG Chart */}
-                  <svg width={svgWidth} height={svgHeight} className="ml-2" style={{ overflow: 'visible' }}>
-                    {/* Grid lines */}
-                    {yLabels.map((label, i) => (
-                      <line
-                        key={`grid-${i}`}
-                        x1={padding.left}
-                        y1={padding.top + (i / (yLabels.length - 1)) * plotHeight}
-                        x2={svgWidth - padding.right}
-                        y2={padding.top + (i / (yLabels.length - 1)) * plotHeight}
-                        stroke="currentColor"
-                        strokeOpacity="0.1"
-                        strokeDasharray="4"
+                  {/* SVG Chart - scrollable */}
+                  <div className="flex-1 overflow-x-auto">
+                    <svg width={svgWidth} height={svgHeight} style={{ minWidth: '100%' }}>
+                      {/* Grid lines */}
+                      {yLabels.map((label, i) => (
+                        <line
+                          key={`grid-${i}`}
+                          x1={padding.left}
+                          y1={padding.top + (i / (yLabels.length - 1)) * plotHeight}
+                          x2={svgWidth - padding.right}
+                          y2={padding.top + (i / (yLabels.length - 1)) * plotHeight}
+                          stroke="currentColor"
+                          strokeOpacity="0.15"
+                          strokeDasharray="3,3"
+                          strokeWidth="0.5"
+                        />
+                      ))}
+
+                      {/* Gross Sales Line (Green) */}
+                      <polyline
+                        points={grossPath}
+                        fill="none"
+                        stroke="#10b981"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        opacity="0.9"
                       />
-                    ))}
 
-                    {/* Gross Sales Line (Green) */}
-                    <polyline
-                      points={grossPath}
-                      fill="none"
-                      stroke="#10b981"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
+                      {/* Net Sales Line (Blue) */}
+                      <polyline
+                        points={netPath}
+                        fill="none"
+                        stroke="#3b82f6"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        opacity="0.9"
+                      />
 
-                    {/* Net Sales Line (Blue) */}
-                    <polyline
-                      points={netPath}
-                      fill="none"
-                      stroke="#3b82f6"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
+                      {/* Expenses Line (Red) */}
+                      <polyline
+                        points={expensesPath}
+                        fill="none"
+                        stroke="#ef4444"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        opacity="0.9"
+                      />
 
-                    {/* Expenses Line (Red) */}
-                    <polyline
-                      points={expensesPath}
-                      fill="none"
-                      stroke="#ef4444"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
+                      {/* Verified Profit Line (Purple) */}
+                      <polyline
+                        points={profitPath}
+                        fill="none"
+                        stroke="#a855f7"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        opacity="0.9"
+                      />
 
-                    {/* Verified Profit Line (Purple) */}
-                    <polyline
-                      points={profitPath}
-                      fill="none"
-                      stroke="#a855f7"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-
-                    {/* Data points */}
-                    {chartData.map((data, i) => (
-                      <g key={`points-${i}`}>
-                        <circle cx={getX(i)} cy={getY(data.gross)} r="3" fill="#10b981" />
-                        <circle cx={getX(i)} cy={getY(data.net)} r="3" fill="#3b82f6" />
-                        <circle cx={getX(i)} cy={getY(data.expenses)} r="3" fill="#ef4444" />
-                        <circle cx={getX(i)} cy={getY(data.profit)} r="3" fill="#a855f7" />
-                      </g>
-                    ))}
-                  </svg>
-
-                  {/* X-axis labels */}
-                  <div className="flex justify-between text-[10px] text-[var(--text-secondary)] mt-2" style={{ marginLeft: `${padding.left}px`, marginRight: `${padding.right}px` }}>
-                    {chartData.map((data, i) => (
-                      <span key={i} className="text-center flex-1">{data.date}</span>
-                    ))}
+                      {/* Data points - only show every nth point if too many */}
+                      {chartData.map((data, i) => {
+                        const showPoint = chartData.length <= 30 || i % Math.ceil(chartData.length / 30) === 0;
+                        if (!showPoint) return null;
+                        
+                        return (
+                          <g key={`points-${i}`}>
+                            <circle cx={getX(i)} cy={getY(data.gross)} r="2.5" fill="#10b981" opacity="0.8" />
+                            <circle cx={getX(i)} cy={getY(data.net)} r="2.5" fill="#3b82f6" opacity="0.8" />
+                            <circle cx={getX(i)} cy={getY(data.expenses)} r="2.5" fill="#ef4444" opacity="0.8" />
+                            <circle cx={getX(i)} cy={getY(data.profit)} r="2.5" fill="#a855f7" opacity="0.8" />
+                          </g>
+                        );
+                      })}
+                    </svg>
                   </div>
-                </>
+                </div>
               );
             })()}
+          </div>
+
+          {/* X-axis labels */}
+          <div className="flex text-[9px] text-[var(--text-secondary)] mt-2 overflow-x-auto">
+            <div className="w-14 flex-shrink-0"></div>
+            <div className="flex-1 flex justify-between px-2">
+              {stats?.chartData && stats.chartData.length > 0 && (
+                <>
+                  <span>{stats.chartData[0]?.date}</span>
+                  <span>{stats.chartData[Math.floor(stats.chartData.length / 2)]?.date}</span>
+                  <span>{stats.chartData[stats.chartData.length - 1]?.date}</span>
+                </>
+              )}
+            </div>
           </div>
 
           {/* Legend */}
