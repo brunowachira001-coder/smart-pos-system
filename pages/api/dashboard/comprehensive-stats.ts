@@ -177,14 +177,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return sum + (parseFloat(t.total) || 0);
     }, 0) || 0;
 
-    // Fetch today's expenses (if expenses table exists)
+    // Fetch expenses for the selected date range
     let todayExpenses = 0;
     try {
-      const { data: expenses } = await supabase
-        .from('expenses')
-        .select('amount')
-        .gte('created_at', today.toISOString())
-        .lt('created_at', tomorrow.toISOString());
+      let expensesQuery = supabase.from('expenses').select('amount, created_at');
+      
+      if (startDate && endDate) {
+        expensesQuery = expensesQuery
+          .gte('created_at', startDate.toISOString())
+          .lte('created_at', endDate.toISOString());
+      } else {
+        // Default to today if no range specified
+        expensesQuery = expensesQuery
+          .gte('created_at', today.toISOString())
+          .lt('created_at', tomorrow.toISOString());
+      }
+      
+      const { data: expenses } = await expensesQuery;
       
       todayExpenses = expenses?.reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0) || 0;
     } catch (e) {
@@ -287,6 +296,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           }
         }
 
+        // Fetch expenses for the trend period
+        let trendExpenses: any[] = [];
+        try {
+          const { data: expensesData } = await supabase
+            .from('expenses')
+            .select('amount, created_at')
+            .gte('created_at', trendStartDate.toISOString())
+            .lte('created_at', trendEndDate.toISOString());
+          
+          trendExpenses = expensesData || [];
+        } catch (e) {
+          trendExpenses = [];
+        }
+
         // Group transactions by date with actual profit
         const salesByDate: { [key: string]: { gross: number; net: number; expenses: number; profit: number } } = {};
         
@@ -302,6 +325,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           salesByDate[date].gross += total;
           salesByDate[date].net += subtotal;
           salesByDate[date].profit += profit;
+        });
+
+        // Add expenses by date
+        trendExpenses.forEach(e => {
+          const date = new Date(e.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+          if (!salesByDate[date]) {
+            salesByDate[date] = { gross: 0, net: 0, expenses: 0, profit: 0 };
+          }
+          salesByDate[date].expenses += parseFloat(e.amount) || 0;
         });
 
         // Convert to array and get last 11 data points

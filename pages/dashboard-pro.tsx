@@ -393,11 +393,25 @@ export default function DashboardPro() {
             {(() => {
               const chartData = stats?.chartData || [];
               
+              console.log('=== CHART DEBUG ===');
+              console.log('Chart Data Length:', chartData.length);
+              console.log('Chart Data:', chartData);
+              
+              if (chartData.length === 0) {
+                return (
+                  <div className="flex items-center justify-center h-full text-[var(--text-secondary)] text-sm">
+                    No transaction data available for selected period
+                  </div>
+                );
+              }
+              
               // Calculate max value for Y-axis scaling
               const maxValue = Math.max(
                 ...chartData.map(d => Math.max(d.gross, d.net, d.expenses, d.profit)),
                 1000 // Minimum scale
               );
+              
+              console.log('Max Value:', maxValue);
               
               // Round up to nearest nice number
               const scale = Math.ceil(maxValue / 1000) * 1000;
@@ -420,74 +434,77 @@ export default function DashboardPro() {
               return (
                 <>
                   {/* Y-axis labels */}
-                  <div className="absolute left-0 top-0 bottom-8 w-16 flex flex-col justify-between text-xs text-[var(--text-secondary)]">
+                  <div className="absolute left-0 top-0 bottom-8 w-20 flex flex-col justify-between text-xs text-[var(--text-secondary)]">
                     {yLabels.map((label, i) => (
                       <span key={i}>{formatCurrency(label)}</span>
                     ))}
                   </div>
 
                   {/* Chart bars */}
-                  <div className="ml-16 h-full flex items-end justify-between gap-1">
-                    {chartData.length > 0 ? (
-                      chartData.map((data, i) => {
-                        // Calculate heights as percentage of scale
-                        const grossHeight = (data.gross / scale) * 100;
-                        const netHeight = (data.net / scale) * 100;
-                        const expensesHeight = (data.expenses / scale) * 100;
-                        const profitHeight = (data.profit / scale) * 100;
+                  <div className="ml-20 h-full flex items-end justify-between gap-1">
+                    {chartData.map((data, i) => {
+                      // Calculate heights as percentage of scale
+                      const grossHeight = (data.gross / scale) * 100;
+                      const netHeight = (data.net / scale) * 100;
+                      const expensesHeight = (data.expenses / scale) * 100;
+                      const profitHeight = (data.profit / scale) * 100;
 
-                        return (
-                          <div key={i} className="flex-1 flex flex-col items-center justify-end h-full group relative">
-                            {/* Tooltip on hover */}
-                            <div className="absolute bottom-full mb-2 hidden group-hover:block bg-gray-900 text-white text-xs rounded p-2 whitespace-nowrap z-10">
-                              <div>{data.date}</div>
-                              <div className="text-emerald-400">Gross: {formatCurrency(data.gross)}</div>
-                              <div className="text-blue-400">Net: {formatCurrency(data.net)}</div>
-                              <div className="text-red-400">Expenses: {formatCurrency(data.expenses)}</div>
-                              <div className="text-purple-400">Profit: {formatCurrency(data.profit)}</div>
-                            </div>
-                            
-                            {/* Bars */}
-                            <div className="w-full flex gap-0.5 items-end">
-                              {/* Gross Sales (Green) */}
-                              <div 
-                                className="flex-1 bg-emerald-500 rounded-t transition-all hover:opacity-80"
-                                style={{ height: `${Math.max(grossHeight, 2)}%` }}
-                              ></div>
-                              {/* Net Sales (Blue) */}
-                              <div 
-                                className="flex-1 bg-blue-500 rounded-t transition-all hover:opacity-80"
-                                style={{ height: `${Math.max(netHeight, 2)}%` }}
-                              ></div>
-                              {/* Expenses (Red) */}
-                              <div 
-                                className="flex-1 bg-red-500 rounded-t transition-all hover:opacity-80"
-                                style={{ height: `${Math.max(expensesHeight, 1)}%` }}
-                              ></div>
-                              {/* Verified Profit (Purple) */}
-                              <div 
-                                className="flex-1 bg-purple-500 rounded-t transition-all hover:opacity-80"
-                                style={{ height: `${Math.max(profitHeight, 2)}%` }}
-                              ></div>
-                            </div>
+                      console.log(`Bar ${i} (${data.date}):`, {
+                        gross: data.gross,
+                        grossHeight: `${grossHeight}%`,
+                        profit: data.profit,
+                        profitHeight: `${profitHeight}%`
+                      });
+
+                      return (
+                        <div key={i} className="flex-1 flex flex-col items-center justify-end h-full group relative min-w-[20px]">
+                          {/* Tooltip on hover */}
+                          <div className="absolute bottom-full mb-2 hidden group-hover:block bg-gray-900 text-white text-xs rounded p-2 whitespace-nowrap z-10">
+                            <div className="font-bold">{data.date}</div>
+                            <div className="text-emerald-400">Gross: {formatCurrency(data.gross)}</div>
+                            <div className="text-blue-400">Net: {formatCurrency(data.net)}</div>
+                            <div className="text-red-400">Expenses: {formatCurrency(data.expenses)}</div>
+                            <div className="text-purple-400">Profit: {formatCurrency(data.profit)}</div>
                           </div>
-                        );
-                      })
-                    ) : (
-                      <div className="flex-1 flex items-center justify-center text-[var(--text-secondary)] text-sm">
-                        No transaction data available
-                      </div>
-                    )}
+                          
+                          {/* Bars */}
+                          <div className="w-full flex gap-0.5 items-end min-h-[4px]">
+                            {/* Gross Sales (Green) */}
+                            <div 
+                              className="flex-1 bg-emerald-500 rounded-t transition-all hover:opacity-80 min-h-[3px]"
+                              style={{ height: `${Math.max(grossHeight, 3)}%` }}
+                              title={`Gross: ${formatCurrency(data.gross)}`}
+                            ></div>
+                            {/* Net Sales (Blue) */}
+                            <div 
+                              className="flex-1 bg-blue-500 rounded-t transition-all hover:opacity-80 min-h-[3px]"
+                              style={{ height: `${Math.max(netHeight, 3)}%` }}
+                              title={`Net: ${formatCurrency(data.net)}`}
+                            ></div>
+                            {/* Expenses (Red) */}
+                            <div 
+                              className="flex-1 bg-red-500 rounded-t transition-all hover:opacity-80 min-h-[2px]"
+                              style={{ height: `${Math.max(expensesHeight, 2)}%` }}
+                              title={`Expenses: ${formatCurrency(data.expenses)}`}
+                            ></div>
+                            {/* Verified Profit (Purple) */}
+                            <div 
+                              className="flex-1 bg-purple-500 rounded-t transition-all hover:opacity-80 min-h-[3px]"
+                              style={{ height: `${Math.max(profitHeight, 3)}%` }}
+                              title={`Profit: ${formatCurrency(data.profit)}`}
+                            ></div>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
 
                   {/* X-axis labels */}
-                  {chartData.length > 0 && (
-                    <div className="ml-16 mt-2 flex justify-between text-xs text-[var(--text-secondary)]">
-                      {chartData.map((data, i) => (
-                        <span key={i}>{data.date}</span>
-                      ))}
-                    </div>
-                  )}
+                  <div className="ml-20 mt-2 flex justify-between text-xs text-[var(--text-secondary)]">
+                    {chartData.map((data, i) => (
+                      <span key={i} className="text-center">{data.date}</span>
+                    ))}
+                  </div>
                 </>
               );
             })()}
