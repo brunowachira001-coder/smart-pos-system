@@ -312,7 +312,7 @@ export default function DashboardPro() {
               <span className="text-blue-500">📂</span>
             </div>
             <p className="text-3xl font-bold text-[var(--text-primary)] mb-2">
-              {stats?.productCategories || 59}
+              {stats?.productCategories || 0}
             </p>
             <p className="text-xs text-[var(--text-secondary)] mt-2">
               Number of unique active categories
@@ -326,10 +326,10 @@ export default function DashboardPro() {
               <span className="text-orange-500">💳</span>
             </div>
             <p className="text-3xl font-bold text-orange-500 mb-2">
-              KSH {stats?.outstandingDebt?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '1500.00'}
+              KSH {stats?.outstandingDebt?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}
             </p>
             <p className="text-xs text-[var(--text-secondary)] mt-2">
-              2 customers with debt
+              Total outstanding customer debt
             </p>
           </div>
 
@@ -340,7 +340,7 @@ export default function DashboardPro() {
               <span className="text-red-500">⚠️</span>
             </div>
             <p className="text-3xl font-bold text-red-500 mb-2">
-              {stats?.lowStockCount || 3}
+              {stats?.lowStockCount || 0}
             </p>
             <p className="text-xs text-[var(--text-secondary)] mt-2">
               Items below minimum stock
@@ -356,15 +356,15 @@ export default function DashboardPro() {
             <div className="space-y-1 mt-2">
               <div className="flex justify-between text-xs">
                 <span className="text-[var(--text-secondary)]">Total Products:</span>
-                <span className="font-bold text-[var(--text-primary)]">{stats?.pricingAudit?.total || 605}</span>
+                <span className="font-bold text-[var(--text-primary)]">{stats?.pricingAudit?.total || 0}</span>
               </div>
               <div className="flex justify-between text-xs">
                 <span className="text-[var(--text-secondary)]">Valid Pricing:</span>
-                <span className="font-bold text-emerald-500">{stats?.pricingAudit?.valid || 590}</span>
+                <span className="font-bold text-emerald-500">{stats?.pricingAudit?.valid || 0}</span>
               </div>
               <div className="flex justify-between text-xs">
                 <span className="text-[var(--text-secondary)]">Issues Found:</span>
-                <span className="font-bold text-red-500">{stats?.pricingAudit?.issues || 15}</span>
+                <span className="font-bold text-red-500">{stats?.pricingAudit?.issues || 0}</span>
               </div>
             </div>
             <button 
@@ -395,7 +395,8 @@ export default function DashboardPro() {
               
               console.log('=== CHART DEBUG ===');
               console.log('Chart Data Length:', chartData.length);
-              console.log('Chart Data:', chartData);
+              console.log('Chart Data:', JSON.stringify(chartData, null, 2));
+              console.log('Full Stats:', JSON.stringify(stats, null, 2));
               
               if (chartData.length === 0) {
                 return (
@@ -408,90 +409,95 @@ export default function DashboardPro() {
               // Calculate max value for Y-axis scaling
               const maxValue = Math.max(
                 ...chartData.map(d => Math.max(d.gross, d.net, d.expenses, d.profit)),
-                1000 // Minimum scale
+                100 // Lower minimum scale to handle small values
               );
               
               console.log('Max Value:', maxValue);
               
-              // Round up to nearest nice number
-              const scale = Math.ceil(maxValue / 1000) * 1000;
+              // Use actual max value without rounding up too much
+              const scale = maxValue * 1.1; // Add 10% padding
               const yLabels = [
                 scale,
-                Math.round(scale * 0.85),
-                Math.round(scale * 0.7),
-                Math.round(scale * 0.5),
-                Math.round(scale * 0.3),
+                scale * 0.8,
+                scale * 0.6,
+                scale * 0.4,
+                scale * 0.2,
                 0
               ];
 
-              // Format currency
+              // Format currency - show exact values
               const formatCurrency = (val: number) => {
-                if (val >= 1000000) return `KSH ${(val / 1000000).toFixed(1)}M`;
-                if (val >= 1000) return `KSH ${(val / 1000).toFixed(0)}k`;
-                return `KSH ${val}`;
+                if (val >= 1000000) return `${(val / 1000000).toFixed(2)}M`;
+                if (val >= 1000) return `${(val / 1000).toFixed(1)}k`;
+                return val.toFixed(0);
               };
 
               return (
                 <>
                   {/* Y-axis labels */}
-                  <div className="absolute left-0 top-0 bottom-8 w-20 flex flex-col justify-between text-xs text-[var(--text-secondary)]">
+                  <div className="absolute left-0 top-0 bottom-8 w-16 flex flex-col justify-between text-[10px] text-[var(--text-secondary)]">
                     {yLabels.map((label, i) => (
-                      <span key={i}>{formatCurrency(label)}</span>
+                      <span key={i} className="text-right pr-1">{formatCurrency(label)}</span>
                     ))}
                   </div>
 
                   {/* Chart bars */}
-                  <div className="ml-20 h-full flex items-end justify-between gap-1">
+                  <div className="ml-16 h-full flex items-end justify-between gap-2">
                     {chartData.map((data, i) => {
                       // Calculate heights as percentage of scale
-                      const grossHeight = (data.gross / scale) * 100;
-                      const netHeight = (data.net / scale) * 100;
-                      const expensesHeight = (data.expenses / scale) * 100;
-                      const profitHeight = (data.profit / scale) * 100;
+                      const grossHeight = Math.max((data.gross / scale) * 100, 1);
+                      const netHeight = Math.max((data.net / scale) * 100, 1);
+                      const expensesHeight = Math.max((data.expenses / scale) * 100, 0.5);
+                      const profitHeight = Math.max((data.profit / scale) * 100, 1);
 
                       console.log(`Bar ${i} (${data.date}):`, {
                         gross: data.gross,
                         grossHeight: `${grossHeight}%`,
+                        net: data.net,
+                        netHeight: `${netHeight}%`,
+                        expenses: data.expenses,
+                        expensesHeight: `${expensesHeight}%`,
                         profit: data.profit,
-                        profitHeight: `${profitHeight}%`
+                        profitHeight: `${profitHeight}%`,
+                        scale: scale
                       });
 
                       return (
-                        <div key={i} className="flex-1 flex flex-col items-center justify-end h-full group relative min-w-[20px]">
+                        <div key={i} className="flex-1 flex flex-col items-center justify-end h-full group relative min-w-[30px]">
                           {/* Tooltip on hover */}
-                          <div className="absolute bottom-full mb-2 hidden group-hover:block bg-gray-900 text-white text-xs rounded p-2 whitespace-nowrap z-10">
-                            <div className="font-bold">{data.date}</div>
-                            <div className="text-emerald-400">Gross: {formatCurrency(data.gross)}</div>
-                            <div className="text-blue-400">Net: {formatCurrency(data.net)}</div>
-                            <div className="text-red-400">Expenses: {formatCurrency(data.expenses)}</div>
-                            <div className="text-purple-400">Profit: {formatCurrency(data.profit)}</div>
+                          <div className="absolute bottom-full mb-2 hidden group-hover:block bg-gray-900 text-white text-xs rounded p-2 whitespace-nowrap z-10 shadow-lg">
+                            <div className="font-bold mb-1">{data.date}</div>
+                            <div className="text-emerald-400">Gross: KSH {data.gross.toFixed(2)}</div>
+                            <div className="text-blue-400">Net: KSH {data.net.toFixed(2)}</div>
+                            <div className="text-red-400">Expenses: KSH {data.expenses.toFixed(2)}</div>
+                            <div className="text-purple-400">Profit: KSH {data.profit.toFixed(2)}</div>
                           </div>
                           
                           {/* Bars */}
-                          <div className="w-full flex gap-0.5 items-end min-h-[4px]">
+                          <div className="w-full flex gap-0.5 items-end">
                             {/* Gross Sales (Green) */}
                             <div 
-                              className="flex-1 bg-emerald-500 rounded-t transition-all hover:opacity-80 min-h-[3px]"
-                              style={{ height: `${Math.max(grossHeight, 3)}%` }}
-                              title={`Gross: ${formatCurrency(data.gross)}`}
+                              className="flex-1 bg-emerald-500 rounded-t transition-all hover:opacity-80"
+                              style={{ height: `${grossHeight}%`, minHeight: '2px' }}
+                              title={`Gross: KSH ${data.gross.toFixed(2)}`}
                             ></div>
                             {/* Net Sales (Blue) */}
                             <div 
-                              className="flex-1 bg-blue-500 rounded-t transition-all hover:opacity-80 min-h-[3px]"
-                              style={{ height: `${Math.max(netHeight, 3)}%` }}
-                              title={`Net: ${formatCurrency(data.net)}`}
+                              className="flex-1 bg-blue-500 rounded-t transition-all hover:opacity-80"
+                              style={{ height: `${netHeight}%`, minHeight: '2px' }}
+                              title={`Net: KSH ${data.net.toFixed(2)}`}
                             ></div>
                             {/* Expenses (Red) */}
                             <div 
-                              className="flex-1 bg-red-500 rounded-t transition-all hover:opacity-80 min-h-[2px]"
-                              style={{ height: `${Math.max(expensesHeight, 2)}%` }}
-                              title={`Expenses: ${formatCurrency(data.expenses)}`}
+                              className="flex-1 bg-red-500 rounded-t transition-all hover:opacity-80"
+                              style={{ height: `${expensesHeight}%`, minHeight: expensesHeight > 0 ? '2px' : '0px' }}
+                              title={`Expenses: KSH ${data.expenses.toFixed(2)}`}
                             ></div>
                             {/* Verified Profit (Purple) */}
                             <div 
-                              className="flex-1 bg-purple-500 rounded-t transition-all hover:opacity-80 min-h-[3px]"
-                              style={{ height: `${Math.max(profitHeight, 3)}%` }}
-                              title={`Profit: ${formatCurrency(data.profit)}`}
+                              className="flex-1 bg-purple-500 rounded-t transition-all hover:opacity-80"
+                              style={{ height: `${profitHeight}%`, minHeight: '2px' }}
+                              title={`Profit: KSH ${data.profit.toFixed(2)}`}
                             ></div>
                           </div>
                         </div>
@@ -500,9 +506,9 @@ export default function DashboardPro() {
                   </div>
 
                   {/* X-axis labels */}
-                  <div className="ml-20 mt-2 flex justify-between text-xs text-[var(--text-secondary)]">
+                  <div className="ml-16 mt-2 flex justify-between text-[10px] text-[var(--text-secondary)]">
                     {chartData.map((data, i) => (
-                      <span key={i} className="text-center">{data.date}</span>
+                      <span key={i} className="text-center flex-1">{data.date}</span>
                     ))}
                   </div>
                 </>

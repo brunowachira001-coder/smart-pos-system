@@ -340,6 +340,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         chartData = Object.entries(salesByDate)
           .map(([date, values]) => ({ date, ...values }))
           .slice(-11);
+        
+        console.log('=== CHART DATA GENERATED ===');
+        console.log('Sales by date:', salesByDate);
+        console.log('Final chart data:', JSON.stringify(chartData, null, 2));
       }
     }
 
