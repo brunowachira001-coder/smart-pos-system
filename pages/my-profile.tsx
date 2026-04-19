@@ -200,7 +200,7 @@ export default function MyProfilePage() {
               </button>
             </div>
 
-            {/* Edit Profile Form */}
+            {/* Edit Profile Form - Updated */}
             <div className="border-t border-[var(--border-color)] pt-8">
               <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-6">Edit Profile Information</h3>
               <form onSubmit={handleUpdateProfile}>
