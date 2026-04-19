@@ -393,10 +393,6 @@ export default function DashboardPro() {
             {(() => {
               const chartData = stats?.chartData || [];
               
-              console.log('=== CHART DEBUG ===');
-              console.log('Chart Data Length:', chartData.length);
-              console.log('Chart Data:', JSON.stringify(chartData, null, 2));
-              
               if (chartData.length === 0) {
                 return (
                   <div className="flex items-center justify-center h-full text-[var(--text-secondary)] text-sm">
@@ -413,7 +409,7 @@ export default function DashboardPro() {
               
               const scale = maxValue * 1.15;
               
-              // Generate more Y-axis labels for better readability
+              // Generate Y-axis labels
               const yLabels = [];
               for (let i = 0; i <= 10; i++) {
                 yLabels.push(scale * (1 - i / 10));
@@ -426,8 +422,8 @@ export default function DashboardPro() {
               };
 
               // SVG dimensions - scale based on data points
-              const pointSpacing = Math.max(30, 600 / Math.max(chartData.length, 1));
-              const svgWidth = Math.max(600, pointSpacing * chartData.length);
+              const pointSpacing = Math.max(40, 800 / Math.max(chartData.length, 1));
+              const svgWidth = Math.max(800, pointSpacing * chartData.length);
               const svgHeight = 240;
               const padding = { top: 10, right: 20, bottom: 30, left: 60 };
               const plotWidth = svgWidth - padding.left - padding.right;
@@ -436,12 +432,6 @@ export default function DashboardPro() {
               // Calculate points for each line
               const getY = (value: number) => padding.top + plotHeight - (value / scale) * plotHeight;
               const getX = (index: number) => padding.left + (index / (chartData.length - 1 || 1)) * plotWidth;
-
-              // Generate path data for lines
-              const grossPath = chartData.map((d, i) => `${getX(i)},${getY(d.gross)}`).join(' L ');
-              const netPath = chartData.map((d, i) => `${getX(i)},${getY(d.net)}`).join(' L ');
-              const expensesPath = chartData.map((d, i) => `${getX(i)},${getY(d.expenses)}`).join(' L ');
-              const profitPath = chartData.map((d, i) => `${getX(i)},${getY(d.profit)}`).join(' L ');
 
               return (
                 <div className="flex h-full">
@@ -470,61 +460,77 @@ export default function DashboardPro() {
                         />
                       ))}
 
-                      {/* Gross Sales Line (Green) */}
-                      <polyline
-                        points={grossPath}
-                        fill="none"
-                        stroke="#10b981"
-                        strokeWidth="3"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        opacity="0.9"
-                      />
-
-                      {/* Net Sales Line (Blue) */}
-                      <polyline
-                        points={netPath}
-                        fill="none"
-                        stroke="#3b82f6"
-                        strokeWidth="3"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        opacity="0.9"
-                      />
-
-                      {/* Expenses Line (Red) */}
-                      <polyline
-                        points={expensesPath}
-                        fill="none"
-                        stroke="#ef4444"
-                        strokeWidth="3"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        opacity="0.9"
-                      />
-
-                      {/* Verified Profit Line (Purple) */}
-                      <polyline
-                        points={profitPath}
-                        fill="none"
-                        stroke="#a855f7"
-                        strokeWidth="3"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        opacity="0.9"
-                      />
-
-                      {/* Data points - only show every nth point if too many */}
+                      {/* Candlestick bars for each day */}
                       {chartData.map((data, i) => {
-                        const showPoint = chartData.length <= 30 || i % Math.ceil(chartData.length / 30) === 0;
-                        if (!showPoint) return null;
+                        const x = getX(i);
+                        const barWidth = Math.min(pointSpacing * 0.6, 30);
                         
+                        // For each metric, draw a vertical line from min to max
+                        // Gross Sales (Green)
+                        const grossY = getY(data.gross);
+                        const grossMin = getY(data.gross * 0.7); // Show range
+                        
+                        // Net Sales (Blue)
+                        const netY = getY(data.net);
+                        const netMin = getY(data.net * 0.7);
+                        
+                        // Expenses (Red)
+                        const expensesY = getY(data.expenses);
+                        const expensesMin = getY(data.expenses * 0.7);
+                        
+                        // Profit (Purple)
+                        const profitY = getY(data.profit);
+                        const profitMin = getY(data.profit * 0.7);
+
                         return (
-                          <g key={`points-${i}`}>
-                            <circle cx={getX(i)} cy={getY(data.gross)} r="2.5" fill="#10b981" opacity="0.8" />
-                            <circle cx={getX(i)} cy={getY(data.net)} r="2.5" fill="#3b82f6" opacity="0.8" />
-                            <circle cx={getX(i)} cy={getY(data.expenses)} r="2.5" fill="#ef4444" opacity="0.8" />
-                            <circle cx={getX(i)} cy={getY(data.profit)} r="2.5" fill="#a855f7" opacity="0.8" />
+                          <g key={`candle-${i}`}>
+                            {/* Gross Sales vertical line (Green) */}
+                            <line
+                              x1={x - barWidth * 1.5}
+                              y1={grossMin}
+                              x2={x - barWidth * 1.5}
+                              y2={grossY}
+                              stroke="#10b981"
+                              strokeWidth="2"
+                              opacity="0.8"
+                            />
+                            <circle cx={x - barWidth * 1.5} cy={grossY} r="2" fill="#10b981" opacity="0.9" />
+
+                            {/* Net Sales vertical line (Blue) */}
+                            <line
+                              x1={x - barWidth * 0.5}
+                              y1={netMin}
+                              x2={x - barWidth * 0.5}
+                              y2={netY}
+                              stroke="#3b82f6"
+                              strokeWidth="2"
+                              opacity="0.8"
+                            />
+                            <circle cx={x - barWidth * 0.5} cy={netY} r="2" fill="#3b82f6" opacity="0.9" />
+
+                            {/* Expenses vertical line (Red) */}
+                            <line
+                              x1={x + barWidth * 0.5}
+                              y1={expensesMin}
+                              x2={x + barWidth * 0.5}
+                              y2={expensesY}
+                              stroke="#ef4444"
+                              strokeWidth="2"
+                              opacity="0.8"
+                            />
+                            <circle cx={x + barWidth * 0.5} cy={expensesY} r="2" fill="#ef4444" opacity="0.9" />
+
+                            {/* Profit vertical line (Purple) */}
+                            <line
+                              x1={x + barWidth * 1.5}
+                              y1={profitMin}
+                              x2={x + barWidth * 1.5}
+                              y2={profitY}
+                              stroke="#a855f7"
+                              strokeWidth="2"
+                              opacity="0.8"
+                            />
+                            <circle cx={x + barWidth * 1.5} cy={profitY} r="2" fill="#a855f7" opacity="0.9" />
                           </g>
                         );
                       })}
