@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
+import { applyTheme, getCurrentTheme } from '../lib/themes';
 
 interface Profile {
   id: string;
@@ -20,6 +21,17 @@ export default function MyProfilePage() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editForm, setEditForm] = useState({ full_name: '', email: '', phone: '' });
   const [saving, setSaving] = useState(false);
+  const [currentTheme, setCurrentTheme] = useState('dark');
+
+  useEffect(() => {
+    setCurrentTheme(getCurrentTheme());
+  }, []);
+
+  const handleApplyTheme = (theme: string) => {
+    applyTheme(theme as any);
+    setCurrentTheme(theme);
+    alert(`${theme.charAt(0).toUpperCase() + theme.slice(1)} theme applied successfully!`);
+  };
 
   useEffect(() => {
     if (!authLoading && user?.email) {
@@ -165,6 +177,58 @@ export default function MyProfilePage() {
     });
   };
 
+  const ThemeCard = ({ name, description, icon, preview, accentColor, isActive, onApply }: {
+    name: string;
+    description: string;
+    icon: string;
+    preview: string;
+    accentColor: string;
+    isActive: boolean;
+    onApply: () => void;
+  }) => (
+    <div className={`bg-[var(--bg-secondary)] border-2 ${isActive ? 'border-emerald-500' : 'border-[var(--border-color)]'} rounded-lg p-4 transition-all hover:border-emerald-400`}>
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <span className="text-2xl">{icon}</span>
+          <h4 className="font-semibold text-[var(--text-primary)]">{name}</h4>
+        </div>
+        {isActive && (
+          <span className="text-xs bg-emerald-500 text-white px-2 py-1 rounded-full flex items-center gap-1">
+            ✓ Active
+          </span>
+        )}
+      </div>
+      
+      <p className="text-xs text-[var(--text-secondary)] mb-4">{description}</p>
+      
+      {/* Theme Preview */}
+      <div className={`${preview} rounded-lg p-4 mb-4 border border-gray-700`}>
+        <div className="space-y-2">
+          <div className="h-2 bg-gray-600 rounded w-3/4"></div>
+          <div className={`h-2 ${accentColor} rounded w-1/2`}></div>
+          <div className="h-2 bg-gray-600 rounded w-2/3"></div>
+        </div>
+      </div>
+
+      <div className="flex gap-2">
+        <button
+          onClick={onApply}
+          disabled={isActive}
+          className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            isActive 
+              ? 'bg-gray-600 text-gray-400 cursor-not-allowed' 
+              : 'bg-white text-gray-900 hover:bg-gray-100'
+          }`}
+        >
+          {isActive ? 'Currently Active' : 'Apply'}
+        </button>
+        <button className="px-4 py-2 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg text-sm hover:bg-[var(--bg-secondary)] text-[var(--text-primary)]">
+          Preview
+        </button>
+      </div>
+    </div>
+  );
+
   if (authLoading || (loading && !profile)) {
     return (
       <div className="min-h-screen bg-[var(--bg-primary)] flex items-center justify-center">
@@ -292,21 +356,79 @@ export default function MyProfilePage() {
         {/* Themes Tab Content */}
         {activeTab === 'themes' && (
           <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-8">
-            <h3 className="text-xl font-semibold mb-6 text-center text-[var(--text-primary)]">Theme Preferences</h3>
-            <div className="max-w-md mx-auto space-y-4">
-              <div className="flex items-center justify-between p-4 bg-[var(--bg-secondary)] rounded-lg border border-[var(--border-color)]">
-                <div>
-                  <p className="font-medium text-[var(--text-primary)]">Dark Mode</p>
-                  <p className="text-sm text-[var(--text-secondary)]">Use dark theme</p>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input type="checkbox" className="sr-only peer" defaultChecked />
-                  <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
-                </label>
-              </div>
-              <p className="text-sm text-[var(--text-secondary)] text-center mt-4">
-                More theme options coming soon...
+            <div className="text-center mb-8">
+              <h3 className="text-2xl font-semibold mb-2 text-[var(--text-primary)]">Theme Showcase</h3>
+              <p className="text-sm text-[var(--text-secondary)]">
+                Choose from our collection of professional themes designed for optimal readability
               </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+              {/* Light Theme */}
+              <ThemeCard
+                name="Light"
+                description="Clean and bright theme for daytime use"
+                icon="☀️"
+                preview="bg-white"
+                accentColor="bg-blue-500"
+                isActive={currentTheme === 'light'}
+                onApply={() => handleApplyTheme('light')}
+              />
+
+              {/* Dark Theme */}
+              <ThemeCard
+                name="Dark"
+                description="Sleek dark theme for low-light environments"
+                icon="🌙"
+                preview="bg-gray-900"
+                accentColor="bg-emerald-500"
+                isActive={currentTheme === 'dark'}
+                onApply={() => handleApplyTheme('dark')}
+              />
+
+              {/* Blue Professional */}
+              <ThemeCard
+                name="Blue Professional"
+                description="Professional blue theme for business environments"
+                icon="💼"
+                preview="bg-blue-950"
+                accentColor="bg-blue-400"
+                isActive={currentTheme === 'blue'}
+                onApply={() => handleApplyTheme('blue')}
+              />
+
+              {/* Ocean */}
+              <ThemeCard
+                name="Ocean"
+                description="Calming ocean-inspired theme with cyan accents"
+                icon="🌊"
+                preview="bg-cyan-950"
+                accentColor="bg-cyan-400"
+                isActive={currentTheme === 'ocean'}
+                onApply={() => handleApplyTheme('ocean')}
+              />
+
+              {/* Forest */}
+              <ThemeCard
+                name="Forest"
+                description="Natural forest theme with green tones"
+                icon="🌲"
+                preview="bg-green-950"
+                accentColor="bg-green-400"
+                isActive={currentTheme === 'forest'}
+                onApply={() => handleApplyTheme('forest')}
+              />
+
+              {/* System */}
+              <ThemeCard
+                name="System"
+                description="Adapts to your system's theme preference"
+                icon="💻"
+                preview="bg-slate-800"
+                accentColor="bg-slate-400"
+                isActive={currentTheme === 'system'}
+                onApply={() => handleApplyTheme('system')}
+              />
             </div>
           </div>
         )}
