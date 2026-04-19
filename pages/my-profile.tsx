@@ -17,12 +17,14 @@ export default function MyProfilePage() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editForm, setEditForm] = useState({ full_name: '', email: '', phone: '' });
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!authLoading && user?.email) {
       fetchProfile();
     } else if (!authLoading && !user) {
-      // If no user from auth, create a basic profile from localStorage
       const userData = localStorage.getItem('user');
       if (userData) {
         try {
@@ -60,7 +62,6 @@ export default function MyProfilePage() {
       if (response.ok && data.profile) {
         setProfile(data.profile);
       } else {
-        // Fallback: create profile from user data
         setProfile({
           id: user.id || '1',
           full_name: user.username || user.firstName || 'User',
@@ -71,7 +72,6 @@ export default function MyProfilePage() {
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
-      // Fallback: create profile from user data
       if (user) {
         setProfile({
           id: user.id || '1',
@@ -86,32 +86,59 @@ export default function MyProfilePage() {
     }
   };
 
+  const handleEditClick = () => {
+    if (profile) {
+      setEditForm({
+        full_name: profile.full_name,
+        email: profile.email,
+        phone: profile.phone || ''
+      });
+      setShowEditModal(true);
+    }
+  };
+
   const handleUpdateProfile = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!profile) return;
 
-    const formData = new FormData(e.currentTarget);
+    setSaving(true);
     try {
       const response = await fetch('/api/profile/index', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           id: profile.id,
-          full_name: formData.get('full_name'),
-          email: formData.get('email'),
-          phone: formData.get('phone')
+          full_name: editForm.full_name,
+          email: editForm.email,
+          phone: editForm.phone
         })
       });
       const data = await response.json();
       if (response.ok) {
         setProfile(data.profile);
+        
+        // Update localStorage user data
+        const userData = localStorage.getItem('user');
+        if (userData) {
+          const parsedUser = JSON.parse(userData);
+          parsedUser.username = editForm.full_name;
+          parsedUser.email = editForm.email;
+          localStorage.setItem('user', JSON.stringify(parsedUser));
+        }
+        
+        setShowEditModal(false);
         alert('Profile updated successfully!');
+        
+        // Reload page to update sidebar/topbar
+        setTimeout(() => window.location.reload(), 500);
       } else {
         alert('Failed to update profile: ' + data.error);
       }
     } catch (error) {
       console.error('Error updating profile:', error);
       alert('Failed to update profile');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -203,7 +230,7 @@ export default function MyProfilePage() {
         {activeTab === 'profile' && (
           <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-12 max-w-2xl mx-auto">
             {/* Avatar Section - Centered */}
-            <div className="flex flex-col items-center mb-8">
+            <div className="flex flex-col items-center">
               <div className="relative mb-6">
                 <div className="w-24 h-24 rounded-full bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center text-white text-3xl font-bold shadow-lg">
                   {getInitials(profile.full_name)}
@@ -232,69 +259,21 @@ export default function MyProfilePage() {
                 </div>
               </div>
 
-              {/* Change Password Button */}
-              <button
-                onClick={() => setShowPasswordModal(true)}
-                className="bg-white text-gray-900 px-8 py-2 rounded-lg text-sm font-medium hover:bg-gray-100 transition-colors shadow-sm"
-              >
-                Change Password
-              </button>
-            </div>
-
-            {/* Edit Profile Form - Updated */}
-            <div className="border-t border-[var(--border-color)] pt-8">
-              <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-6">Edit Profile Information</h3>
-              <form onSubmit={handleUpdateProfile}>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
-                      Full Name
-                    </label>
-                    <input
-                      type="text"
-                      name="full_name"
-                      defaultValue={profile.full_name}
-                      required
-                      className="w-full bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-lg px-4 py-2.5 text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
-                      Email Address
-                    </label>
-                    <input
-                      type="email"
-                      name="email"
-                      defaultValue={profile.email}
-                      required
-                      className="w-full bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-lg px-4 py-2.5 text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
-                      Phone Number
-                    </label>
-                    <input
-                      type="tel"
-                      name="phone"
-                      defaultValue={profile.phone || ''}
-                      placeholder="Enter phone number"
-                      className="w-full bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-lg px-4 py-2.5 text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                    />
-                  </div>
-                </div>
-
-                <div className="mt-6">
-                  <button
-                    type="submit"
-                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg px-6 py-2.5 text-sm font-medium transition-colors"
-                  >
-                    Save Changes
-                  </button>
-                </div>
-              </form>
+              {/* Action Buttons */}
+              <div className="flex gap-3">
+                <button
+                  onClick={handleEditClick}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm"
+                >
+                  Edit Profile
+                </button>
+                <button
+                  onClick={() => setShowPasswordModal(true)}
+                  className="bg-white text-gray-900 px-8 py-2 rounded-lg text-sm font-medium hover:bg-gray-100 transition-colors shadow-sm border border-gray-300"
+                >
+                  Change Password
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -344,6 +323,75 @@ export default function MyProfilePage() {
           </div>
         )}
       </div>
+
+      {/* Edit Profile Modal */}
+      {showEditModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-6 w-full max-w-md shadow-xl">
+            <h2 className="text-xl font-semibold mb-4 text-[var(--text-primary)]">Edit Profile</h2>
+            <form onSubmit={handleUpdateProfile}>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
+                    Full Name
+                  </label>
+                  <input
+                    type="text"
+                    value={editForm.full_name}
+                    onChange={(e) => setEditForm({ ...editForm, full_name: e.target.value })}
+                    required
+                    className="w-full bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-lg px-4 py-2.5 text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
+                    Email Address
+                  </label>
+                  <input
+                    type="email"
+                    value={editForm.email}
+                    onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                    required
+                    className="w-full bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-lg px-4 py-2.5 text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
+                    Phone Number
+                  </label>
+                  <input
+                    type="tel"
+                    value={editForm.phone}
+                    onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                    placeholder="Enter phone number"
+                    className="w-full bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-lg px-4 py-2.5 text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-3 mt-6">
+                <button
+                  type="button"
+                  onClick={() => setShowEditModal(false)}
+                  disabled={saving}
+                  className="flex-1 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-lg px-4 py-2 text-sm text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)] transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg px-4 py-2 text-sm transition-colors disabled:opacity-50"
+                >
+                  {saving ? 'Saving...' : 'Save Changes'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Change Password Modal */}
       {showPasswordModal && (
