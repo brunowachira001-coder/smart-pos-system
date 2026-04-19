@@ -22,6 +22,22 @@ export default function MyProfilePage() {
     if (!authLoading && user?.email) {
       fetchProfile();
     } else if (!authLoading && !user) {
+      // If no user from auth, create a basic profile from localStorage
+      const userData = localStorage.getItem('user');
+      if (userData) {
+        try {
+          const parsedUser = JSON.parse(userData);
+          setProfile({
+            id: parsedUser.id || '1',
+            full_name: parsedUser.username || 'User',
+            email: parsedUser.email || '',
+            role: 'Admin',
+            created_at: new Date().toISOString()
+          });
+        } catch (e) {
+          console.error('Error parsing user data:', e);
+        }
+      }
       setLoading(false);
     }
   }, [authLoading, user?.email]);
@@ -43,9 +59,28 @@ export default function MyProfilePage() {
 
       if (response.ok && data.profile) {
         setProfile(data.profile);
+      } else {
+        // Fallback: create profile from user data
+        setProfile({
+          id: user.id || '1',
+          full_name: user.username || user.firstName || 'User',
+          email: user.email,
+          role: 'Admin',
+          created_at: new Date().toISOString()
+        });
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
+      // Fallback: create profile from user data
+      if (user) {
+        setProfile({
+          id: user.id || '1',
+          full_name: user.username || user.firstName || 'User',
+          email: user.email,
+          role: 'Admin',
+          created_at: new Date().toISOString()
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -107,7 +142,13 @@ export default function MyProfilePage() {
     return (
       <div className="min-h-screen bg-[var(--bg-primary)] flex items-center justify-center">
         <div className="text-center">
-          <p className="text-[var(--text-secondary)]">No profile data available</p>
+          <p className="text-[var(--text-secondary)] mb-4">Unable to load profile data</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm"
+          >
+            Reload Page
+          </button>
         </div>
       </div>
     );
