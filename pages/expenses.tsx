@@ -40,6 +40,8 @@ export default function Expenses() {
     personalTotal: 0,
     totalExpenses: 0,
     categoryTotals: {} as { [key: string]: number },
+    todayGrossRevenue: 0,
+    todayNetRevenue: 0,
   });
 
   useEffect(() => {
@@ -52,15 +54,17 @@ export default function Expenses() {
 
   const fetchData = async () => {
     try {
-      const [statsRes, expensesRes, categoriesRes] = await Promise.all([
+      const [statsRes, expensesRes, categoriesRes, dashboardRes] = await Promise.all([
         fetch('/api/expenses/stats'),
         fetch('/api/expenses'),
         fetch('/api/expenses/categories'),
+        fetch('/api/dashboard/comprehensive-stats?range=today'),
       ]);
 
       const statsData = await statsRes.json();
       const expensesData = await expensesRes.json();
       const categoriesData = await categoriesRes.json();
+      const dashboardData = await dashboardRes.json();
 
       setStats({
         todayTotal: statsData.todayTotal || 0,
@@ -68,6 +72,8 @@ export default function Expenses() {
         personalTotal: statsData.personalTotal || 0,
         totalExpenses: statsData.totalExpenses || 0,
         categoryTotals: statsData.categoryTotals || {},
+        todayGrossRevenue: dashboardData.data?.grossRevenue || 0,
+        todayNetRevenue: (dashboardData.data?.grossRevenue || 0) - (statsData.todayTotal || 0),
       });
 
       setExpenses(expensesData);
@@ -178,12 +184,12 @@ export default function Expenses() {
             <p className="text-[var(--text-secondary)] text-sm">Today's Net Revenue</p>
             <span className="text-green-500">📈</span>
           </div>
-          <p className="text-3xl font-bold text-green-500">KSH 23795.00</p>
-          <p className="text-xs text-[var(--text-secondary)] mt-2">From KSH 23795 gross revenue • 100.0% margin</p>
+          <p className="text-3xl font-bold text-green-500">KSH {stats.todayNetRevenue.toFixed(2)}</p>
+          <p className="text-xs text-[var(--text-secondary)] mt-2">From KSH {stats.todayGrossRevenue.toFixed(2)} gross revenue • {stats.todayGrossRevenue > 0 ? ((stats.todayNetRevenue / stats.todayGrossRevenue) * 100).toFixed(1) : '0.0'}% margin</p>
           <div className="mt-4 space-y-2 bg-[var(--bg-secondary)] rounded-lg p-3">
             <div className="flex justify-between text-sm">
               <span className="text-[var(--text-secondary)]">Gross Revenue</span>
-              <span className="text-[var(--text-primary)]">KSH 23795.00</span>
+              <span className="text-[var(--text-primary)]">KSH {stats.todayGrossRevenue.toFixed(2)}</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-[var(--text-secondary)]">Returns</span>
@@ -191,7 +197,7 @@ export default function Expenses() {
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-[var(--text-secondary)]">Business Expenses</span>
-              <span className="text-[var(--text-primary)]">-KSH 0.00</span>
+              <span className="text-[var(--text-primary)]">-KSH {stats.todayTotal.toFixed(2)}</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-[var(--text-secondary)]">Personal Expenses</span>
@@ -199,7 +205,7 @@ export default function Expenses() {
             </div>
             <div className="flex justify-between text-sm font-semibold border-t border-[var(--border-color)] pt-2">
               <span className="text-[var(--text-primary)]">Net Revenue (All)</span>
-              <span className="text-green-500">KSH 23795.00</span>
+              <span className="text-green-500">KSH {stats.todayNetRevenue.toFixed(2)}</span>
             </div>
           </div>
         </div>
