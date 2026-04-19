@@ -376,10 +376,10 @@ export default function DashboardPro() {
           </div>
         </div>
 
-        {/* New Chart Section - Placeholder */}
+        {/* Sales & Profit Trend Chart */}
         <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-[var(--text-primary)]">Analytics</h2>
+            <h2 className="text-lg font-bold text-[var(--text-primary)]">Sales & Profit Trend</h2>
             <button 
               onClick={() => router.push('/sales-analytics')}
               className="text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
@@ -388,8 +388,179 @@ export default function DashboardPro() {
             </button>
           </div>
           
-          <div className="flex items-center justify-center h-64 bg-[var(--bg-secondary)] rounded border border-[var(--border-color)] text-[var(--text-secondary)]">
-            <p>New chart coming soon...</p>
+          {/* Chart Area */}
+          <div className="relative bg-[var(--bg-secondary)] rounded border border-[var(--border-color)] p-4 overflow-x-auto" style={{ height: '340px' }}>
+            {(() => {
+              const chartData = stats?.chartData || [];
+              
+              if (chartData.length === 0) {
+                return (
+                  <div className="flex items-center justify-center h-full text-[var(--text-secondary)] text-sm">
+                    No transaction data available for selected period
+                  </div>
+                );
+              }
+              
+              // Calculate max value for Y-axis scaling
+              const maxValue = Math.max(
+                ...chartData.map(d => Math.max(d.gross, d.net, d.expenses, d.profit)),
+                100
+              );
+              
+              const scale = maxValue * 1.2;
+              
+              // Generate Y-axis labels (5 labels)
+              const yLabels = [];
+              for (let i = 0; i <= 4; i++) {
+                yLabels.push(scale * (1 - i / 4));
+              }
+
+              const formatCurrency = (val: number) => {
+                if (val >= 1000000) return `KSH ${(val / 1000000).toFixed(1)}M`;
+                if (val >= 1000) return `KSH ${(val / 1000).toFixed(0)}k`;
+                return `KSH ${val.toFixed(0)}`;
+              };
+
+              // SVG dimensions
+              const barWidth = 12;
+              const barSpacing = 8;
+              const groupSpacing = 50;
+              const svgWidth = Math.max(900, chartData.length * groupSpacing + 100);
+              const svgHeight = 280;
+              const padding = { top: 20, right: 30, bottom: 40, left: 70 };
+              const plotWidth = svgWidth - padding.left - padding.right;
+              const plotHeight = svgHeight - padding.top - padding.bottom;
+
+              const getY = (value: number) => padding.top + plotHeight - (value / scale) * plotHeight;
+              const getX = (index: number) => padding.left + (index * groupSpacing) + groupSpacing / 2;
+
+              return (
+                <div className="flex h-full">
+                  {/* Y-axis labels */}
+                  <div className="w-16 flex flex-col justify-between text-[10px] text-[var(--text-secondary)] pr-2 flex-shrink-0">
+                    {yLabels.map((label, i) => (
+                      <span key={i} className="text-right">{formatCurrency(label)}</span>
+                    ))}
+                  </div>
+
+                  {/* SVG Chart - scrollable */}
+                  <div className="flex-1 overflow-x-auto">
+                    <svg width={svgWidth} height={svgHeight} style={{ minWidth: '100%' }}>
+                      {/* Grid lines */}
+                      {yLabels.map((label, i) => (
+                        <line
+                          key={`grid-${i}`}
+                          x1={padding.left}
+                          y1={padding.top + (i / (yLabels.length - 1)) * plotHeight}
+                          x2={svgWidth - padding.right}
+                          y2={padding.top + (i / (yLabels.length - 1)) * plotHeight}
+                          stroke="currentColor"
+                          strokeOpacity="0.1"
+                          strokeDasharray="2,2"
+                          strokeWidth="0.5"
+                        />
+                      ))}
+
+                      {/* Candlestick bars for each day */}
+                      {chartData.map((data, i) => {
+                        const x = getX(i);
+                        
+                        // Gross Sales (Green)
+                        const grossY = getY(data.gross);
+                        const grossBaseY = getY(0);
+                        
+                        // Net Sales (Blue)
+                        const netY = getY(data.net);
+                        
+                        // Expenses (Red)
+                        const expensesY = getY(data.expenses);
+                        
+                        // Profit (Purple)
+                        const profitY = getY(data.profit);
+
+                        return (
+                          <g key={`candle-${i}`}>
+                            {/* Gross Sales bar (Green) */}
+                            <rect
+                              x={x - barWidth * 1.5 - barSpacing}
+                              y={Math.min(grossY, grossBaseY)}
+                              width={barWidth}
+                              height={Math.abs(grossBaseY - grossY)}
+                              fill="#10b981"
+                              opacity="0.85"
+                            />
+
+                            {/* Net Sales bar (Blue) */}
+                            <rect
+                              x={x - barWidth * 0.5 - barSpacing / 2}
+                              y={Math.min(netY, grossBaseY)}
+                              width={barWidth}
+                              height={Math.abs(grossBaseY - netY)}
+                              fill="#3b82f6"
+                              opacity="0.85"
+                            />
+
+                            {/* Expenses bar (Red) */}
+                            <rect
+                              x={x + barWidth * 0.5 + barSpacing / 2}
+                              y={Math.min(expensesY, grossBaseY)}
+                              width={barWidth}
+                              height={Math.abs(grossBaseY - expensesY)}
+                              fill="#ef4444"
+                              opacity="0.85"
+                            />
+
+                            {/* Profit bar (Purple) */}
+                            <rect
+                              x={x + barWidth * 1.5 + barSpacing}
+                              y={Math.min(profitY, grossBaseY)}
+                              width={barWidth}
+                              height={Math.abs(grossBaseY - profitY)}
+                              fill="#a855f7"
+                              opacity="0.85"
+                            />
+                          </g>
+                        );
+                      })}
+                    </svg>
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+
+          {/* X-axis labels */}
+          <div className="flex text-[10px] text-[var(--text-secondary)] mt-2 overflow-x-auto">
+            <div className="w-16 flex-shrink-0"></div>
+            <div className="flex-1 flex justify-between px-2">
+              {stats?.chartData && stats.chartData.length > 0 && (
+                <>
+                  <span>{stats.chartData[0]?.date}</span>
+                  {stats.chartData.length > 2 && <span>{stats.chartData[Math.floor(stats.chartData.length / 2)]?.date}</span>}
+                  <span>{stats.chartData[stats.chartData.length - 1]?.date}</span>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Legend */}
+          <div className="flex items-center justify-center gap-8 mt-4 text-sm flex-wrap">
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-emerald-500"></div>
+              <span className="text-[var(--text-secondary)]">Gross Sales</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-blue-500"></div>
+              <span className="text-[var(--text-secondary)]">Net Sales</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-red-500"></div>
+              <span className="text-[var(--text-secondary)]">Expenses</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-purple-500"></div>
+              <span className="text-[var(--text-secondary)]">Verified Profit</span>
+            </div>
           </div>
         </div>
       </div>
