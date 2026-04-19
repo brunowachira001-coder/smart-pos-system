@@ -418,9 +418,7 @@ export default function Dashboard() {
                 return `KSH ${val.toFixed(0)}`;
               };
 
-              const barWidth = 8;
-              const barSpacing = 4;
-              const groupSpacing = 50;
+              const groupSpacing = 60;
               const svgWidth = Math.max(900, chartData.length * groupSpacing + 100);
               const svgHeight = 280;
               const padding = { top: 20, right: 30, bottom: 40, left: 70 };
@@ -430,6 +428,12 @@ export default function Dashboard() {
               const getY = (value: number) => padding.top + plotHeight - (value / scale) * plotHeight;
               const getX = (index: number) => padding.left + (index * groupSpacing) + groupSpacing / 2;
               const zeroY = getY(0);
+
+              // Build polyline paths for each metric
+              const grossPath = chartData.map((d, i) => `${getX(i)},${getY(d.gross)}`).join(' ');
+              const netPath = chartData.map((d, i) => `${getX(i)},${getY(d.net)}`).join(' ');
+              const expensesPath = chartData.map((d, i) => `${getX(i)},${getY(d.expenses)}`).join(' ');
+              const profitPath = chartData.map((d, i) => `${getX(i)},${getY(d.profit)}`).join(' ');
 
               return (
                 <div className="flex h-full">
@@ -441,6 +445,7 @@ export default function Dashboard() {
 
                   <div className="flex-1 overflow-x-auto">
                     <svg width={svgWidth} height={svgHeight} style={{ minWidth: '100%' }}>
+                      {/* Grid lines */}
                       {yLabels.map((label, i) => (
                         <line
                           key={`grid-${i}`}
@@ -455,6 +460,7 @@ export default function Dashboard() {
                         />
                       ))}
 
+                      {/* Zero line */}
                       <line
                         x1={padding.left}
                         y1={zeroY}
@@ -465,27 +471,21 @@ export default function Dashboard() {
                         strokeWidth="1"
                       />
 
+                      {/* Polylines for each metric */}
+                      <polyline points={grossPath} fill="none" stroke="#10b981" strokeWidth="2" opacity="0.8" />
+                      <polyline points={netPath} fill="none" stroke="#3b82f6" strokeWidth="2" opacity="0.8" />
+                      <polyline points={expensesPath} fill="none" stroke="#ef4444" strokeWidth="2" opacity="0.8" />
+                      <polyline points={profitPath} fill="none" stroke="#a855f7" strokeWidth="2" opacity="0.8" />
+
+                      {/* Data points as circles */}
                       {chartData.map((data, i) => {
                         const x = getX(i);
-                        const cw = 5;
-                        const gY = getY(data.gross);
-                        const gO = getY(data.gross * 0.6);
-                        const nY = getY(data.net);
-                        const nO = getY(data.net * 0.6);
-                        const eY = getY(data.expenses);
-                        const eO = getY(data.expenses * 0.6);
-                        const pY = getY(data.profit);
-                        const pO = getY(data.profit * 0.6);
                         return (
-                          <g key={`candle-${i}`}>
-                            <line x1={x - barWidth * 1.5 - barSpacing} y1={zeroY} x2={x - barWidth * 1.5 - barSpacing} y2={gY} stroke="#10b981" strokeWidth="1" opacity="0.5" />
-                            <rect x={x - barWidth * 1.5 - barSpacing - cw / 2} y={Math.min(gO, gY)} width={cw} height={Math.abs(gY - gO) || 1} fill="#10b981" opacity="0.85" />
-                            <line x1={x - barWidth * 0.5} y1={zeroY} x2={x - barWidth * 0.5} y2={nY} stroke="#3b82f6" strokeWidth="1" opacity="0.5" />
-                            <rect x={x - barWidth * 0.5 - cw / 2} y={Math.min(nO, nY)} width={cw} height={Math.abs(nY - nO) || 1} fill="#3b82f6" opacity="0.85" />
-                            <line x1={x + barWidth * 0.5 + barSpacing} y1={zeroY} x2={x + barWidth * 0.5 + barSpacing} y2={eY} stroke="#ef4444" strokeWidth="1" opacity="0.5" />
-                            <rect x={x + barWidth * 0.5 + barSpacing - cw / 2} y={Math.min(eO, eY)} width={cw} height={Math.abs(eY - eO) || 1} fill="#ef4444" opacity="0.85" />
-                            <line x1={x + barWidth * 1.5 + barSpacing * 2} y1={zeroY} x2={x + barWidth * 1.5 + barSpacing * 2} y2={pY} stroke="#a855f7" strokeWidth="1" opacity="0.5" />
-                            <rect x={x + barWidth * 1.5 + barSpacing * 2 - cw / 2} y={Math.min(pO, pY)} width={cw} height={Math.abs(pY - pO) || 1} fill="#a855f7" opacity="0.85" />
+                          <g key={`points-${i}`}>
+                            <circle cx={x} cy={getY(data.gross)} r="3" fill="#10b981" opacity="0.7" />
+                            <circle cx={x} cy={getY(data.net)} r="3" fill="#3b82f6" opacity="0.7" />
+                            <circle cx={x} cy={getY(data.expenses)} r="3" fill="#ef4444" opacity="0.7" />
+                            <circle cx={x} cy={getY(data.profit)} r="3" fill="#a855f7" opacity="0.7" />
                           </g>
                         );
                       })}
