@@ -12,10 +12,10 @@ interface Profile {
 }
 
 export default function MyProfilePage() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [activeTab, setActiveTab] = useState<'profile' | 'themes' | 'app'>('profile');
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [formData, setFormData] = useState({
     full_name: '',
@@ -29,17 +29,24 @@ export default function MyProfilePage() {
   });
 
   useEffect(() => {
-    if (user?.email) {
+    if (!authLoading && user?.email) {
       fetchProfile();
     }
-  }, [user]);
+  }, [authLoading, user?.email]);
 
   const fetchProfile = async () => {
     if (!user?.email) return;
     
     setLoading(true);
     try {
-      const response = await fetch(`/api/profile/index?email=${encodeURIComponent(user.email)}`);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+      const response = await fetch(`/api/profile/index?email=${encodeURIComponent(user.email)}`, {
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+
       const data = await response.json();
 
       if (response.ok && data.profile) {
@@ -49,9 +56,38 @@ export default function MyProfilePage() {
           email: data.profile.email,
           phone: data.profile.phone || ''
         });
+      } else {
+        // Use user data from auth as fallback
+        setProfile({
+          id: user.id || 'unknown',
+          full_name: user.username || 'User',
+          email: user.email,
+          role: 'User',
+          created_at: new Date().toISOString()
+        });
+        setFormData({
+          full_name: user.username || 'User',
+          email: user.email,
+          phone: ''
+        });
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
+      // Use user data from auth as fallback
+      if (user) {
+        setProfile({
+          id: user.id || 'unknown',
+          full_name: user.username || 'User',
+          email: user.email,
+          role: 'User',
+          created_at: new Date().toISOString()
+        });
+        setFormData({
+          full_name: user.username || 'User',
+          email: user.email,
+          phone: ''
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -127,7 +163,7 @@ export default function MyProfilePage() {
     });
   };
 
-  if (loading) {
+  if (authLoading || (loading && !profile)) {
     return (
       <div className="min-h-screen bg-[var(--bg-primary)] flex items-center justify-center">
         <div className="text-center">
