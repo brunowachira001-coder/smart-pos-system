@@ -389,7 +389,7 @@ export default function DashboardPro() {
           </div>
           
           {/* Chart Area */}
-          <div className="relative h-64 bg-[var(--bg-secondary)] rounded border border-[var(--border-color)] p-4">
+          <div className="relative h-80 bg-[var(--bg-secondary)] rounded border border-[var(--border-color)] p-4">
             {(() => {
               const chartData = stats?.chartData || [];
               
@@ -442,13 +442,13 @@ export default function DashboardPro() {
                   </div>
 
                   {/* Chart bars */}
-                  <div className="ml-16 h-full flex items-end justify-between gap-2">
+                  <div className="ml-16 h-full flex items-end justify-around gap-3 px-2">
                     {chartData.map((data, i) => {
                       // Calculate heights as percentage of scale
-                      const grossHeight = Math.max((data.gross / scale) * 100, 1);
-                      const netHeight = Math.max((data.net / scale) * 100, 1);
-                      const expensesHeight = Math.max((data.expenses / scale) * 100, 0.5);
-                      const profitHeight = Math.max((data.profit / scale) * 100, 1);
+                      const grossHeight = Math.max((data.gross / scale) * 100, 2);
+                      const netHeight = Math.max((data.net / scale) * 100, 2);
+                      const expensesHeight = Math.max((data.expenses / scale) * 100, 1);
+                      const profitHeight = Math.max((data.profit / scale) * 100, 2);
 
                       console.log(`Bar ${i} (${data.date}):`, {
                         gross: data.gross,
@@ -463,7 +463,7 @@ export default function DashboardPro() {
                       });
 
                       return (
-                        <div key={i} className="flex-1 flex flex-col items-center justify-end h-full group relative min-w-[30px]">
+                        <div key={i} className="flex flex-col items-center justify-end h-full group relative" style={{ width: '60px' }}>
                           {/* Tooltip on hover */}
                           <div className="absolute bottom-full mb-2 hidden group-hover:block bg-gray-900 text-white text-xs rounded p-2 whitespace-nowrap z-10 shadow-lg">
                             <div className="font-bold mb-1">{data.date}</div>
@@ -473,30 +473,30 @@ export default function DashboardPro() {
                             <div className="text-purple-400">Profit: KSH {data.profit.toFixed(2)}</div>
                           </div>
                           
-                          {/* Bars */}
-                          <div className="w-full flex gap-0.5 items-end">
+                          {/* Bars - side by side with fixed widths */}
+                          <div className="w-full flex gap-1 items-end justify-center">
                             {/* Gross Sales (Green) */}
                             <div 
-                              className="flex-1 bg-emerald-500 rounded-t transition-all hover:opacity-80"
-                              style={{ height: `${grossHeight}%`, minHeight: '2px' }}
+                              className="bg-emerald-500 rounded-t transition-all hover:opacity-80 border-2 border-emerald-600 shadow-sm"
+                              style={{ height: `${grossHeight}%`, width: '12px', minHeight: '4px' }}
                               title={`Gross: KSH ${data.gross.toFixed(2)}`}
                             ></div>
                             {/* Net Sales (Blue) */}
                             <div 
-                              className="flex-1 bg-blue-500 rounded-t transition-all hover:opacity-80"
-                              style={{ height: `${netHeight}%`, minHeight: '2px' }}
+                              className="bg-blue-500 rounded-t transition-all hover:opacity-80 border-2 border-blue-600 shadow-sm"
+                              style={{ height: `${netHeight}%`, width: '12px', minHeight: '4px' }}
                               title={`Net: KSH ${data.net.toFixed(2)}`}
                             ></div>
                             {/* Expenses (Red) */}
                             <div 
-                              className="flex-1 bg-red-500 rounded-t transition-all hover:opacity-80"
-                              style={{ height: `${expensesHeight}%`, minHeight: expensesHeight > 0 ? '2px' : '0px' }}
+                              className="bg-red-500 rounded-t transition-all hover:opacity-80 border-2 border-red-600 shadow-sm"
+                              style={{ height: `${expensesHeight}%`, width: '12px', minHeight: expensesHeight > 0 ? '4px' : '0px' }}
                               title={`Expenses: KSH ${data.expenses.toFixed(2)}`}
                             ></div>
                             {/* Verified Profit (Purple) */}
                             <div 
-                              className="flex-1 bg-purple-500 rounded-t transition-all hover:opacity-80"
-                              style={{ height: `${profitHeight}%`, minHeight: '2px' }}
+                              className="bg-purple-500 rounded-t transition-all hover:opacity-80 border-2 border-purple-600 shadow-sm"
+                              style={{ height: `${profitHeight}%`, width: '12px', minHeight: '4px' }}
                               title={`Profit: KSH ${data.profit.toFixed(2)}`}
                             ></div>
                           </div>
@@ -506,9 +506,9 @@ export default function DashboardPro() {
                   </div>
 
                   {/* X-axis labels */}
-                  <div className="ml-16 mt-2 flex justify-between text-[10px] text-[var(--text-secondary)]">
+                  <div className="ml-16 mt-2 flex justify-around text-[10px] text-[var(--text-secondary)] px-2">
                     {chartData.map((data, i) => (
-                      <span key={i} className="text-center flex-1">{data.date}</span>
+                      <span key={i} className="text-center" style={{ width: '60px' }}>{data.date}</span>
                     ))}
                   </div>
                 </>
@@ -517,22 +517,22 @@ export default function DashboardPro() {
           </div>
 
           {/* Legend */}
-          <div className="flex items-center justify-center gap-6 mt-4 text-xs">
+          <div className="flex items-center justify-center gap-6 mt-4 text-sm">
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-emerald-500 rounded"></div>
-              <span className="text-[var(--text-secondary)]">Gross Sales</span>
+              <div className="w-4 h-4 bg-emerald-500 rounded border-2 border-emerald-600"></div>
+              <span className="text-[var(--text-secondary)] font-medium">Gross Sales</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-blue-500 rounded"></div>
-              <span className="text-[var(--text-secondary)]">Net Sales</span>
+              <div className="w-4 h-4 bg-blue-500 rounded border-2 border-blue-600"></div>
+              <span className="text-[var(--text-secondary)] font-medium">Net Sales</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-red-500 rounded"></div>
-              <span className="text-[var(--text-secondary)]">Expenses</span>
+              <div className="w-4 h-4 bg-red-500 rounded border-2 border-red-600"></div>
+              <span className="text-[var(--text-secondary)] font-medium">Expenses</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-purple-500 rounded"></div>
-              <span className="text-[var(--text-secondary)]">Verified Profit</span>
+              <div className="w-4 h-4 bg-purple-500 rounded border-2 border-purple-600"></div>
+              <span className="text-[var(--text-secondary)] font-medium">Verified Profit</span>
             </div>
           </div>
         </div>
