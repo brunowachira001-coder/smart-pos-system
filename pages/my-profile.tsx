@@ -1,17 +1,54 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../hooks/useAuth';
+
+interface Profile {
+  id: string;
+  full_name: string;
+  email: string;
+  role: string;
+  phone?: string;
+  avatar_url?: string;
+  created_at: string;
+}
 
 export default function MyProfilePage() {
+  const { user, loading: authLoading } = useAuth();
   const [activeTab, setActiveTab] = useState<'profile' | 'themes' | 'app'>('profile');
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [loading, setLoading] = useState(true);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
 
-  // Mock user data - matches screenshot
-  const profile = {
-    id: '1',
-    full_name: 'John Smart Traders',
-    email: 'johnsmarttraders@gmail.com',
-    role: 'Admin',
-    phone: '+254 712 345 678',
-    created_at: '2025-08-10'
+  useEffect(() => {
+    if (!authLoading && user?.email) {
+      fetchProfile();
+    } else if (!authLoading && !user) {
+      setLoading(false);
+    }
+  }, [authLoading, user?.email]);
+
+  const fetchProfile = async () => {
+    if (!user?.email) return;
+    
+    setLoading(true);
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+      const response = await fetch(`/api/profile/index?email=${encodeURIComponent(user.email)}`, {
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+
+      const data = await response.json();
+
+      if (response.ok && data.profile) {
+        setProfile(data.profile);
+      }
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const getInitials = (name: string) => {
@@ -25,6 +62,27 @@ export default function MyProfilePage() {
       year: 'numeric' 
     });
   };
+
+  if (authLoading || (loading && !profile)) {
+    return (
+      <div className="min-h-screen bg-[var(--bg-primary)] flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500 mx-auto mb-4"></div>
+          <p className="text-[var(--text-secondary)]">Loading profile...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <div className="min-h-screen bg-[var(--bg-primary)] flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-[var(--text-secondary)]">No profile data available</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[var(--bg-primary)]">
