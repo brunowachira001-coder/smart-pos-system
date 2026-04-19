@@ -32,6 +32,7 @@ interface DashboardStats {
   }>;
 }
 
+export default function Dashboard() {
   const router = useRouter();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -466,30 +467,25 @@ interface DashboardStats {
 
                       {chartData.map((data, i) => {
                         const x = getX(i);
-                        const candleWidth = 5;
-                        
-                        const grossY = getY(data.gross);
-                        const grossOpen = getY(data.gross * 0.6);
-                        
-                        const netY = getY(data.net);
-                        const netOpen = getY(data.net * 0.6);
-                        
-                        const expensesY = getY(data.expenses);
-                        const expensesOpen = getY(data.expenses * 0.6);
-                        
-                        const profitY = getY(data.profit);
-                        const profitOpen = getY(data.profit * 0.6);
-
+                        const cw = 5;
+                        const gY = getY(data.gross);
+                        const gO = getY(data.gross * 0.6);
+                        const nY = getY(data.net);
+                        const nO = getY(data.net * 0.6);
+                        const eY = getY(data.expenses);
+                        const eO = getY(data.expenses * 0.6);
+                        const pY = getY(data.profit);
+                        const pO = getY(data.profit * 0.6);
                         return (
                           <g key={`candle-${i}`}>
-                            <line x1={x - barWidth * 1.5 - barSpacing} y1={zeroY} x2={x - barWidth * 1.5 - barSpacing} y2={grossY} stroke="#10b981" strokeWidth="1" opacity="0.5" />
-                            <rect x={x - barWidth * 1.5 - barSpacing - candleWidth / 2} y={Math.min(grossOpen, grossY)} width={candleWidth} height={Math.abs(grossY - grossOpen) || 1} fill="#10b981" opacity="0.85" />
-                            <line x1={x - barWidth * 0.5} y1={zeroY} x2={x - barWidth * 0.5} y2={netY} stroke="#3b82f6" strokeWidth="1" opacity="0.5" />
-                            <rect x={x - barWidth * 0.5 - candleWidth / 2} y={Math.min(netOpen, netY)} width={candleWidth} height={Math.abs(netY - netOpen) || 1} fill="#3b82f6" opacity="0.85" />
-                            <line x1={x + barWidth * 0.5 + barSpacing} y1={zeroY} x2={x + barWidth * 0.5 + barSpacing} y2={expensesY} stroke="#ef4444" strokeWidth="1" opacity="0.5" />
-                            <rect x={x + barWidth * 0.5 + barSpacing - candleWidth / 2} y={Math.min(expensesOpen, expensesY)} width={candleWidth} height={Math.abs(expensesY - expensesOpen) || 1} fill="#ef4444" opacity="0.85" />
-                            <line x1={x + barWidth * 1.5 + barSpacing * 2} y1={zeroY} x2={x + barWidth * 1.5 + barSpacing * 2} y2={profitY} stroke="#a855f7" strokeWidth="1" opacity="0.5" />
-                            <rect x={x + barWidth * 1.5 + barSpacing * 2 - candleWidth / 2} y={Math.min(profitOpen, profitY)} width={candleWidth} height={Math.abs(profitY - profitOpen) || 1} fill="#a855f7" opacity="0.85" />
+                            <line x1={x - barWidth * 1.5 - barSpacing} y1={zeroY} x2={x - barWidth * 1.5 - barSpacing} y2={gY} stroke="#10b981" strokeWidth="1" opacity="0.5" />
+                            <rect x={x - barWidth * 1.5 - barSpacing - cw / 2} y={Math.min(gO, gY)} width={cw} height={Math.abs(gY - gO) || 1} fill="#10b981" opacity="0.85" />
+                            <line x1={x - barWidth * 0.5} y1={zeroY} x2={x - barWidth * 0.5} y2={nY} stroke="#3b82f6" strokeWidth="1" opacity="0.5" />
+                            <rect x={x - barWidth * 0.5 - cw / 2} y={Math.min(nO, nY)} width={cw} height={Math.abs(nY - nO) || 1} fill="#3b82f6" opacity="0.85" />
+                            <line x1={x + barWidth * 0.5 + barSpacing} y1={zeroY} x2={x + barWidth * 0.5 + barSpacing} y2={eY} stroke="#ef4444" strokeWidth="1" opacity="0.5" />
+                            <rect x={x + barWidth * 0.5 + barSpacing - cw / 2} y={Math.min(eO, eY)} width={cw} height={Math.abs(eY - eO) || 1} fill="#ef4444" opacity="0.85" />
+                            <line x1={x + barWidth * 1.5 + barSpacing * 2} y1={zeroY} x2={x + barWidth * 1.5 + barSpacing * 2} y2={pY} stroke="#a855f7" strokeWidth="1" opacity="0.5" />
+                            <rect x={x + barWidth * 1.5 + barSpacing * 2 - cw / 2} y={Math.min(pO, pY)} width={cw} height={Math.abs(pY - pO) || 1} fill="#a855f7" opacity="0.85" />
                           </g>
                         );
                       })}
