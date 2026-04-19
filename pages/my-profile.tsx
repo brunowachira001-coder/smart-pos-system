@@ -448,25 +448,56 @@ export default function MyProfilePage() {
 
         {/* App Tab Content */}
         {activeTab === 'app' && (
-          <div className="flex-1 flex items-center justify-center">
-            <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-8 w-full max-w-2xl">
-              <h3 className="text-xl font-semibold mb-6 text-center text-[var(--text-primary)]">App Settings</h3>
-              <div className="max-w-md mx-auto space-y-4">
-                <div className="p-4 bg-[var(--bg-secondary)] rounded-lg border border-[var(--border-color)]">
-                  <p className="font-medium text-[var(--text-primary)] mb-3">Notifications</p>
-                  <label className="flex items-center justify-between mb-3">
-                    <span className="text-sm text-[var(--text-primary)]">Email notifications</span>
-                    <input type="checkbox" className="w-4 h-4 accent-emerald-600" defaultChecked />
-                  </label>
-                  <label className="flex items-center justify-between">
-                    <span className="text-sm text-[var(--text-primary)]">Push notifications</span>
-                    <input type="checkbox" className="w-4 h-4 accent-emerald-600" defaultChecked />
-                  </label>
+          <div className="flex-1 flex items-center justify-center py-8">
+            <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-16 w-full max-w-3xl">
+              <h3 className="text-2xl font-semibold mb-3 text-center text-[var(--text-primary)]">App Management</h3>
+              <p className="text-center text-[var(--text-secondary)] mb-12">Manage app cache and fix loading issues</p>
+
+              {/* What does this do? */}
+              <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-6 mb-8">
+                <div className="flex items-start gap-3 mb-4">
+                  <span className="text-amber-500 text-xl">⚠️</span>
+                  <div>
+                    <h4 className="font-semibold text-[var(--text-primary)] mb-3">What does this do?</h4>
+                    <ul className="space-y-2 text-sm text-[var(--text-secondary)]">
+                      <li>• Clears all cached data and stored information</li>
+                      <li>• Signs you out and restarts the app</li>
+                      <li>• Preserves your theme preference</li>
+                      <li>• Fixes stuck loading states</li>
+                    </ul>
+                  </div>
                 </div>
-                <p className="text-sm text-[var(--text-secondary)] text-center mt-4">
-                  More app settings coming soon...
-                </p>
               </div>
+
+              {/* When to use this */}
+              <div className="mb-8">
+                <h4 className="font-semibold text-[var(--text-primary)] mb-4">When to use this:</h4>
+                <ul className="space-y-2 text-sm text-[var(--text-secondary)] ml-4">
+                  <li>• App is stuck loading or not responding</li>
+                  <li>• Data appears stale or outdated</li>
+                  <li>• Experiencing authentication issues</li>
+                  <li>• App behaving unexpectedly</li>
+                </ul>
+              </div>
+
+              {/* Clear Cache Button */}
+              <button
+                onClick={() => {
+                  if (confirm('This will clear all cached data and sign you out. Continue?')) {
+                    const theme = localStorage.getItem('theme');
+                    localStorage.clear();
+                    if (theme) localStorage.setItem('theme', theme);
+                    alert('Cache cleared! Redirecting to login...');
+                    setTimeout(() => window.location.href = '/login', 1000);
+                  }
+                }}
+                className="w-full bg-red-600 hover:bg-red-700 text-white px-6 py-4 rounded-lg text-base font-medium transition-colors shadow-sm flex items-center justify-center gap-2"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                Clear Cache & Restart App
+              </button>
             </div>
           </div>
         )}
