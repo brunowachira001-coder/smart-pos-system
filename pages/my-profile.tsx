@@ -52,7 +52,7 @@ export default function MyProfilePage() {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000);
 
-      const response = await fetch(`/api/profile/index?email=${encodeURIComponent(user.email)}`, {
+      const response = await fetch(`/api/profile?email=${encodeURIComponent(user.email)}`, {
         signal: controller.signal
       });
       clearTimeout(timeoutId);
@@ -110,7 +110,7 @@ export default function MyProfilePage() {
         phone: editForm.phone
       });
 
-      const response = await fetch('/api/profile/index', {
+      const response = await fetch('/api/profile', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
