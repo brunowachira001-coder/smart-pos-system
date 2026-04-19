@@ -32,7 +32,6 @@ interface DashboardStats {
   }>;
 }
 
-function DashboardPro() {
   const router = useRouter();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
