@@ -355,7 +355,7 @@ export default function MyProfilePage() {
 
         {/* Themes Tab Content */}
         {activeTab === 'themes' && (
-          <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-8">
+          <div className="min-h-screen">
             <div className="text-center mb-8">
               <h3 className="text-2xl font-semibold mb-2 text-[var(--text-primary)]">Theme Showcase</h3>
               <p className="text-sm text-[var(--text-secondary)]">
@@ -363,7 +363,8 @@ export default function MyProfilePage() {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+            {/* Theme Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
               {/* Light Theme */}
               <ThemeCard
                 name="Light"
@@ -429,6 +430,93 @@ export default function MyProfilePage() {
                 isActive={currentTheme === 'system'}
                 onApply={() => handleApplyTheme('system')}
               />
+            </div>
+
+            {/* Theme Features Section */}
+            <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-8 mb-8">
+              <h4 className="text-xl font-semibold text-[var(--text-primary)] mb-6 text-center">Theme Features</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="text-center p-4">
+                  <div className="text-3xl mb-3">✓</div>
+                  <h5 className="font-semibold text-[var(--text-primary)] mb-2">High Contrast Ratios</h5>
+                  <p className="text-sm text-[var(--text-secondary)]">WCAG compliant color combinations for better readability</p>
+                </div>
+                <div className="text-center p-4">
+                  <div className="text-3xl mb-3">✓</div>
+                  <h5 className="font-semibold text-[var(--text-primary)] mb-2">Consistent Color Schemes</h5>
+                  <p className="text-sm text-[var(--text-secondary)]">Carefully selected colors that work across all pages</p>
+                </div>
+                <div className="text-center p-4">
+                  <div className="text-3xl mb-3">✓</div>
+                  <h5 className="font-semibold text-[var(--text-primary)] mb-2">Accessibility Focused</h5>
+                  <p className="text-sm text-[var(--text-secondary)]">Designed with accessibility standards in mind</p>
+                </div>
+                <div className="text-center p-4">
+                  <div className="text-3xl mb-3">✓</div>
+                  <h5 className="font-semibold text-[var(--text-primary)] mb-2">Professional Appearance</h5>
+                  <p className="text-sm text-[var(--text-secondary)]">Modern and clean design for business use</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Theme Customization Info */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+              <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-6">
+                <h4 className="text-lg font-semibold text-[var(--text-primary)] mb-4 flex items-center gap-2">
+                  <span>🎨</span> How Themes Work
+                </h4>
+                <ul className="space-y-3 text-sm text-[var(--text-secondary)]">
+                  <li className="flex items-start gap-2">
+                    <span className="text-emerald-500 mt-1">•</span>
+                    <span>Themes apply instantly across the entire system</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-emerald-500 mt-1">•</span>
+                    <span>Your preference is saved automatically</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-emerald-500 mt-1">•</span>
+                    <span>Changes affect all pages, sidebar, and components</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-emerald-500 mt-1">•</span>
+                    <span>No page reload required for theme changes</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-6">
+                <h4 className="text-lg font-semibold text-[var(--text-primary)] mb-4 flex items-center gap-2">
+                  <span>💡</span> Theme Recommendations
+                </h4>
+                <ul className="space-y-3 text-sm text-[var(--text-secondary)]">
+                  <li className="flex items-start gap-2">
+                    <span className="text-blue-500 mt-1">•</span>
+                    <span><strong>Light:</strong> Best for bright environments and daytime use</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-blue-500 mt-1">•</span>
+                    <span><strong>Dark:</strong> Reduces eye strain in low-light conditions</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-blue-500 mt-1">•</span>
+                    <span><strong>Blue Professional:</strong> Ideal for corporate settings</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-blue-500 mt-1">•</span>
+                    <span><strong>System:</strong> Automatically matches your device settings</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Current Theme Info */}
+            <div className="bg-gradient-to-r from-emerald-500/10 to-blue-500/10 border border-emerald-500/30 rounded-lg p-6 text-center">
+              <h4 className="text-lg font-semibold text-[var(--text-primary)] mb-2">Currently Active Theme</h4>
+              <p className="text-3xl font-bold text-emerald-500 mb-2 capitalize">{currentTheme}</p>
+              <p className="text-sm text-[var(--text-secondary)]">
+                This theme is applied across all pages and will be remembered on your next visit
+              </p>
             </div>
           </div>
         )}
