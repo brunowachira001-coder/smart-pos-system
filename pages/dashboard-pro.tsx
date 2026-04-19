@@ -466,56 +466,37 @@ interface DashboardStats {
 
                       {chartData.map((data, i) => {
                         const x = getX(i);
+                        const candleWidth = 5;
+                        
                         const grossY = getY(data.gross);
+                        const grossOpen = getY(data.gross * 0.6);
+                        
                         const netY = getY(data.net);
+                        const netOpen = getY(data.net * 0.6);
+                        
                         const expensesY = getY(data.expenses);
+                        const expensesOpen = getY(data.expenses * 0.6);
+                        
                         const profitY = getY(data.profit);
+                        const profitOpen = getY(data.profit * 0.6);
 
                         return (
                           <g key={`candle-${i}`}>
-                            <line
-                              x1={x - barWidth * 1.5 - barSpacing}
-                              y1={zeroY}
-                              x2={x - barWidth * 1.5 - barSpacing}
-                              y2={grossY}
-                              stroke="#10b981"
-                              strokeWidth="3"
-                              opacity="0.9"
-                              strokeLinecap="round"
-                            />
-
-                            <line
-                              x1={x - barWidth * 0.5}
-                              y1={zeroY}
-                              x2={x - barWidth * 0.5}
-                              y2={netY}
-                              stroke="#3b82f6"
-                              strokeWidth="3"
-                              opacity="0.9"
-                              strokeLinecap="round"
-                            />
-
-                            <line
-                              x1={x + barWidth * 0.5 + barSpacing}
-                              y1={zeroY}
-                              x2={x + barWidth * 0.5 + barSpacing}
-                              y2={expensesY}
-                              stroke="#ef4444"
-                              strokeWidth="3"
-                              opacity="0.9"
-                              strokeLinecap="round"
-                            />
-
-                            <line
-                              x1={x + barWidth * 1.5 + barSpacing * 2}
-                              y1={zeroY}
-                              x2={x + barWidth * 1.5 + barSpacing * 2}
-                              y2={profitY}
-                              stroke="#a855f7"
-                              strokeWidth="3"
-                              opacity="0.9"
-                              strokeLinecap="round"
-                            />
+                            {/* Gross Sales */}
+                            <line x1={x - barWidth * 1.5 - barSpacing} y1={zeroY} x2={x - barWidth * 1.5 - barSpacing} y2={grossY} stroke="#10b981" strokeWidth="1" opacity="0.5" />
+                            <rect x={x - barWidth * 1.5 - barSpacing - candleWidth / 2} y={Math.min(grossOpen, grossY)} width={candleWidth} height={Math.abs(grossY - grossOpen) || 1} fill="#10b981" opacity="0.85" />
+                            
+                            {/* Net Sales */}
+                            <line x1={x - barWidth * 0.5} y1={zeroY} x2={x - barWidth * 0.5} y2={netY} stroke="#3b82f6" strokeWidth="1" opacity="0.5" />
+                            <rect x={x - barWidth * 0.5 - candleWidth / 2} y={Math.min(netOpen, netY)} width={candleWidth} height={Math.abs(netY - netOpen) || 1} fill="#3b82f6" opacity="0.85" />
+                            
+                            {/* Expenses */}
+                            <line x1={x + barWidth * 0.5 + barSpacing} y1={zeroY} x2={x + barWidth * 0.5 + barSpacing} y2={expensesY} stroke="#ef4444" strokeWidth="1" opacity="0.5" />
+                            <rect x={x + barWidth * 0.5 + barSpacing - candleWidth / 2} y={Math.min(expensesOpen, expensesY)} width={candleWidth} height={Math.abs(expensesY - expensesOpen) || 1} fill="#ef4444" opacity="0.85" />
+                            
+                            {/* Profit */}
+                            <line x1={x + barWidth * 1.5 + barSpacing * 2} y1={zeroY} x2={x + barWidth * 1.5 + barSpacing * 2} y2={profitY} stroke="#a855f7" strokeWidth="1" opacity="0.5" />
+                            <rect x={x + barWidth * 1.5 + barSpacing * 2 - candleWidth / 2} y={Math.min(profitOpen, profitY)} width={candleWidth} height={Math.abs(profitY - profitOpen) || 1} fill="#a855f7" opacity="0.85" />
                           </g>
                         );
                       })}
