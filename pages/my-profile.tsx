@@ -450,22 +450,23 @@ export default function MyProfilePage() {
         {activeTab === 'app' && (
           <div className="flex-1 flex items-center justify-center">
             <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-8 w-full max-w-2xl">
-            <h3 className="text-xl font-semibold mb-6 text-center text-[var(--text-primary)]">App Settings</h3>
-            <div className="max-w-md mx-auto space-y-4">
-              <div className="p-4 bg-[var(--bg-secondary)] rounded-lg border border-[var(--border-color)]">
-                <p className="font-medium text-[var(--text-primary)] mb-3">Notifications</p>
-                <label className="flex items-center justify-between mb-3">
-                  <span className="text-sm text-[var(--text-primary)]">Email notifications</span>
-                  <input type="checkbox" className="w-4 h-4 accent-emerald-600" defaultChecked />
-                </label>
-                <label className="flex items-center justify-between">
-                  <span className="text-sm text-[var(--text-primary)]">Push notifications</span>
-                  <input type="checkbox" className="w-4 h-4 accent-emerald-600" defaultChecked />
-                </label>
+              <h3 className="text-xl font-semibold mb-6 text-center text-[var(--text-primary)]">App Settings</h3>
+              <div className="max-w-md mx-auto space-y-4">
+                <div className="p-4 bg-[var(--bg-secondary)] rounded-lg border border-[var(--border-color)]">
+                  <p className="font-medium text-[var(--text-primary)] mb-3">Notifications</p>
+                  <label className="flex items-center justify-between mb-3">
+                    <span className="text-sm text-[var(--text-primary)]">Email notifications</span>
+                    <input type="checkbox" className="w-4 h-4 accent-emerald-600" defaultChecked />
+                  </label>
+                  <label className="flex items-center justify-between">
+                    <span className="text-sm text-[var(--text-primary)]">Push notifications</span>
+                    <input type="checkbox" className="w-4 h-4 accent-emerald-600" defaultChecked />
+                  </label>
+                </div>
+                <p className="text-sm text-[var(--text-secondary)] text-center mt-4">
+                  More app settings coming soon...
+                </p>
               </div>
-              <p className="text-sm text-[var(--text-secondary)] text-center mt-4">
-                More app settings coming soon...
-              </p>
             </div>
           </div>
         )}
