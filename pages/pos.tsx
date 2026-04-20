@@ -393,43 +393,69 @@ export default function POSPage() {
                 {cart.length === 0 ? (
                   <p className="text-center text-[var(--text-secondary)] py-8">Cart is empty</p>
                 ) : (
-                  cart.map((item) => (
-                    <div key={item.id} className="bg-[var(--bg-primary)] rounded-lg p-3">
-                      <div className="flex justify-between items-start mb-2">
-                        <div className="flex-1">
-                          <h4 className="text-sm font-medium text-[var(--text-primary)]">{item.product_name}</h4>
-                          <p className="text-xs text-[var(--text-secondary)]">{item.sku}</p>
+                  cart.map((item, index) => {
+                    // Find the product to get stock quantity
+                    const product = products.find(p => p.id === item.product_id);
+                    const maxStock = product?.stock_quantity || 0;
+                    
+                    return (
+                      <div key={item.id} className="bg-[var(--bg-primary)] rounded-lg p-3 flex items-center gap-3">
+                        {/* Product Icon */}
+                        <div className="w-12 h-12 bg-[var(--bg-tertiary)] rounded-lg flex items-center justify-center flex-shrink-0">
+                          {product?.image_url ? (
+                            <img src={product.image_url} alt={item.product_name} className="w-full h-full object-cover rounded-lg" />
+                          ) : (
+                            <svg className="w-6 h-6 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                            </svg>
+                          )}
                         </div>
-                        <button
-                          onClick={() => removeFromCart(item.id)}
-                          className="text-red-500 hover:text-red-400"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                          </svg>
-                        </button>
-                      </div>
 
-                      <div className="flex justify-between items-center">
-                        <div className="flex items-center gap-2">
+                        {/* Product Details */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-xs text-[var(--text-secondary)]">#{index + 1}</span>
+                            <span className="text-xs px-2 py-0.5 bg-green-500/20 text-green-400 rounded">
+                              {item.price_type}
+                            </span>
+                          </div>
+                          <h4 className="text-sm font-medium text-[var(--text-primary)] truncate">{item.product_name}</h4>
+                          <p className="text-xs text-[var(--text-secondary)]">Unit: KSH {item.unit_price.toFixed(2)}</p>
+                          
+                          {/* Quantity Input */}
+                          <div className="mt-2">
+                            <input
+                              type="number"
+                              min="1"
+                              max={maxStock}
+                              value={item.quantity}
+                              onChange={(e) => {
+                                const newQty = parseInt(e.target.value) || 1;
+                                if (newQty >= 1 && newQty <= maxStock) {
+                                  updateCartQuantity(item.id, newQty);
+                                }
+                              }}
+                              className="w-20 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded px-2 py-1 text-sm text-center"
+                            />
+                            <span className="text-xs text-[var(--text-secondary)] ml-2">Max: {maxStock}</span>
+                          </div>
+                        </div>
+
+                        {/* Subtotal and Delete */}
+                        <div className="flex flex-col items-end gap-2">
+                          <span className="text-sm font-semibold text-[var(--text-primary)]">KSH {item.subtotal.toFixed(2)}</span>
                           <button
-                            onClick={() => updateCartQuantity(item.id, item.quantity - 1)}
-                            className="w-6 h-6 bg-[var(--bg-tertiary)] rounded flex items-center justify-center hover:bg-[var(--bg-secondary)]"
+                            onClick={() => removeFromCart(item.id)}
+                            className="text-red-500 hover:text-red-400 p-1"
                           >
-                            -
-                          </button>
-                          <span className="text-sm font-medium w-8 text-center">{item.quantity}</span>
-                          <button
-                            onClick={() => updateCartQuantity(item.id, item.quantity + 1)}
-                            className="w-6 h-6 bg-[var(--bg-tertiary)] rounded flex items-center justify-center hover:bg-[var(--bg-secondary)]"
-                          >
-                            +
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
                           </button>
                         </div>
-                        <span className="text-sm font-semibold">KSH {item.subtotal.toFixed(2)}</span>
                       </div>
-                    </div>
-                  ))
+                    );
+                  })
                 )}
               </div>
 
