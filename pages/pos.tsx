@@ -33,6 +33,9 @@ export default function POSPage() {
   const [loading, setLoading] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
   const [sessionId] = useState(() => `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
+  
+  // Local state for quantity inputs (allows empty string for editing)
+  const [quantityInputs, setQuantityInputs] = useState<Record<string, string>>({});
 
   // Checkout form state
   const [customerName, setCustomerName] = useState('');
@@ -79,6 +82,13 @@ export default function POSPage() {
       const data = await response.json();
       setCart(data.items || []);
       setCartTotal(data.total || 0);
+      
+      // Initialize quantity inputs with current cart quantities
+      const inputs: Record<string, string> = {};
+      (data.items || []).forEach((item: CartItem) => {
+        inputs[item.id] = item.quantity.toString();
+      });
+      setQuantityInputs(inputs);
     } catch (error) {
       console.error('Error fetching cart:', error);
     }
@@ -424,25 +434,40 @@ export default function POSPage() {
                           {/* Quantity Input */}
                           <div className="mt-2">
                             <input
-                              type="number"
-                              min="1"
-                              max={maxStock}
-                              value={item.quantity}
+                              type="text"
+                              inputMode="numeric"
+                              value={quantityInputs[item.id] || item.quantity}
                               onChange={(e) => {
                                 const value = e.target.value;
-                                if (value === '') {
-                                  // Allow empty field for user to type
-                                  return;
-                                }
-                                const newQty = parseInt(value);
-                                if (!isNaN(newQty) && newQty >= 1 && newQty <= maxStock) {
-                                  updateCartQuantity(item.id, newQty);
+                                // Allow empty string or numbers only
+                                if (value === '' || /^\d+$/.test(value)) {
+                                  setQuantityInputs(prev => ({ ...prev, [item.id]: value }));
+                                  
+                                  // Update cart if valid number
+                                  if (value !== '' && !isNaN(parseInt(value))) {
+                                    const newQty = parseInt(value);
+                                    if (newQty >= 1 && newQty <= maxStock) {
+                                      updateCartQuantity(item.id, newQty);
+                                    }
+                                  }
                                 }
                               }}
+                              onFocus={(e) => {
+                                // Select all text when focused for easy editing
+                                e.target.select();
+                              }}
                               onBlur={(e) => {
-                                // If field is empty on blur, reset to 1
-                                if (e.target.value === '' || parseInt(e.target.value) < 1) {
+                                // If field is empty or invalid on blur, reset to current cart quantity
+                                const value = e.target.value;
+                                if (value === '' || parseInt(value) < 1) {
+                                  setQuantityInputs(prev => ({ ...prev, [item.id]: '1' }));
                                   updateCartQuantity(item.id, 1);
+                                } else {
+                                  const newQty = parseInt(value);
+                                  if (newQty > maxStock) {
+                                    setQuantityInputs(prev => ({ ...prev, [item.id]: maxStock.toString() }));
+                                    updateCartQuantity(item.id, maxStock);
+                                  }
                                 }
                               }}
                               className="w-20 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded px-2 py-1 text-sm text-center"
