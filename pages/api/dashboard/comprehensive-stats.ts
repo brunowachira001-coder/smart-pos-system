@@ -74,11 +74,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.log('Start date:', startDate?.toISOString());
     console.log('End date:', endDate?.toISOString());
 
-    // Get today's date range
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
+    // Get today's date range in EAT timezone (UTC+3)
+    // We need to query the database using UTC timestamps that correspond to "today" in EAT
+    const now = new Date();
+    
+    // Get today's date at midnight in local timezone
+    const todayLocal = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+    const tomorrowLocal = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0, 0);
+    
+    // Convert to ISO string for database query (this will be in UTC)
+    const todayUTC = todayLocal.toISOString();
+    const tomorrowUTC = tomorrowLocal.toISOString();
+    
+    console.log('Today (local midnight):', todayLocal.toString());
+    console.log('Today (UTC for query):', todayUTC);
+    console.log('Tomorrow (UTC for query):', tomorrowUTC);
 
     // Fetch all products for inventory calculations
     const { data: products, error: productsError } = await supabase
@@ -183,8 +193,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { data: todayTransactions, error: todayTxnError } = await supabase
       .from('sales_transactions')
       .select('*')
-      .gte('created_at', today.toISOString())
-      .lt('created_at', tomorrow.toISOString());
+      .gte('created_at', todayUTC)
+      .lt('created_at', tomorrowUTC);
 
     if (todayTxnError) throw todayTxnError;
 
@@ -207,8 +217,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           .lte('expense_date', endDate.toISOString().split('T')[0]);
       } else {
         // Default to today if no range specified
-        const todayDate = today.toISOString().split('T')[0];
-        expensesQuery = expensesQuery.eq('expense_date', todayDate);
+        const todayDateStr = todayLocal.toISOString().split('T')[0];
+        expensesQuery = expensesQuery.eq('expense_date', todayDateStr);
       }
       
       const { data: expenses } = await expensesQuery;
