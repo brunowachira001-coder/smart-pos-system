@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import DateRangeFilter from '../components/DateRangeFilter';
+import DateRangeFilter, { getDateRange } from '../components/DateRangeFilter';
 
 interface ProductPerformance {
   id: string;
@@ -21,8 +21,23 @@ export default function ProductPerformancePage() {
   const [selectedRange, setSelectedRange] = useState('all');
 
   useEffect(() => {
+    // Convert selected range to actual dates
+    const { startDate: start, endDate: end } = getDateRange(selectedRange);
+    
+    if (start && end) {
+      setDateRange({
+        start: start.toISOString().split('T')[0],
+        end: end.toISOString().split('T')[0]
+      });
+    } else {
+      // For 'all', clear the date range
+      setDateRange({ start: '', end: '' });
+    }
+  }, [selectedRange]);
+
+  useEffect(() => {
     fetchPerformance();
-  }, [dateRange]);
+  }, [dateRange, searchQuery]);
 
   const fetchPerformance = async () => {
     setLoading(true);
