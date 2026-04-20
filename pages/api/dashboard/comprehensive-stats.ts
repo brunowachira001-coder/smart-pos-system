@@ -50,10 +50,13 @@ function getDateRange(range: string): { startDate: Date | null; endDate: Date | 
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  // Aggressive cache prevention
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0');
   res.setHeader('Pragma', 'no-cache');
   res.setHeader('Expires', '0');
   res.setHeader('Surrogate-Control', 'no-store');
+  res.setHeader('CDN-Cache-Control', 'no-store');
+  res.setHeader('Vercel-CDN-Cache-Control', 'no-store');
 
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -62,12 +65,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const range = (req.query.range as string) || 'all';
     const priceType = (req.query.priceType as string) || 'all'; // all, retail, wholesale
+    const clientDate = req.query.clientDate as string;
     
     // Log current server time for debugging
     const serverTime = new Date();
-    console.log('Server time:', serverTime.toISOString());
+    const serverDateStr = serverTime.toISOString();
+    const serverLocalDate = serverTime.toDateString();
+    
+    console.log('=== DASHBOARD API CALLED ===');
+    console.log('Server time (ISO):', serverDateStr);
+    console.log('Server time (local string):', serverLocalDate);
+    console.log('Client date:', clientDate);
     console.log('Date range requested:', range);
     console.log('Price type requested:', priceType);
+    console.log('Query params:', req.query);
     
     const { startDate, endDate } = getDateRange(range);
     
@@ -202,6 +213,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const todayNetRevenue = todayTransactions?.reduce((sum, t) => {
       return sum + (parseFloat(t.total) || 0);
     }, 0) || 0;
+    
+    console.log('=== TODAY\'S SALES CALCULATION ===');
+    console.log('Today UTC range:', todayUTC, 'to', tomorrowUTC);
+    console.log('Today transactions found:', todayTransactions?.length || 0);
+    console.log('Today net revenue:', todayNetRevenue);
+    if (todayTransactions && todayTransactions.length > 0) {
+      console.log('Sample transaction:', todayTransactions[0]);
+    }
 
     // Fetch expenses for the selected date range
     let todayExpenses = 0;

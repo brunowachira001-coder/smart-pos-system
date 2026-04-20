@@ -83,18 +83,25 @@ export default function Dashboard() {
       if (showLoading) {
         setLoading(true);
       }
+      // Add timestamp and date to force cache busting and help with debugging
       const timestamp = new Date().getTime();
-      const response = await fetch(`/api/dashboard/comprehensive-stats?range=${dateRange}&priceType=${priceType}&t=${timestamp}`, {
+      const currentDateStr = new Date().toISOString();
+      console.log('Fetching dashboard stats at:', currentDateStr);
+      console.log('Date range:', dateRange, 'Price type:', priceType);
+      
+      const response = await fetch(`/api/dashboard/comprehensive-stats?range=${dateRange}&priceType=${priceType}&t=${timestamp}&clientDate=${encodeURIComponent(currentDateStr)}`, {
         cache: 'no-store',
         headers: {
-          'Cache-Control': 'no-cache',
-          'Pragma': 'no-cache'
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
         }
       });
       const data = await response.json();
 
       console.log('Dashboard API Response:', data);
       console.log('Server Time:', data.serverTime);
+      console.log('Today Net Revenue:', data.data?.todayNetRevenue);
       console.log('Chart Data:', data.data?.chartData);
 
       if (data.success) {
