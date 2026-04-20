@@ -41,6 +41,9 @@ export default function Dashboard() {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
 
+  // Track the current date to detect changes
+  const [currentDate, setCurrentDate] = useState(new Date().toDateString());
+
   useEffect(() => {
     fetchStats(true); // Initial load with loading spinner
   }, [dateRange, priceType]);
@@ -55,21 +58,25 @@ export default function Dashboard() {
     return () => clearInterval(interval);
   }, [dateRange, priceType]);
 
-  // Check for day change every minute and refresh data
+  // Check for date change every 10 seconds and refresh data immediately
   useEffect(() => {
-    const checkDayChange = () => {
+    const checkDateChange = () => {
       const now = new Date();
-      // If it's within the first minute of a new day, refresh data
-      if (now.getHours() === 0 && now.getMinutes() === 0) {
-        console.log('Day changed, refreshing dashboard data...');
-        fetchStats(false); // Silent refresh when day changes
+      const newDate = now.toDateString();
+      
+      // If the date has changed, refresh data immediately
+      if (newDate !== currentDate) {
+        console.log('Date changed from', currentDate, 'to', newDate, '- refreshing dashboard data...');
+        setCurrentDate(newDate);
+        fetchStats(false); // Silent refresh when date changes
       }
     };
 
-    const interval = setInterval(checkDayChange, 60000); // Check every minute
+    // Check every 10 seconds for date changes
+    const interval = setInterval(checkDateChange, 10000);
 
     return () => clearInterval(interval);
-  }, [dateRange, priceType]);
+  }, [currentDate, dateRange, priceType]);
 
   const fetchStats = async (showLoading = true) => {
     try {

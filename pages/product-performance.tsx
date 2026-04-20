@@ -19,6 +19,7 @@ export default function ProductPerformancePage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
   const [selectedRange, setSelectedRange] = useState('all');
+  const [currentDate, setCurrentDate] = useState(new Date().toDateString());
 
   useEffect(() => {
     // Convert selected range to actual dates
@@ -38,18 +39,35 @@ export default function ProductPerformancePage() {
 
     // Update dates immediately
     updateDates();
+  }, [selectedRange]);
 
-    // Check for day change every minute
-    const interval = setInterval(() => {
+  // Check for date change every 10 seconds
+  useEffect(() => {
+    const checkDateChange = () => {
       const now = new Date();
-      // If it's within the first minute of a new day, update dates
-      if (now.getHours() === 0 && now.getMinutes() === 0) {
-        updateDates();
+      const newDate = now.toDateString();
+      
+      // If the date has changed, update dates immediately
+      if (newDate !== currentDate) {
+        console.log('Date changed from', currentDate, 'to', newDate, '- updating product performance...');
+        setCurrentDate(newDate);
+        
+        // Re-calculate date range for current selection
+        const { startDate: start, endDate: end } = getDateRange(selectedRange);
+        if (start && end) {
+          setDateRange({
+            start: formatDateLocal(start),
+            end: formatDateLocal(end)
+          });
+        }
       }
-    }, 60000); // Check every minute
+    };
+
+    // Check every 10 seconds for date changes
+    const interval = setInterval(checkDateChange, 10000);
 
     return () => clearInterval(interval);
-  }, [selectedRange]);
+  }, [currentDate, selectedRange]);
 
   useEffect(() => {
     fetchPerformance();

@@ -24,6 +24,7 @@ export default function SalesAnalyticsPage() {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [useDemoData, setUseDemoData] = useState(false);
+  const [currentDate, setCurrentDate] = useState(new Date().toDateString());
 
   // Demo data for visualization
   const demoData: AnalyticsData = {
@@ -60,18 +61,33 @@ export default function SalesAnalyticsPage() {
 
     // Update dates immediately
     updateDates();
+  }, [dateFilter]);
 
-    // Check for day change every minute
-    const interval = setInterval(() => {
+  // Check for date change every 10 seconds
+  useEffect(() => {
+    const checkDateChange = () => {
       const now = new Date();
-      // If it's within the first minute of a new day, update dates
-      if (now.getHours() === 0 && now.getMinutes() === 0) {
-        updateDates();
+      const newDate = now.toDateString();
+      
+      // If the date has changed, update dates immediately
+      if (newDate !== currentDate) {
+        console.log('Date changed from', currentDate, 'to', newDate, '- updating sales analytics...');
+        setCurrentDate(newDate);
+        
+        // Re-calculate date range for current selection
+        const { startDate: start, endDate: end } = getDateRange(dateFilter);
+        if (start && end) {
+          setStartDate(formatDateLocal(start));
+          setEndDate(formatDateLocal(end));
+        }
       }
-    }, 60000); // Check every minute
+    };
+
+    // Check every 10 seconds for date changes
+    const interval = setInterval(checkDateChange, 10000);
 
     return () => clearInterval(interval);
-  }, [dateFilter]);
+  }, [currentDate, dateFilter]);
 
   useEffect(() => {
     fetchAnalytics();
