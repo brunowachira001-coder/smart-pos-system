@@ -133,6 +133,26 @@ export default function Expenses() {
     }
   };
 
+  const handleApproveExpense = async (expenseId: string, status: 'Approved' | 'Rejected') => {
+    try {
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      const response = await fetch(`/api/expenses/${expenseId}/approve`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          status,
+          approved_by: user.name || 'Admin'
+        }),
+      });
+
+      if (response.ok) {
+        fetchData(); // Refresh the list
+      }
+    } catch (error) {
+      console.error('Error updating expense:', error);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -288,6 +308,7 @@ export default function Expenses() {
                 <th className="px-4 py-3 text-left text-sm font-semibold text-[var(--text-secondary)]">Method</th>
                 <th className="px-4 py-3 text-left text-sm font-semibold text-[var(--text-secondary)]">Date</th>
                 <th className="px-4 py-3 text-left text-sm font-semibold text-[var(--text-secondary)]">Status</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-[var(--text-secondary)]">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -303,10 +324,37 @@ export default function Expenses() {
                   </td>
                   <td className="px-4 py-4">
                     <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                      expense.status === 'Approved' ? 'bg-green-500/20 text-green-500' : 'bg-yellow-500/20 text-yellow-500'
+                      expense.status === 'Approved' ? 'bg-green-500/20 text-green-500' : 
+                      expense.status === 'Rejected' ? 'bg-red-500/20 text-red-500' :
+                      'bg-yellow-500/20 text-yellow-500'
                     }`}>
                       {expense.status}
                     </span>
+                  </td>
+                  <td className="px-4 py-4">
+                    {expense.status === 'Pending' && (
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleApproveExpense(expense.id, 'Approved')}
+                          className="px-3 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700"
+                          title="Approve expense"
+                        >
+                          ✓ Approve
+                        </button>
+                        <button
+                          onClick={() => handleApproveExpense(expense.id, 'Rejected')}
+                          className="px-3 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700"
+                          title="Reject expense"
+                        >
+                          ✗ Reject
+                        </button>
+                      </div>
+                    )}
+                    {expense.status !== 'Pending' && (
+                      <span className="text-xs text-[var(--text-secondary)]">
+                        {expense.status === 'Approved' ? '✓ Approved' : '✗ Rejected'}
+                      </span>
+                    )}
                   </td>
                 </tr>
               ))}
