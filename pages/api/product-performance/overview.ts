@@ -24,37 +24,47 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(500).json({ error: productsError.message });
     }
 
-    // Get sales transactions with items
-    let salesQuery = supabase
-      .from('sales_transaction_items')
-      .select(`
-        *,
-        sales_transactions!inner(
-          transaction_date,
-          payment_method,
-          status
-        )
-      `)
-      .eq('sales_transactions.status', 'completed');
+    // Get all transactions in date range
+    let transactionsQuery = supabase
+      .from('sales_transactions')
+      .select('id, created_at, status');
 
     if (startDate) {
-      salesQuery = salesQuery.gte('sales_transactions.transaction_date', startDate);
+      transactionsQuery = transactionsQuery.gte('created_at', startDate);
     }
     if (endDate) {
-      salesQuery = salesQuery.lte('sales_transactions.transaction_date', endDate);
+      transactionsQuery = transactionsQuery.lte('created_at', endDate);
     }
 
-    const { data: salesItems, error: salesError } = await salesQuery;
+    const { data: transactions, error: transactionsError } = await transactionsQuery;
 
-    if (salesError) {
-      console.error('Sales query error:', salesError);
+    if (transactionsError) {
+      console.error('Transactions query error:', transactionsError);
+      return res.status(500).json({ error: transactionsError.message });
     }
 
-    // Get returns data
+    const transactionIds = transactions?.map(t => t.id) || [];
+
+    // Get all transaction items for these transactions
+    let salesItems: any[] = [];
+    if (transactionIds.length > 0) {
+      const { data: items, error: itemsError } = await supabase
+        .from('sales_transaction_items')
+        .select('*')
+        .in('transaction_id', transactionIds);
+
+      if (itemsError) {
+        console.error('Sales items query error:', itemsError);
+      } else {
+        salesItems = items || [];
+      }
+    }
+
+    // Get returns data in date range
     let returnsQuery = supabase
       .from('returns')
       .select('*')
-      .in('status', ['approved', 'completed']);
+      .in('status', ['Approved', 'approved', 'Completed', 'completed']);
 
     if (startDate) {
       returnsQuery = returnsQuery.gte('created_at', startDate);
@@ -67,15 +77,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Calculate performance metrics for each product
     const performanceData = products?.map(product => {
-      // Calculate sales metrics
-      const productSales = salesItems?.filter(item => item.product_id === product.id) || [];
+      // Calculate sales metrics from transaction items
+      const productSales = salesItems.filter(item => item.product_id === product.id);
       const unitsSold = productSales.reduce((sum, item) => sum + (item.quantity || 0), 0);
       const netRevenue = productSales.reduce((sum, item) => 
-        sum + ((item.price || 0) * (item.quantity || 0)), 0
+        sum + (parseFloat(item.unit_price || 0) * (item.quantity || 0)), 0
       );
 
       // Calculate cost
-      const costPrice = parseFloat(product.cost_price || product.price * 0.6 || 0);
+      const costPrice = parseFloat(product.cost_price) || 0;
       const netCost = unitsSold * costPrice;
 
       // Calculate profit
@@ -110,7 +120,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       );
     }
 
-    // Sort by units sold (descending)
+    // Sort by units sold (descending) - most performing to least performing
     filteredData.sort((a, b) => b.unitsSold - a.unitsSold);
 
     return res.status(200).json({
