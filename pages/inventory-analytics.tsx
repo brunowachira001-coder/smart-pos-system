@@ -49,7 +49,7 @@ export default function InventoryAnalyticsPage() {
 
   useEffect(() => {
     fetchAnalytics();
-  }, [dateFilter, startDate, endDate]);
+  }, [dateFilter, startDate, endDate, filterType]);
 
   const fetchAnalytics = async () => {
     setLoading(true);
@@ -57,6 +57,7 @@ export default function InventoryAnalyticsPage() {
       const params = new URLSearchParams();
       if (startDate) params.append('startDate', startDate);
       if (endDate) params.append('endDate', endDate);
+      params.append('priceType', filterType);
 
       const response = await fetch(`/api/inventory-analytics/overview?${params}`);
       const data = await response.json();
@@ -134,7 +135,9 @@ export default function InventoryAnalyticsPage() {
                   <span className="text-xl">📈</span>
                 </div>
                 <div className="text-3xl font-semibold mb-1">KSH {analytics.overview.inventoryValueSelling}</div>
-                <div className="text-xs text-[var(--text-secondary)]">Potential revenue from retail stock</div>
+                <div className="text-xs text-[var(--text-secondary)]">
+                  Potential revenue at {filterType} prices
+                </div>
               </div>
 
               <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-5">
@@ -143,7 +146,9 @@ export default function InventoryAnalyticsPage() {
                   <span className="text-xl">📊</span>
                 </div>
                 <div className="text-3xl font-semibold mb-1 text-green-500">KSH {analytics.overview.potentialProfit}</div>
-                <div className="text-xs text-[var(--text-secondary)]">Potential profit from current stock</div>
+                <div className="text-xs text-[var(--text-secondary)]">
+                  Potential profit at {filterType} prices
+                </div>
               </div>
 
               <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-5">
@@ -152,7 +157,7 @@ export default function InventoryAnalyticsPage() {
                   <span className="text-xl">⚠️</span>
                 </div>
                 <div className="text-3xl font-semibold mb-1 text-red-500">{analytics.overview.lowStockAlerts}</div>
-                <div className="text-xs text-[var(--text-secondary)]">Items below minimum retail stock</div>
+                <div className="text-xs text-[var(--text-secondary)]">Items at or below minimum stock level</div>
               </div>
             </div>
 
@@ -163,7 +168,7 @@ export default function InventoryAnalyticsPage() {
                   <span className="text-xl">↩️</span>
                 </div>
                 <div className="text-3xl font-semibold mb-1">{analytics.overview.totalReturns}</div>
-                <div className="text-xs text-[var(--text-secondary)]">Processed returns to date range</div>
+                <div className="text-xs text-[var(--text-secondary)]">Completed returns in date range</div>
               </div>
 
               <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-5">
@@ -181,7 +186,7 @@ export default function InventoryAnalyticsPage() {
                   <span className="text-xl">💰</span>
                 </div>
                 <div className="text-3xl font-semibold mb-1 text-red-500">KSH {analytics.overview.valueOfReturns}</div>
-                <div className="text-xs text-[var(--text-secondary)]">Value of completed returns</div>
+                <div className="text-xs text-[var(--text-secondary)]">Total value of completed returns</div>
               </div>
 
               <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-5">
@@ -190,7 +195,7 @@ export default function InventoryAnalyticsPage() {
                   <span className="text-xl">📦</span>
                 </div>
                 <div className="text-3xl font-semibold mb-1">{analytics.overview.archivedItems}</div>
-                <div className="text-xs text-[var(--text-secondary)]">Products hidden from inventory</div>
+                <div className="text-xs text-[var(--text-secondary)]">Products with zero stock or archived</div>
               </div>
             </div>
 
@@ -200,7 +205,7 @@ export default function InventoryAnalyticsPage() {
                 <h2 className="text-lg font-semibold">Low Stock Items</h2>
               </div>
               <p className="text-sm text-[var(--text-secondary)] mb-6">
-                {analytics.lowStockItems.length} items below minimum retail stock levels
+                {analytics.lowStockItems.length} items at or below minimum stock levels
               </p>
 
               <div className="overflow-x-auto">
