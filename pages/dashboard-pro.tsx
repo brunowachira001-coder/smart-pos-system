@@ -39,24 +39,27 @@ export default function Dashboard() {
   const [dateRange, setDateRange] = useState('all');
   const [priceType, setPriceType] = useState('retail'); // retail or wholesale only
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   useEffect(() => {
-    fetchStats();
+    fetchStats(true); // Initial load with loading spinner
   }, [dateRange, priceType]);
 
-  // Auto-refresh every 30 seconds (silent)
+  // Auto-refresh every 30 seconds (silent, no loading spinner)
   useEffect(() => {
     const interval = setInterval(() => {
-      fetchStats();
+      fetchStats(false); // Background refresh without loading spinner
     }, 30000); // 30 seconds
 
     // Cleanup interval on component unmount
     return () => clearInterval(interval);
   }, [dateRange, priceType]);
 
-  const fetchStats = async () => {
+  const fetchStats = async (showLoading = true) => {
     try {
-      setLoading(true);
+      if (showLoading) {
+        setLoading(true);
+      }
       const timestamp = new Date().getTime();
       const response = await fetch(`/api/dashboard/comprehensive-stats?range=${dateRange}&priceType=${priceType}&t=${timestamp}`, {
         cache: 'no-store',
@@ -73,11 +76,16 @@ export default function Dashboard() {
 
       if (data.success) {
         setStats(data.data);
+        if (isInitialLoad) {
+          setIsInitialLoad(false);
+        }
       }
     } catch (error) {
       console.error('Failed to fetch dashboard stats:', error);
     } finally {
-      setLoading(false);
+      if (showLoading) {
+        setLoading(false);
+      }
     }
   };
 
