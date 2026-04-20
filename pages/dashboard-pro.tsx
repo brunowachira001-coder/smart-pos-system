@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import DateRangeFilter from '../components/DateRangeFilter';
+import React from 'react';
 
 interface DashboardStats {
   allTimeProfit: number;
@@ -375,7 +376,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Sales & Profit Trend Chart - Matching Screenshot */}
+        {/* Sales & Profit Trend Chart - Candlestick Style */}
         <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-[var(--text-primary)]">Sales & Profit Trend</h2>
@@ -385,6 +386,7 @@ export default function Dashboard() {
           <div className="relative bg-[var(--bg-secondary)] rounded border border-[var(--border-color)] p-4" style={{ height: '280px' }}>
             {(() => {
               const chartData = stats?.chartData || [];
+              const [hoveredIndex, setHoveredIndex] = React.useState<number | null>(null);
 
               if (chartData.length === 0) {
                 return (
@@ -394,14 +396,7 @@ export default function Dashboard() {
                 );
               }
 
-              // Calculate max value for scaling
-              const maxValue = Math.max(
-                ...chartData.map(d => Math.max(d.gross, d.net)),
-                140000
-              );
-              const scale = 140000; // Fixed scale like screenshot
-
-              // Y-axis labels matching screenshot
+              const scale = 140000;
               const yLabels = [140000, 105000, 70000, 35000, 0];
 
               const formatCurrency = (val: number) => {
@@ -409,8 +404,7 @@ export default function Dashboard() {
                 return `KSH ${(val / 1000).toFixed(0)}k`;
               };
 
-              const barWidth = 6;
-              const groupSpacing = 35;
+              const groupSpacing = 25; // Reduced spacing
               const svgWidth = Math.max(900, chartData.length * groupSpacing + 100);
               const svgHeight = 240;
               const padding = { top: 10, right: 20, bottom: 30, left: 70 };
@@ -420,13 +414,8 @@ export default function Dashboard() {
               const getX = (index: number) => padding.left + (index * groupSpacing);
               const zeroY = getY(0);
 
-              // Build line paths
-              const netPath = chartData.map((d, i) => `${getX(i) + groupSpacing/2},${getY(d.net)}`).join(' ');
-              const expensesPath = chartData.map((d, i) => `${getX(i) + groupSpacing/2},${getY(d.expenses)}`).join(' ');
-              const profitPath = chartData.map((d, i) => `${getX(i) + groupSpacing/2},${getY(d.profit)}`).join(' ');
-
               return (
-                <div className="flex h-full">
+                <div className="flex h-full relative">
                   {/* Y-axis labels */}
                   <div className="w-16 flex flex-col justify-between text-[10px] text-[var(--text-secondary)] pr-2 flex-shrink-0 pt-2 pb-8">
                     {yLabels.map((label, i) => (
@@ -435,7 +424,7 @@ export default function Dashboard() {
                   </div>
 
                   {/* Chart SVG */}
-                  <div className="flex-1 overflow-x-auto">
+                  <div className="flex-1 overflow-x-auto relative">
                     <svg width={svgWidth} height={svgHeight} style={{ minWidth: '100%' }}>
                       {/* Dotted grid lines */}
                       {yLabels.map((label, i) => (
@@ -452,69 +441,116 @@ export default function Dashboard() {
                         />
                       ))}
 
-                      {/* Vertical bars for Gross Sales (Green) and Net Sales (Blue) */}
+                      {/* Candlestick elements for each data point */}
                       {chartData.map((data, i) => {
-                        const x = getX(i);
-                        const barGap = 1;
+                        const x = getX(i) + groupSpacing/2;
+                        const grossY = getY(data.gross);
+                        const netY = getY(data.net);
+                        const expensesY = getY(data.expenses);
+                        const profitY = getY(data.profit);
                         
                         return (
-                          <g key={`bars-${i}`}>
-                            {/* Gross Sales - Green bar */}
-                            <rect
-                              x={x + groupSpacing/2 - barWidth - barGap/2}
-                              y={getY(data.gross)}
-                              width={barWidth}
-                              height={Math.max(1, zeroY - getY(data.gross))}
-                              fill="#10b981"
-                              opacity="0.85"
+                          <g key={`candle-${i}`}>
+                            {/* Green candlestick for Gross Sales */}
+                            <line
+                              x1={x - 3}
+                              y1={zeroY}
+                              x2={x - 3}
+                              y2={grossY}
+                              stroke="#10b981"
+                              strokeWidth="2"
+                              opacity="0.8"
                             />
+                            <circle cx={x - 3} cy={grossY} r="3" fill="#10b981" opacity="0.9" />
                             
-                            {/* Net Sales - Blue bar (slightly shorter, overlapping) */}
+                            {/* Blue candlestick for Net Sales */}
+                            <line
+                              x1={x + 3}
+                              y1={zeroY}
+                              x2={x + 3}
+                              y2={netY}
+                              stroke="#3b82f6"
+                              strokeWidth="2"
+                              opacity="0.8"
+                            />
+                            <circle cx={x + 3} cy={netY} r="3" fill="#3b82f6" opacity="0.9" />
+                            
+                            {/* Invisible hover area */}
                             <rect
-                              x={x + groupSpacing/2 + barGap/2}
-                              y={getY(data.net)}
-                              width={barWidth}
-                              height={Math.max(1, zeroY - getY(data.net))}
-                              fill="#3b82f6"
-                              opacity="0.85"
+                              x={x - 10}
+                              y={padding.top}
+                              width={20}
+                              height={plotHeight}
+                              fill="transparent"
+                              style={{ cursor: 'pointer' }}
+                              onMouseEnter={() => setHoveredIndex(i)}
+                              onMouseLeave={() => setHoveredIndex(null)}
                             />
                           </g>
                         );
                       })}
 
-                      {/* Expenses line - Red at bottom */}
+                      {/* Red line for Expenses */}
                       <polyline 
-                        points={expensesPath} 
+                        points={chartData.map((d, i) => `${getX(i) + groupSpacing/2},${getY(d.expenses)}`).join(' ')}
                         fill="none" 
                         stroke="#ef4444" 
                         strokeWidth="1.5" 
                         opacity="0.9"
                       />
 
-                      {/* Verified Profit line - Blue overlay */}
+                      {/* Blue line for Verified Profit */}
                       <polyline 
-                        points={profitPath} 
+                        points={chartData.map((d, i) => `${getX(i) + groupSpacing/2},${getY(d.profit)}`).join(' ')}
                         fill="none" 
                         stroke="#60a5fa" 
                         strokeWidth="2" 
                         opacity="0.9"
                       />
 
-                      {/* Small dots on profit line */}
+                      {/* Dots on lines */}
                       {chartData.map((data, i) => {
                         const x = getX(i) + groupSpacing/2;
                         return (
-                          <circle 
-                            key={`profit-dot-${i}`}
-                            cx={x} 
-                            cy={getY(data.profit)} 
-                            r="2.5" 
-                            fill="#60a5fa" 
-                            opacity="0.9"
-                          />
+                          <g key={`dots-${i}`}>
+                            <circle cx={x} cy={getY(data.expenses)} r="2" fill="#ef4444" opacity="0.9" />
+                            <circle cx={x} cy={getY(data.profit)} r="2.5" fill="#60a5fa" opacity="0.9" />
+                          </g>
                         );
                       })}
                     </svg>
+
+                    {/* Tooltip */}
+                    {hoveredIndex !== null && (
+                      <div 
+                        className="absolute bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-3 shadow-lg text-xs z-10"
+                        style={{
+                          left: `${getX(hoveredIndex) + groupSpacing/2 + 10}px`,
+                          top: '10px',
+                          pointerEvents: 'none'
+                        }}
+                      >
+                        <div className="font-semibold mb-2 text-[var(--text-primary)]">{chartData[hoveredIndex].date}</div>
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+                            <span className="text-[var(--text-secondary)]">Gross: KSH {chartData[hoveredIndex].gross.toLocaleString()}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                            <span className="text-[var(--text-secondary)]">Net: KSH {chartData[hoveredIndex].net.toLocaleString()}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                            <span className="text-[var(--text-secondary)]">Expenses: KSH {chartData[hoveredIndex].expenses.toLocaleString()}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-blue-400"></div>
+                            <span className="text-[var(--text-secondary)]">Profit: KSH {chartData[hoveredIndex].profit.toLocaleString()}</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               );
@@ -526,8 +562,7 @@ export default function Dashboard() {
             <div className="w-16 flex-shrink-0"></div>
             <div className="flex-1 flex justify-between px-2">
               {stats?.chartData && stats.chartData.length > 0 && stats.chartData.map((item, i) => {
-                // Show dates at intervals to match screenshot spacing
-                if (i % Math.ceil(stats.chartData.length / 12) === 0 || i === stats.chartData.length - 1) {
+                if (i % Math.ceil(stats.chartData.length / 10) === 0 || i === stats.chartData.length - 1) {
                   return <span key={i} className="whitespace-nowrap">{item.date}</span>;
                 }
                 return null;
@@ -535,7 +570,7 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Legend matching screenshot */}
+          {/* Legend */}
           <div className="flex items-center justify-center gap-6 mt-4 text-xs">
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 bg-emerald-500"></div>
