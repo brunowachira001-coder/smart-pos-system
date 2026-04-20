@@ -39,13 +39,12 @@ export default function Dashboard() {
   const [dateRange, setDateRange] = useState('all');
   const [priceType, setPriceType] = useState('retail'); // retail or wholesale only
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
-  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
 
   useEffect(() => {
     fetchStats();
   }, [dateRange, priceType]);
 
-  // Auto-refresh every 30 seconds
+  // Auto-refresh every 30 seconds (silent)
   useEffect(() => {
     const interval = setInterval(() => {
       fetchStats();
@@ -74,7 +73,6 @@ export default function Dashboard() {
 
       if (data.success) {
         setStats(data.data);
-        setLastUpdated(new Date());
       }
     } catch (error) {
       console.error('Failed to fetch dashboard stats:', error);
@@ -317,12 +315,7 @@ export default function Dashboard() {
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-2xl font-semibold text-[var(--text-primary)]">Dashboard Overview</h1>
-            <p className="text-sm text-[var(--text-secondary)] mt-1">
-              A summary of your business performance • Auto-refreshes every 30s
-            </p>
-            <p className="text-xs text-[var(--text-secondary)] mt-1">
-              Last updated: {lastUpdated.toLocaleTimeString()}
-            </p>
+            <p className="text-sm text-[var(--text-secondary)] mt-1">A summary of your business performance</p>
           </div>
           <div className="flex items-center gap-4">
             <select 
