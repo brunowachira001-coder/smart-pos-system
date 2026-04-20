@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import DateRangeFilter, { getDateRange } from '../components/DateRangeFilter';
+import DateRangeFilter, { getDateRange, formatDateLocal } from '../components/DateRangeFilter';
 
 interface AnalyticsData {
   overview: {
@@ -48,8 +48,8 @@ export default function SalesAnalyticsPage() {
     const { startDate: start, endDate: end } = getDateRange(dateFilter);
     
     if (start && end) {
-      setStartDate(start.toISOString().split('T')[0]);
-      setEndDate(end.toISOString().split('T')[0]);
+      setStartDate(formatDateLocal(start));
+      setEndDate(formatDateLocal(end));
     } else {
       // For 'all', clear the date range
       setStartDate('');

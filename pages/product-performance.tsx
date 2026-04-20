@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import DateRangeFilter, { getDateRange } from '../components/DateRangeFilter';
+import DateRangeFilter, { getDateRange, formatDateLocal } from '../components/DateRangeFilter';
 
 interface ProductPerformance {
   id: string;
@@ -26,8 +26,8 @@ export default function ProductPerformancePage() {
     
     if (start && end) {
       setDateRange({
-        start: start.toISOString().split('T')[0],
-        end: end.toISOString().split('T')[0]
+        start: formatDateLocal(start),
+        end: formatDateLocal(end)
       });
     } else {
       // For 'all', clear the date range

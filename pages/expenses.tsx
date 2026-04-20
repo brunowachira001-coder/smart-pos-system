@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import DateRangeFilter, { getDateRange } from '../components/DateRangeFilter';
+import DateRangeFilter, { getDateRange, formatDateLocal } from '../components/DateRangeFilter';
 
 interface Expense {
   id: string;
@@ -55,8 +55,8 @@ export default function Expenses() {
     const { startDate: start, endDate: end } = getDateRange(dateRange);
     
     if (start && end) {
-      setStartDate(start.toISOString().split('T')[0]);
-      setEndDate(end.toISOString().split('T')[0]);
+      setStartDate(formatDateLocal(start));
+      setEndDate(formatDateLocal(end));
     } else {
       // For 'all', clear the date range
       setStartDate('');

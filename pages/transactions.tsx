@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import DateRangeFilter, { getDateRange } from '../components/DateRangeFilter';
+import DateRangeFilter, { getDateRange, formatDateLocal } from '../components/DateRangeFilter';
 
 interface Transaction {
   id: string;
@@ -36,8 +36,8 @@ export default function TransactionsPage() {
     const { startDate: start, endDate: end } = getDateRange(dateRange);
     
     if (start && end) {
-      setStartDate(start.toISOString().split('T')[0]);
-      setEndDate(end.toISOString().split('T')[0]);
+      setStartDate(formatDateLocal(start));
+      setEndDate(formatDateLocal(end));
     } else {
       // For 'all', clear the date range
       setStartDate('');

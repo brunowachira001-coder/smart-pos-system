@@ -141,38 +141,53 @@ export function getDateRange(range: string): { startDate: Date | null; endDate: 
   
   switch (range) {
     case 'today':
-      return { startDate: today, endDate: now };
+      const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+      return { startDate: today, endDate: todayEnd };
     
     case 'yesterday':
       const yesterday = new Date(today);
       yesterday.setDate(yesterday.getDate() - 1);
-      return { startDate: yesterday, endDate: today };
+      const yesterdayEnd = new Date(yesterday);
+      yesterdayEnd.setHours(23, 59, 59, 999);
+      return { startDate: yesterday, endDate: yesterdayEnd };
     
     case 'last7days':
       const last7 = new Date(today);
-      last7.setDate(last7.getDate() - 7);
-      return { startDate: last7, endDate: now };
+      last7.setDate(last7.getDate() - 6); // Include today, so -6 not -7
+      const last7End = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+      return { startDate: last7, endDate: last7End };
     
     case 'last30days':
       const last30 = new Date(today);
-      last30.setDate(last30.getDate() - 30);
-      return { startDate: last30, endDate: now };
+      last30.setDate(last30.getDate() - 29); // Include today, so -29 not -30
+      const last30End = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+      return { startDate: last30, endDate: last30End };
     
     case 'thisMonth':
       const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-      return { startDate: monthStart, endDate: now };
+      const monthEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+      return { startDate: monthStart, endDate: monthEnd };
     
     case 'lastMonth':
       const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-      const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+      const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
       return { startDate: lastMonthStart, endDate: lastMonthEnd };
     
     case 'thisYear':
       const yearStart = new Date(now.getFullYear(), 0, 1);
-      return { startDate: yearStart, endDate: now };
+      const yearEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+      return { startDate: yearStart, endDate: yearEnd };
     
     case 'all':
     default:
       return { startDate: null, endDate: null };
   }
+}
+
+// Helper function to format date in local timezone as YYYY-MM-DD
+export function formatDateLocal(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
