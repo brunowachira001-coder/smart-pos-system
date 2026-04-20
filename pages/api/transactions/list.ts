@@ -69,13 +69,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(500).json({ error: error.message });
     }
 
-    // Get items count for each transaction
-    const transactionsWithItems = await Promise.all(
+    // Get items count for each transaction and filter by price type if needed
+    let transactionsWithItems = await Promise.all(
       (transactions || []).map(async (transaction) => {
-        const { data: items } = await supabase
+        let itemsQuery = supabase
           .from('sales_transaction_items')
           .select('*')
           .eq('transaction_id', transaction.id);
+        
+        // Filter by price type if specified
+        if (priceType && priceType !== 'all') {
+          itemsQuery = itemsQuery.eq('price_type', priceType);
+        }
+
+        const { data: items } = await itemsQuery;
 
         return {
           ...transaction,
@@ -85,13 +92,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       })
     );
 
+    // If filtering by price type, remove transactions with no matching items
+    if (priceType && priceType !== 'all') {
+      transactionsWithItems = transactionsWithItems.filter(t => t.items_count > 0);
+    }
+
     return res.status(200).json({
       transactions: transactionsWithItems,
       pagination: {
         page: pageNum,
         limit: limitNum,
-        total: count || 0,
-        totalPages: Math.ceil((count || 0) / limitNum)
+        total: transactionsWithItems.length, // Update count based on filtered results
+        totalPages: Math.ceil(transactionsWithItems.length / limitNum)
       }
     });
 
