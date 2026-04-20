@@ -180,17 +180,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Fetch expenses for the selected date range
     let todayExpenses = 0;
     try {
-      let expensesQuery = supabase.from('expenses').select('amount, created_at');
+      let expensesQuery = supabase
+        .from('expenses')
+        .select('amount, expense_date, status')
+        .eq('status', 'Approved'); // Only count approved expenses
       
       if (startDate && endDate) {
         expensesQuery = expensesQuery
-          .gte('created_at', startDate.toISOString())
-          .lte('created_at', endDate.toISOString());
+          .gte('expense_date', startDate.toISOString().split('T')[0])
+          .lte('expense_date', endDate.toISOString().split('T')[0]);
       } else {
         // Default to today if no range specified
-        expensesQuery = expensesQuery
-          .gte('created_at', today.toISOString())
-          .lt('created_at', tomorrow.toISOString());
+        const todayDate = today.toISOString().split('T')[0];
+        expensesQuery = expensesQuery.eq('expense_date', todayDate);
       }
       
       const { data: expenses } = await expensesQuery;
@@ -301,9 +303,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         try {
           const { data: expensesData } = await supabase
             .from('expenses')
-            .select('amount, created_at')
-            .gte('created_at', trendStartDate.toISOString())
-            .lte('created_at', trendEndDate.toISOString());
+            .select('amount, expense_date, status')
+            .eq('status', 'Approved') // Only approved expenses
+            .gte('expense_date', trendStartDate.toISOString().split('T')[0])
+            .lte('expense_date', trendEndDate.toISOString().split('T')[0]);
           
           trendExpenses = expensesData || [];
         } catch (e) {
@@ -330,7 +333,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         // Add expenses by date
         trendExpenses.forEach(e => {
-          const dateObj = new Date(e.created_at);
+          const dateObj = new Date(e.expense_date + 'T00:00:00'); // Use expense_date instead of created_at
           const date = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
           if (!salesByDate[date]) {
             salesByDate[date] = { gross: 0, net: 0, expenses: 0, profit: 0, timestamp: dateObj.getTime() };
