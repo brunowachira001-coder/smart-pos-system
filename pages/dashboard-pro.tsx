@@ -37,17 +37,18 @@ export default function Dashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [dateRange, setDateRange] = useState('all');
+  const [priceType, setPriceType] = useState('all'); // all, retail, wholesale
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
   useEffect(() => {
     fetchStats();
-  }, [dateRange]);
+  }, [dateRange, priceType]);
 
   const fetchStats = async () => {
     try {
       setLoading(true);
       const timestamp = new Date().getTime();
-      const response = await fetch(`/api/dashboard/comprehensive-stats?range=${dateRange}&t=${timestamp}`, {
+      const response = await fetch(`/api/dashboard/comprehensive-stats?range=${dateRange}&priceType=${priceType}&t=${timestamp}`, {
         cache: 'no-store',
         headers: {
           'Cache-Control': 'no-cache',
@@ -307,10 +308,14 @@ export default function Dashboard() {
             <p className="text-sm text-[var(--text-secondary)] mt-1">A summary of your business performance</p>
           </div>
           <div className="flex items-center gap-4">
-            <select className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg px-4 py-2 text-sm text-[var(--text-primary)]">
-              <option>Retail</option>
-              <option>Wholesale</option>
-              <option>All</option>
+            <select 
+              value={priceType}
+              onChange={(e) => setPriceType(e.target.value)}
+              className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg px-4 py-2 text-sm text-[var(--text-primary)]"
+            >
+              <option value="all">All</option>
+              <option value="retail">Retail</option>
+              <option value="wholesale">Wholesale</option>
             </select>
             <DateRangeFilter value={dateRange} onChange={setDateRange} />
             <button className="px-4 py-2 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg text-sm hover:bg-[var(--bg-secondary)] text-[var(--text-primary)]">

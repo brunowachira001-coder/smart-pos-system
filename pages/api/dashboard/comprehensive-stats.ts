@@ -61,11 +61,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     const range = (req.query.range as string) || 'all';
+    const priceType = (req.query.priceType as string) || 'all'; // all, retail, wholesale
     
     // Log current server time for debugging
     const serverTime = new Date();
     console.log('Server time:', serverTime.toISOString());
     console.log('Date range requested:', range);
+    console.log('Price type requested:', priceType);
     
     const { startDate, endDate } = getDateRange(range);
     
@@ -85,22 +87,44 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (productsError) throw productsError;
 
-    // Calculate inventory values
+    // Calculate inventory values based on price type
     const inventoryValueCost = products?.reduce((sum, p) => {
       const cost = parseFloat(p.cost_price) || 0;
       const qty = p.stock_quantity || 0;
       return sum + (cost * qty);
     }, 0) || 0;
 
-    const inventoryValueSelling = products?.reduce((sum, p) => {
-      const price = parseFloat(p.retail_price) || 0;
-      const qty = p.stock_quantity || 0;
-      return sum + (price * qty);
-    }, 0) || 0;
+    let inventoryValueSelling = 0;
+    if (priceType === 'retail') {
+      inventoryValueSelling = products?.reduce((sum, p) => {
+        const price = parseFloat(p.retail_price) || 0;
+        const qty = p.stock_quantity || 0;
+        return sum + (price * qty);
+      }, 0) || 0;
+    } else if (priceType === 'wholesale') {
+      inventoryValueSelling = products?.reduce((sum, p) => {
+        const price = parseFloat(p.wholesale_price) || 0;
+        const qty = p.stock_quantity || 0;
+        return sum + (price * qty);
+      }, 0) || 0;
+    } else {
+      // For 'all', calculate both retail and wholesale
+      const retailValue = products?.reduce((sum, p) => {
+        const price = parseFloat(p.retail_price) || 0;
+        const qty = p.stock_quantity || 0;
+        return sum + (price * qty);
+      }, 0) || 0;
+      const wholesaleValue = products?.reduce((sum, p) => {
+        const price = parseFloat(p.wholesale_price) || 0;
+        const qty = p.stock_quantity || 0;
+        return sum + (price * qty);
+      }, 0) || 0;
+      inventoryValueSelling = retailValue + wholesaleValue;
+    }
 
     const totalUnits = products?.reduce((sum, p) => sum + (p.stock_quantity || 0), 0) || 0;
 
-    // Potential profit (if all inventory sold at retail)
+    // Potential profit (if all inventory sold at selected price type)
     const potentialProfit = inventoryValueSelling - inventoryValueCost;
 
     // Fetch all sales transactions for all-time profit (or filtered by date range)
@@ -118,15 +142,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Calculate actual profit by fetching transaction items and comparing with cost prices
     let allTimeProfit = 0;
+    let retailRevenue = 0;
+    let wholesaleRevenue = 0;
+    let retailSales = 0;
+    let wholesaleSales = 0;
     
     if (allTransactions && allTransactions.length > 0) {
       const transactionIds = allTransactions.map(t => t.id);
       
       // Fetch all transaction items for these transactions
-      const { data: transactionItems, error: itemsError } = await supabase
+      let itemsQuery = supabase
         .from('sales_transaction_items')
-        .select('product_id, quantity, unit_price, transaction_id')
+        .select('product_id, quantity, unit_price, transaction_id, price_type')
         .in('transaction_id', transactionIds);
+      
+      // Filter by price type if specified
+      if (priceType !== 'all') {
+        itemsQuery = itemsQuery.eq('price_type', priceType);
+      }
+
+      const { data: transactionItems, error: itemsError } = await itemsQuery;
 
       if (transactionItems && transactionItems.length > 0) {
         // Create a map of product IDs to cost prices for faster lookup
@@ -135,33 +170,34 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           productCostMap.set(p.id, parseFloat(p.cost_price) || 0);
         });
 
-        // Calculate profit for each item
+        // Calculate profit for each item and track retail/wholesale
         for (const item of transactionItems) {
           const costPrice = productCostMap.get(item.product_id) || 0;
           const sellingPrice = parseFloat(item.unit_price) || 0;
           const quantity = item.quantity || 0;
           const itemProfit = (sellingPrice - costPrice) * quantity;
+          const itemRevenue = sellingPrice * quantity;
+          
           allTimeProfit += itemProfit;
+          
+          // Track retail vs wholesale
+          if (item.price_type === 'retail') {
+            retailRevenue += itemRevenue;
+          } else if (item.price_type === 'wholesale') {
+            wholesaleRevenue += itemRevenue;
+          }
         }
+        
+        // Count unique transactions by price type
+        const retailTransactions = new Set(transactionItems.filter(i => i.price_type === 'retail').map(i => i.transaction_id));
+        const wholesaleTransactions = new Set(transactionItems.filter(i => i.price_type === 'wholesale').map(i => i.transaction_id));
+        retailSales = retailTransactions.size;
+        wholesaleSales = wholesaleTransactions.size;
       }
     }
 
-    // Calculate gross revenue
-    const grossRevenue = allTransactions?.reduce((sum, t) => {
-      return sum + (parseFloat(t.total) || 0);
-    }, 0) || 0;
-
-    // Retail vs Wholesale breakdown
-    const retailSales = allTransactions?.filter(t => t.payment_method !== 'wholesale').length || 0;
-    const wholesaleSales = allTransactions?.filter(t => t.payment_method === 'wholesale').length || 0;
-    
-    const retailRevenue = allTransactions
-      ?.filter(t => t.payment_method !== 'wholesale')
-      .reduce((sum, t) => sum + (parseFloat(t.total) || 0), 0) || 0;
-    
-    const wholesaleRevenue = allTransactions
-      ?.filter(t => t.payment_method === 'wholesale')
-      .reduce((sum, t) => sum + (parseFloat(t.total) || 0), 0) || 0;
+    // Calculate gross revenue based on filtered items
+    const grossRevenue = retailRevenue + wholesaleRevenue;
 
     // Fetch today's transactions
     const { data: todayTransactions, error: todayTxnError } = await supabase
@@ -269,11 +305,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const trendTransactionIds = trendTransactionsWithIds?.map(t => t.id) || [];
 
       if (trendTransactionIds.length > 0) {
-        // Fetch transaction items
-        const { data: trendItems } = await supabase
+        // Fetch transaction items with price type filtering
+        let trendItemsQuery = supabase
           .from('sales_transaction_items')
-          .select('transaction_id, product_id, quantity, unit_price')
+          .select('transaction_id, product_id, quantity, unit_price, price_type')
           .in('transaction_id', trendTransactionIds);
+        
+        // Filter by price type if specified
+        if (priceType !== 'all') {
+          trendItemsQuery = trendItemsQuery.eq('price_type', priceType);
+        }
+
+        const { data: trendItems } = await trendItemsQuery;
 
         // Create a map of product IDs to cost prices
         const productCostMap = new Map();
