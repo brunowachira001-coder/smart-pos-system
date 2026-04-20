@@ -88,12 +88,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (productsError) throw productsError;
 
     // Calculate inventory values based on price type
+    // Note: Inventory value always shows BOTH retail and wholesale combined
     const inventoryValueCost = products?.reduce((sum, p) => {
       const cost = parseFloat(p.cost_price) || 0;
       const qty = p.stock_quantity || 0;
       return sum + (cost * qty);
     }, 0) || 0;
 
+    // Calculate selling value based on selected price type
     let inventoryValueSelling = 0;
     if (priceType === 'retail') {
       inventoryValueSelling = products?.reduce((sum, p) => {
@@ -107,19 +109,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const qty = p.stock_quantity || 0;
         return sum + (price * qty);
       }, 0) || 0;
-    } else {
-      // For 'all', calculate both retail and wholesale
-      const retailValue = products?.reduce((sum, p) => {
-        const price = parseFloat(p.retail_price) || 0;
-        const qty = p.stock_quantity || 0;
-        return sum + (price * qty);
-      }, 0) || 0;
-      const wholesaleValue = products?.reduce((sum, p) => {
-        const price = parseFloat(p.wholesale_price) || 0;
-        const qty = p.stock_quantity || 0;
-        return sum + (price * qty);
-      }, 0) || 0;
-      inventoryValueSelling = retailValue + wholesaleValue;
     }
 
     const totalUnits = products?.reduce((sum, p) => sum + (p.stock_quantity || 0), 0) || 0;
@@ -150,16 +139,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (allTransactions && allTransactions.length > 0) {
       const transactionIds = allTransactions.map(t => t.id);
       
-      // Fetch all transaction items for these transactions
+      // Fetch all transaction items for these transactions with price type filter
       let itemsQuery = supabase
         .from('sales_transaction_items')
         .select('product_id, quantity, unit_price, transaction_id, price_type')
-        .in('transaction_id', transactionIds);
-      
-      // Filter by price type if specified
-      if (priceType !== 'all') {
-        itemsQuery = itemsQuery.eq('price_type', priceType);
-      }
+        .in('transaction_id', transactionIds)
+        .eq('price_type', priceType); // Always filter by price type (retail or wholesale)
 
       const { data: transactionItems, error: itemsError } = await itemsQuery;
 
@@ -309,12 +294,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         let trendItemsQuery = supabase
           .from('sales_transaction_items')
           .select('transaction_id, product_id, quantity, unit_price, price_type')
-          .in('transaction_id', trendTransactionIds);
-        
-        // Filter by price type if specified
-        if (priceType !== 'all') {
-          trendItemsQuery = trendItemsQuery.eq('price_type', priceType);
-        }
+          .in('transaction_id', trendTransactionIds)
+          .eq('price_type', priceType); // Always filter by price type
 
         const { data: trendItems } = await trendItemsQuery;
 
