@@ -89,15 +89,18 @@ export default function Dashboard() {
       return `KSH ${(val / 1000).toFixed(0)}k`;
     };
 
-    const pointSpacing = 20; // Tight spacing like screenshot
-    const svgWidth = Math.max(900, chartData.length * pointSpacing + 100);
+    const pointSpacing = 15; // Tighter spacing like screenshot
+    const svgWidth = Math.max(800, chartData.length * pointSpacing);
     const svgHeight = 240;
-    const padding = { top: 10, right: 20, bottom: 30, left: 70 };
+    const padding = { top: 10, right: 20, bottom: 20, left: 70 }; // Reduced bottom padding
     const plotHeight = svgHeight - padding.top - padding.bottom;
     const plotWidth = svgWidth - padding.left - padding.right;
 
     const getY = (value: number) => padding.top + plotHeight - (value / scale) * plotHeight;
-    const getX = (index: number) => padding.left + (index / (chartData.length - 1)) * plotWidth;
+    const getX = (index: number) => {
+      if (chartData.length === 1) return padding.left + plotWidth / 2;
+      return padding.left + (index / (chartData.length - 1)) * plotWidth;
+    };
 
     const handleMouseEnter = (index: number) => setHoveredIndex(index);
     const handleMouseLeave = () => setHoveredIndex(null);
@@ -105,7 +108,7 @@ export default function Dashboard() {
     return (
       <div className="flex h-full relative">
         {/* Y-axis labels */}
-        <div className="w-16 flex flex-col justify-between text-[10px] text-[var(--text-secondary)] pr-2 flex-shrink-0 pt-2 pb-8">
+        <div className="w-16 flex flex-col justify-between text-[10px] text-[var(--text-secondary)] pr-2 flex-shrink-0 pt-2 pb-5">
           {yLabels.map((label, i) => (
             <span key={i} className="text-right leading-none">{formatCurrency(label)}</span>
           ))}
