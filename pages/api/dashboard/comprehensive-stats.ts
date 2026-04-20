@@ -87,8 +87,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (productsError) throw productsError;
 
-    // Calculate inventory values based on price type
-    // Note: This is the ONLY part affected by the price type filter
+    // Calculate inventory values based on price type (retail or wholesale only)
     const inventoryValueCost = products?.reduce((sum, p) => {
       const cost = parseFloat(p.cost_price) || 0;
       const qty = p.stock_quantity || 0;
@@ -108,19 +107,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const qty = p.stock_quantity || 0;
         return sum + (price * qty);
       }, 0) || 0;
-    } else {
-      // For 'all', calculate both retail and wholesale combined
-      const retailValue = products?.reduce((sum, p) => {
-        const price = parseFloat(p.retail_price) || 0;
-        const qty = p.stock_quantity || 0;
-        return sum + (price * qty);
-      }, 0) || 0;
-      const wholesaleValue = products?.reduce((sum, p) => {
-        const price = parseFloat(p.wholesale_price) || 0;
-        const qty = p.stock_quantity || 0;
-        return sum + (price * qty);
-      }, 0) || 0;
-      inventoryValueSelling = retailValue + wholesaleValue;
     }
 
     const totalUnits = products?.reduce((sum, p) => sum + (p.stock_quantity || 0), 0) || 0;

@@ -37,7 +37,7 @@ export default function Dashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [dateRange, setDateRange] = useState('all');
-  const [priceType, setPriceType] = useState('all'); // all, retail, wholesale - only affects inventory
+  const [priceType, setPriceType] = useState('retail'); // retail or wholesale only
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
   useEffect(() => {
@@ -313,7 +313,6 @@ export default function Dashboard() {
               onChange={(e) => setPriceType(e.target.value)}
               className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg px-4 py-2 text-sm text-[var(--text-primary)]"
             >
-              <option value="all">All</option>
               <option value="retail">Retail</option>
               <option value="wholesale">Wholesale</option>
             </select>
@@ -373,9 +372,7 @@ export default function Dashboard() {
               KSH {stats?.potentialProfit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </p>
             <p className="text-xs text-[var(--text-secondary)] mt-2">
-              {priceType === 'all' ? 'Potential profit from inventory at retail + wholesale' : 
-               priceType === 'retail' ? 'Potential profit from inventory at retail prices' : 
-               'Potential profit from inventory at wholesale prices'}
+              Potential profit from inventory at {priceType} prices
             </p>
             <p className="text-xs text-[var(--text-secondary)] mt-2 italic">
               ⚠ Profit is reduced due to pricing issues
@@ -507,9 +504,7 @@ export default function Dashboard() {
               KSH {stats?.inventoryValueSelling.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </p>
             <p className="text-xs text-[var(--text-secondary)] mt-2">
-              {priceType === 'all' ? 'Current value at retail + wholesale' : 
-               priceType === 'retail' ? 'Current value at retail price' : 
-               'Current value at wholesale price'}
+              Current value at {priceType} price
             </p>
           </div>
 
