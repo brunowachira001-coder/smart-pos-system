@@ -436,7 +436,7 @@ export default function POSPage() {
                             <input
                               type="text"
                               inputMode="numeric"
-                              value={quantityInputs[item.id] || item.quantity}
+                              value={quantityInputs[item.id] !== undefined ? quantityInputs[item.id] : item.quantity}
                               onChange={(e) => {
                                 const value = e.target.value;
                                 // Allow empty string or numbers only
@@ -453,11 +453,11 @@ export default function POSPage() {
                                 }
                               }}
                               onFocus={(e) => {
-                                // Select all text when focused for easy editing
-                                e.target.select();
+                                // Clear the field on focus so user can type fresh
+                                setQuantityInputs(prev => ({ ...prev, [item.id]: '' }));
                               }}
                               onBlur={(e) => {
-                                // If field is empty or invalid on blur, reset to current cart quantity
+                                // If field is empty or invalid on blur, reset to 1
                                 const value = e.target.value;
                                 if (value === '' || parseInt(value) < 1) {
                                   setQuantityInputs(prev => ({ ...prev, [item.id]: '1' }));
@@ -467,10 +467,14 @@ export default function POSPage() {
                                   if (newQty > maxStock) {
                                     setQuantityInputs(prev => ({ ...prev, [item.id]: maxStock.toString() }));
                                     updateCartQuantity(item.id, maxStock);
+                                  } else {
+                                    // Ensure the display matches what was typed
+                                    setQuantityInputs(prev => ({ ...prev, [item.id]: newQty.toString() }));
                                   }
                                 }
                               }}
                               className="w-20 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded px-2 py-1 text-sm text-center"
+                              placeholder="Qty"
                             />
                             <span className="text-xs text-[var(--text-secondary)] ml-2">Max: {maxStock}</span>
                           </div>
