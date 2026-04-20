@@ -89,15 +89,15 @@ export default function Dashboard() {
       return `KSH ${(val / 1000).toFixed(0)}k`;
     };
 
-    const groupSpacing = 25;
-    const svgWidth = Math.max(900, chartData.length * groupSpacing + 100);
+    const pointSpacing = 20; // Tight spacing like screenshot
+    const svgWidth = Math.max(900, chartData.length * pointSpacing + 100);
     const svgHeight = 240;
     const padding = { top: 10, right: 20, bottom: 30, left: 70 };
     const plotHeight = svgHeight - padding.top - padding.bottom;
+    const plotWidth = svgWidth - padding.left - padding.right;
 
     const getY = (value: number) => padding.top + plotHeight - (value / scale) * plotHeight;
-    const getX = (index: number) => padding.left + (index * groupSpacing);
-    const zeroY = getY(0);
+    const getX = (index: number) => padding.left + (index / (chartData.length - 1)) * plotWidth;
 
     const handleMouseEnter = (index: number) => setHoveredIndex(index);
     const handleMouseLeave = () => setHoveredIndex(null);
@@ -124,86 +124,101 @@ export default function Dashboard() {
                 y2={getY(label)}
                 stroke="currentColor"
                 strokeOpacity="0.15"
-                strokeDasharray="2,3"
+                strokeDasharray="3,3"
                 strokeWidth="1"
               />
             ))}
 
-            {/* Candlestick elements for each data point */}
-            {chartData.map((data, i) => {
-              const x = getX(i) + groupSpacing/2;
-              const grossY = getY(data.gross);
-              const netY = getY(data.net);
-              
-              return (
-                <g key={`candle-${i}`}>
-                  {/* Green candlestick for Gross Sales */}
-                  <line
-                    x1={x - 3}
-                    y1={zeroY}
-                    x2={x - 3}
-                    y2={grossY}
-                    stroke="#10b981"
-                    strokeWidth="2"
-                    opacity="0.8"
-                  />
-                  <circle cx={x - 3} cy={grossY} r="3" fill="#10b981" opacity="0.9" />
-                  
-                  {/* Blue candlestick for Net Sales */}
-                  <line
-                    x1={x + 3}
-                    y1={zeroY}
-                    x2={x + 3}
-                    y2={netY}
-                    stroke="#3b82f6"
-                    strokeWidth="2"
-                    opacity="0.8"
-                  />
-                  <circle cx={x + 3} cy={netY} r="3" fill="#3b82f6" opacity="0.9" />
-                  
-                  {/* Invisible hover area */}
-                  <rect
-                    x={x - 10}
-                    y={padding.top}
-                    width={20}
-                    height={plotHeight}
-                    fill="transparent"
-                    style={{ cursor: 'pointer' }}
-                    onMouseEnter={() => handleMouseEnter(i)}
-                    onMouseLeave={handleMouseLeave}
-                  />
-                </g>
-              );
-            })}
-
-            {/* Red line for Expenses */}
+            {/* Gross Sales - Green line with dots */}
             <polyline 
-              points={chartData.map((d, i) => `${getX(i) + groupSpacing/2},${getY(d.expenses)}`).join(' ')}
+              points={chartData.map((d, i) => `${getX(i)},${getY(d.gross)}`).join(' ')}
               fill="none" 
-              stroke="#ef4444" 
-              strokeWidth="1.5" 
-              opacity="0.9"
-            />
-
-            {/* Blue line for Verified Profit */}
-            <polyline 
-              points={chartData.map((d, i) => `${getX(i) + groupSpacing/2},${getY(d.profit)}`).join(' ')}
-              fill="none" 
-              stroke="#60a5fa" 
+              stroke="#10b981" 
               strokeWidth="2" 
               opacity="0.9"
             />
+            {chartData.map((data, i) => (
+              <circle 
+                key={`gross-dot-${i}`}
+                cx={getX(i)} 
+                cy={getY(data.gross)} 
+                r="3.5" 
+                fill="#10b981" 
+                opacity="0.95"
+              />
+            ))}
 
-            {/* Dots on lines */}
-            {chartData.map((data, i) => {
-              const x = getX(i) + groupSpacing/2;
-              return (
-                <g key={`dots-${i}`}>
-                  <circle cx={x} cy={getY(data.expenses)} r="2" fill="#ef4444" opacity="0.9" />
-                  <circle cx={x} cy={getY(data.profit)} r="2.5" fill="#60a5fa" opacity="0.9" />
-                </g>
-              );
-            })}
+            {/* Net Sales - Lighter green line with dots */}
+            <polyline 
+              points={chartData.map((d, i) => `${getX(i)},${getY(d.net)}`).join(' ')}
+              fill="none" 
+              stroke="#34d399" 
+              strokeWidth="2" 
+              opacity="0.85"
+            />
+            {chartData.map((data, i) => (
+              <circle 
+                key={`net-dot-${i}`}
+                cx={getX(i)} 
+                cy={getY(data.net)} 
+                r="3.5" 
+                fill="#34d399" 
+                opacity="0.9"
+              />
+            ))}
+
+            {/* Expenses - Red line with dots */}
+            <polyline 
+              points={chartData.map((d, i) => `${getX(i)},${getY(d.expenses)}`).join(' ')}
+              fill="none" 
+              stroke="#ef4444" 
+              strokeWidth="2" 
+              opacity="0.95"
+            />
+            {chartData.map((data, i) => (
+              <circle 
+                key={`expense-dot-${i}`}
+                cx={getX(i)} 
+                cy={getY(data.expenses)} 
+                r="3" 
+                fill="#ef4444" 
+                opacity="0.95"
+              />
+            ))}
+
+            {/* Verified Profit - Blue line with dots */}
+            <polyline 
+              points={chartData.map((d, i) => `${getX(i)},${getY(d.profit)}`).join(' ')}
+              fill="none" 
+              stroke="#60a5fa" 
+              strokeWidth="2.5" 
+              opacity="0.95"
+            />
+            {chartData.map((data, i) => (
+              <circle 
+                key={`profit-dot-${i}`}
+                cx={getX(i)} 
+                cy={getY(data.profit)} 
+                r="4" 
+                fill="#60a5fa" 
+                opacity="0.95"
+              />
+            ))}
+
+            {/* Invisible hover areas */}
+            {chartData.map((data, i) => (
+              <rect
+                key={`hover-${i}`}
+                x={getX(i) - 10}
+                y={padding.top}
+                width={20}
+                height={plotHeight}
+                fill="transparent"
+                style={{ cursor: 'pointer' }}
+                onMouseEnter={() => handleMouseEnter(i)}
+                onMouseLeave={handleMouseLeave}
+              />
+            ))}
           </svg>
 
           {/* Tooltip */}
@@ -211,7 +226,7 @@ export default function Dashboard() {
             <div 
               className="absolute bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-3 shadow-lg text-xs z-10"
               style={{
-                left: `${getX(hoveredIndex) + groupSpacing/2 + 10}px`,
+                left: `${Math.min(getX(hoveredIndex) + 15, svgWidth - 200)}px`,
                 top: '10px',
                 pointerEvents: 'none'
               }}
@@ -223,7 +238,7 @@ export default function Dashboard() {
                   <span className="text-[var(--text-secondary)]">Gross: KSH {chartData[hoveredIndex].gross.toLocaleString()}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                  <div className="w-2 h-2 rounded-full bg-green-400"></div>
                   <span className="text-[var(--text-secondary)]">Net: KSH {chartData[hoveredIndex].net.toLocaleString()}</span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -562,13 +577,24 @@ export default function Dashboard() {
           {/* X-axis dates */}
           <div className="flex text-[9px] text-[var(--text-secondary)] mt-1 overflow-x-auto">
             <div className="w-16 flex-shrink-0"></div>
-            <div className="flex-1 flex justify-between px-2">
-              {stats?.chartData && stats.chartData.length > 0 && stats.chartData.map((item, i) => {
-                if (i % Math.ceil(stats.chartData.length / 10) === 0 || i === stats.chartData.length - 1) {
-                  return <span key={i} className="whitespace-nowrap">{item.date}</span>;
-                }
-                return null;
-              })}
+            <div className="flex-1 relative">
+              <div className="flex justify-between px-2">
+                {stats?.chartData && stats.chartData.length > 0 && stats.chartData.map((item, i) => {
+                  // Show dates at regular intervals to match data points
+                  const showEvery = Math.max(1, Math.floor(stats.chartData.length / 10));
+                  if (i % showEvery === 0 || i === stats.chartData.length - 1) {
+                    return (
+                      <span 
+                        key={i} 
+                        className="whitespace-nowrap"
+                      >
+                        {item.date}
+                      </span>
+                    );
+                  }
+                  return null;
+                })}
+              </div>
             </div>
           </div>
 
