@@ -429,7 +429,12 @@ export default function POSPage() {
                             </span>
                           </div>
                           <h4 className="text-sm font-medium text-[var(--text-primary)] truncate">{item.product_name}</h4>
-                          <p className="text-xs text-[var(--text-secondary)]">Unit: KSH {item.unit_price.toFixed(2)}</p>
+                          <div className="flex items-center gap-3 text-xs text-[var(--text-secondary)] mt-1">
+                            <span>Unit: KSH {item.unit_price.toFixed(2)}</span>
+                            <span className="text-[var(--text-primary)]">
+                              {(quantityInputs[item.id] || item.quantity)} × KSH {item.unit_price.toFixed(0)}
+                            </span>
+                          </div>
                           
                           {/* Quantity Input */}
                           <div className="mt-2">
