@@ -46,6 +46,22 @@ export default function DebtManagement() {
     fetchData();
   }, []);
 
+  // Check for day change every minute and refresh data
+  useEffect(() => {
+    const checkDayChange = () => {
+      const now = new Date();
+      // If it's within the first minute of a new day, refresh data
+      if (now.getHours() === 0 && now.getMinutes() === 0) {
+        console.log('Day changed, refreshing debt management data...');
+        fetchData();
+      }
+    };
+
+    const interval = setInterval(checkDayChange, 60000); // Check every minute
+
+    return () => clearInterval(interval);
+  }, []);
+
   const fetchData = async () => {
     try {
       const [statsRes, debtsRes] = await Promise.all([

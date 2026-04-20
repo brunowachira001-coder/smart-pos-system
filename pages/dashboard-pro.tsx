@@ -55,6 +55,22 @@ export default function Dashboard() {
     return () => clearInterval(interval);
   }, [dateRange, priceType]);
 
+  // Check for day change every minute and refresh data
+  useEffect(() => {
+    const checkDayChange = () => {
+      const now = new Date();
+      // If it's within the first minute of a new day, refresh data
+      if (now.getHours() === 0 && now.getMinutes() === 0) {
+        console.log('Day changed, refreshing dashboard data...');
+        fetchStats(false); // Silent refresh when day changes
+      }
+    };
+
+    const interval = setInterval(checkDayChange, 60000); // Check every minute
+
+    return () => clearInterval(interval);
+  }, [dateRange, priceType]);
+
   const fetchStats = async (showLoading = true) => {
     try {
       if (showLoading) {
