@@ -414,7 +414,6 @@ export default function POSPage() {
                         {/* Product Details */}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
-                            <span className="text-xs text-[var(--text-secondary)]">#{index + 1}</span>
                             <span className="text-xs px-2 py-0.5 bg-green-500/20 text-green-400 rounded">
                               {item.price_type}
                             </span>
@@ -430,9 +429,20 @@ export default function POSPage() {
                               max={maxStock}
                               value={item.quantity}
                               onChange={(e) => {
-                                const newQty = parseInt(e.target.value) || 1;
-                                if (newQty >= 1 && newQty <= maxStock) {
+                                const value = e.target.value;
+                                if (value === '') {
+                                  // Allow empty field for user to type
+                                  return;
+                                }
+                                const newQty = parseInt(value);
+                                if (!isNaN(newQty) && newQty >= 1 && newQty <= maxStock) {
                                   updateCartQuantity(item.id, newQty);
+                                }
+                              }}
+                              onBlur={(e) => {
+                                // If field is empty on blur, reset to 1
+                                if (e.target.value === '' || parseInt(e.target.value) < 1) {
+                                  updateCartQuantity(item.id, 1);
                                 }
                               }}
                               className="w-20 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded px-2 py-1 text-sm text-center"
