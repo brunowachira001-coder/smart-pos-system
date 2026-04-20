@@ -22,17 +22,33 @@ export default function ProductPerformancePage() {
 
   useEffect(() => {
     // Convert selected range to actual dates
-    const { startDate: start, endDate: end } = getDateRange(selectedRange);
-    
-    if (start && end) {
-      setDateRange({
-        start: formatDateLocal(start),
-        end: formatDateLocal(end)
-      });
-    } else {
-      // For 'all', clear the date range
-      setDateRange({ start: '', end: '' });
-    }
+    const updateDates = () => {
+      const { startDate: start, endDate: end } = getDateRange(selectedRange);
+      
+      if (start && end) {
+        setDateRange({
+          start: formatDateLocal(start),
+          end: formatDateLocal(end)
+        });
+      } else {
+        // For 'all', clear the date range
+        setDateRange({ start: '', end: '' });
+      }
+    };
+
+    // Update dates immediately
+    updateDates();
+
+    // Check for day change every minute
+    const interval = setInterval(() => {
+      const now = new Date();
+      // If it's within the first minute of a new day, update dates
+      if (now.getHours() === 0 && now.getMinutes() === 0) {
+        updateDates();
+      }
+    }, 60000); // Check every minute
+
+    return () => clearInterval(interval);
   }, [selectedRange]);
 
   useEffect(() => {

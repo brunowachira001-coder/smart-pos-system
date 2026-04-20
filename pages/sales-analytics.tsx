@@ -45,16 +45,32 @@ export default function SalesAnalyticsPage() {
 
   useEffect(() => {
     // Convert selected range to actual dates
-    const { startDate: start, endDate: end } = getDateRange(dateFilter);
-    
-    if (start && end) {
-      setStartDate(formatDateLocal(start));
-      setEndDate(formatDateLocal(end));
-    } else {
-      // For 'all', clear the date range
-      setStartDate('');
-      setEndDate('');
-    }
+    const updateDates = () => {
+      const { startDate: start, endDate: end } = getDateRange(dateFilter);
+      
+      if (start && end) {
+        setStartDate(formatDateLocal(start));
+        setEndDate(formatDateLocal(end));
+      } else {
+        // For 'all', clear the date range
+        setStartDate('');
+        setEndDate('');
+      }
+    };
+
+    // Update dates immediately
+    updateDates();
+
+    // Check for day change every minute
+    const interval = setInterval(() => {
+      const now = new Date();
+      // If it's within the first minute of a new day, update dates
+      if (now.getHours() === 0 && now.getMinutes() === 0) {
+        updateDates();
+      }
+    }, 60000); // Check every minute
+
+    return () => clearInterval(interval);
   }, [dateFilter]);
 
   useEffect(() => {
