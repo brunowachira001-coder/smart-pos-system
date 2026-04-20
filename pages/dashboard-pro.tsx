@@ -374,6 +374,209 @@ export default function Dashboard() {
             </button>
           </div>
         </div>
+
+        {/* Sales & Profit Trend Chart */}
+        <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-[var(--text-primary)]">Sales & Profit Trend</h2>
+            <button
+              onClick={() => router.push('/sales-analytics')}
+              className="text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+            >
+              👁 View
+            </button>
+          </div>
+
+          {/* Chart Area */}
+          <div className="relative bg-[var(--bg-secondary)] rounded border border-[var(--border-color)] p-4" style={{ height: '300px' }}>
+            {(() => {
+              const chartData = stats?.chartData || [];
+
+              if (chartData.length === 0) {
+                return (
+                  <div className="flex items-center justify-center h-full text-[var(--text-secondary)] text-sm">
+                    No transaction data available for selected period
+                  </div>
+                );
+              }
+
+              const maxValue = Math.max(
+                ...chartData.map(d => Math.max(d.gross, d.net, d.expenses, d.profit)),
+                100
+              );
+              const scale = maxValue * 1.2;
+
+              const yLabels = [];
+              for (let i = 0; i <= 5; i++) {
+                yLabels.push(scale * (1 - i / 5));
+              }
+
+              const formatCurrency = (val: number) => {
+                if (val >= 1000000) return `KSH ${(val / 1000000).toFixed(0)}M`;
+                if (val >= 100000) return `KSH ${(val / 1000).toFixed(0)}k`;
+                if (val >= 1000) return `KSH ${(val / 1000).toFixed(0)}k`;
+                return `KSH ${val.toFixed(0)}`;
+              };
+
+              const barWidth = 8;
+              const groupSpacing = 40;
+              const svgWidth = Math.max(800, chartData.length * groupSpacing + 100);
+              const svgHeight = 250;
+              const padding = { top: 10, right: 20, bottom: 30, left: 80 };
+              const plotWidth = svgWidth - padding.left - padding.right;
+              const plotHeight = svgHeight - padding.top - padding.bottom;
+
+              const getY = (value: number) => padding.top + plotHeight - (value / scale) * plotHeight;
+              const getX = (index: number) => padding.left + (index * groupSpacing);
+              const zeroY = getY(0);
+
+              // Build line paths
+              const grossPath = chartData.map((d, i) => `${getX(i) + groupSpacing/2},${getY(d.gross)}`).join(' ');
+              const netPath = chartData.map((d, i) => `${getX(i) + groupSpacing/2},${getY(d.net)}`).join(' ');
+              const profitPath = chartData.map((d, i) => `${getX(i) + groupSpacing/2},${getY(d.profit)}`).join(' ');
+
+              return (
+                <div className="flex h-full">
+                  {/* Y-axis labels */}
+                  <div className="w-20 flex flex-col justify-between text-[10px] text-[var(--text-secondary)] pr-2 flex-shrink-0">
+                    {yLabels.map((label, i) => (
+                      <span key={i} className="text-right">{formatCurrency(label)}</span>
+                    ))}
+                  </div>
+
+                  {/* Chart SVG */}
+                  <div className="flex-1 overflow-x-auto">
+                    <svg width={svgWidth} height={svgHeight} style={{ minWidth: '100%' }}>
+                      {/* Grid lines */}
+                      {yLabels.map((label, i) => (
+                        <line
+                          key={`grid-${i}`}
+                          x1={padding.left}
+                          y1={padding.top + (i / (yLabels.length - 1)) * plotHeight}
+                          x2={svgWidth - padding.right}
+                          y2={padding.top + (i / (yLabels.length - 1)) * plotHeight}
+                          stroke="currentColor"
+                          strokeOpacity="0.1"
+                          strokeDasharray="3,3"
+                          strokeWidth="1"
+                        />
+                      ))}
+
+                      {/* Zero line */}
+                      <line
+                        x1={padding.left}
+                        y1={zeroY}
+                        x2={svgWidth - padding.right}
+                        y2={zeroY}
+                        stroke="currentColor"
+                        strokeOpacity="0.2"
+                        strokeWidth="1"
+                      />
+
+                      {/* Bars for each data point */}
+                      {chartData.map((data, i) => {
+                        const x = getX(i);
+                        const barGap = 2;
+                        
+                        return (
+                          <g key={`bars-${i}`}>
+                            {/* Gross Sales - Green */}
+                            <rect
+                              x={x}
+                              y={getY(data.gross)}
+                              width={barWidth}
+                              height={Math.max(0, zeroY - getY(data.gross))}
+                              fill="#10b981"
+                              opacity="0.9"
+                            />
+                            
+                            {/* Net Sales - Blue */}
+                            <rect
+                              x={x + barWidth + barGap}
+                              y={getY(data.net)}
+                              width={barWidth}
+                              height={Math.max(0, zeroY - getY(data.net))}
+                              fill="#3b82f6"
+                              opacity="0.9"
+                            />
+                            
+                            {/* Expenses - Red */}
+                            <rect
+                              x={x + (barWidth + barGap) * 2}
+                              y={getY(data.expenses)}
+                              width={barWidth}
+                              height={Math.max(0, zeroY - getY(data.expenses))}
+                              fill="#ef4444"
+                              opacity="0.9"
+                            />
+                          </g>
+                        );
+                      })}
+
+                      {/* Line for Verified Profit - Purple */}
+                      <polyline 
+                        points={profitPath} 
+                        fill="none" 
+                        stroke="#a855f7" 
+                        strokeWidth="2.5" 
+                        opacity="0.9"
+                      />
+
+                      {/* Dots on profit line */}
+                      {chartData.map((data, i) => {
+                        const x = getX(i) + groupSpacing/2;
+                        return (
+                          <circle 
+                            key={`profit-dot-${i}`}
+                            cx={x} 
+                            cy={getY(data.profit)} 
+                            r="4" 
+                            fill="#a855f7" 
+                            opacity="0.9"
+                          />
+                        );
+                      })}
+                    </svg>
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+
+          {/* X-axis labels */}
+          <div className="flex text-[9px] text-[var(--text-secondary)] mt-2 overflow-x-auto">
+            <div className="w-20 flex-shrink-0"></div>
+            <div className="flex-1 flex justify-between px-2">
+              {stats?.chartData && stats.chartData.length > 0 && stats.chartData.map((item, i) => {
+                // Show every 3rd date to avoid crowding
+                if (i % 3 === 0 || i === stats.chartData.length - 1) {
+                  return <span key={i}>{item.date}</span>;
+                }
+                return null;
+              })}
+            </div>
+          </div>
+
+          {/* Legend */}
+          <div className="flex items-center justify-center gap-6 mt-4 text-xs flex-wrap">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-emerald-500 rounded-sm"></div>
+              <span className="text-[var(--text-secondary)]">Gross Sales</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-blue-500 rounded-sm"></div>
+              <span className="text-[var(--text-secondary)]">Net Sales</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-red-500 rounded-sm"></div>
+              <span className="text-[var(--text-secondary)]">Expenses</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-0.5 bg-purple-500"></div>
+              <span className="text-[var(--text-secondary)]">Verified Profit</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
