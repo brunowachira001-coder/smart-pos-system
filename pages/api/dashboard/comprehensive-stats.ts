@@ -228,16 +228,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       p.stock_quantity <= (p.minimum_stock_level || 10)
     ).length || 0;
 
-    // Fetch outstanding debt
+    // Fetch outstanding debt (Outstanding + Partial statuses)
     let outstandingDebt = 0;
     try {
       const { data: debts } = await supabase
         .from('debts')
-        .select('amount')
-        .eq('status', 'pending');
+        .select('amount_remaining, status')
+        .in('status', ['Outstanding', 'Partial']);
       
-      outstandingDebt = debts?.reduce((sum, d) => sum + (parseFloat(d.amount) || 0), 0) || 0;
+      outstandingDebt = debts?.reduce((sum, d) => sum + (parseFloat(d.amount_remaining) || 0), 0) || 0;
     } catch (e) {
+      console.error('Error fetching debts:', e);
       outstandingDebt = 0;
     }
 
