@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import DateRangeFilter from '../components/DateRangeFilter';
+import DateRangeFilter, { getDateRange } from '../components/DateRangeFilter';
 
 interface AnalyticsData {
   overview: {
@@ -44,8 +44,22 @@ export default function SalesAnalyticsPage() {
   };
 
   useEffect(() => {
+    // Convert selected range to actual dates
+    const { startDate: start, endDate: end } = getDateRange(dateFilter);
+    
+    if (start && end) {
+      setStartDate(start.toISOString().split('T')[0]);
+      setEndDate(end.toISOString().split('T')[0]);
+    } else {
+      // For 'all', clear the date range
+      setStartDate('');
+      setEndDate('');
+    }
+  }, [dateFilter]);
+
+  useEffect(() => {
     fetchAnalytics();
-  }, [dateFilter, startDate, endDate]);
+  }, [startDate, endDate]);
 
   const fetchAnalytics = async () => {
     setLoading(true);

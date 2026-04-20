@@ -22,6 +22,8 @@ export default function Expenses() {
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [methodFilter, setMethodFilter] = useState('all');
   const [dateRange, setDateRange] = useState('all');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [categories, setCategories] = useState<any[]>([]);
 
@@ -49,8 +51,22 @@ export default function Expenses() {
   }, []);
 
   useEffect(() => {
+    // Convert selected range to actual dates
+    const { startDate: start, endDate: end } = getDateRange(dateRange);
+    
+    if (start && end) {
+      setStartDate(start.toISOString().split('T')[0]);
+      setEndDate(end.toISOString().split('T')[0]);
+    } else {
+      // For 'all', clear the date range
+      setStartDate('');
+      setEndDate('');
+    }
+  }, [dateRange]);
+
+  useEffect(() => {
     filterExpenses();
-  }, [expenses, searchTerm, categoryFilter, methodFilter]);
+  }, [expenses, searchTerm, categoryFilter, methodFilter, startDate, endDate]);
 
   const fetchData = async () => {
     try {
@@ -102,6 +118,14 @@ export default function Expenses() {
         e.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
         e.vendor_name?.toLowerCase().includes(searchTerm.toLowerCase())
       );
+    }
+
+    // Date range filtering
+    if (startDate && endDate) {
+      filtered = filtered.filter(e => {
+        const expenseDate = new Date(e.expense_date).toISOString().split('T')[0];
+        return expenseDate >= startDate && expenseDate <= endDate;
+      });
     }
 
     setFilteredExpenses(filtered);

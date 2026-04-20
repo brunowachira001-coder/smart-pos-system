@@ -32,8 +32,22 @@ export default function TransactionsPage() {
   const [showDetails, setShowDetails] = useState(false);
 
   useEffect(() => {
+    // Convert selected range to actual dates
+    const { startDate: start, endDate: end } = getDateRange(dateRange);
+    
+    if (start && end) {
+      setStartDate(start.toISOString().split('T')[0]);
+      setEndDate(end.toISOString().split('T')[0]);
+    } else {
+      // For 'all', clear the date range
+      setStartDate('');
+      setEndDate('');
+    }
+  }, [dateRange]);
+
+  useEffect(() => {
     fetchTransactions();
-  }, [searchQuery, filterType, paymentFilter, dateRange, startDate, endDate, currentPage]);
+  }, [searchQuery, filterType, paymentFilter, startDate, endDate, currentPage]);
 
   const fetchTransactions = async () => {
     setLoading(true);

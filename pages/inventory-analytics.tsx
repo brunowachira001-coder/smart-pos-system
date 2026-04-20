@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import DateRangeFilter from '../components/DateRangeFilter';
+import DateRangeFilter, { getDateRange } from '../components/DateRangeFilter';
 
 interface InventoryAnalytics {
   overview: {
@@ -48,8 +48,22 @@ export default function InventoryAnalyticsPage() {
   };
 
   useEffect(() => {
+    // Convert selected range to actual dates
+    const { startDate: start, endDate: end } = getDateRange(dateFilter);
+    
+    if (start && end) {
+      setStartDate(start.toISOString().split('T')[0]);
+      setEndDate(end.toISOString().split('T')[0]);
+    } else {
+      // For 'all', clear the date range
+      setStartDate('');
+      setEndDate('');
+    }
+  }, [dateFilter]);
+
+  useEffect(() => {
     fetchAnalytics();
-  }, [dateFilter, startDate, endDate, filterType]);
+  }, [startDate, endDate, filterType]);
 
   const fetchAnalytics = async () => {
     setLoading(true);

@@ -24,6 +24,8 @@ export default function Returns() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [dateRange, setDateRange] = useState('all');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showProcessModal, setShowProcessModal] = useState(false);
   const [selectedReturn, setSelectedReturn] = useState<Return | null>(null);
@@ -58,8 +60,22 @@ export default function Returns() {
   }, []);
 
   useEffect(() => {
+    // Convert selected range to actual dates
+    const { startDate: start, endDate: end } = getDateRange(dateRange);
+    
+    if (start && end) {
+      setStartDate(start.toISOString().split('T')[0]);
+      setEndDate(end.toISOString().split('T')[0]);
+    } else {
+      // For 'all', clear the date range
+      setStartDate('');
+      setEndDate('');
+    }
+  }, [dateRange]);
+
+  useEffect(() => {
     filterReturns();
-  }, [returns, searchTerm, statusFilter]);
+  }, [returns, searchTerm, statusFilter, startDate, endDate]);
 
   const fetchData = async () => {
     try {
@@ -118,6 +134,14 @@ export default function Returns() {
         r.customer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         r.product_name.toLowerCase().includes(searchTerm.toLowerCase())
       );
+    }
+
+    // Date range filtering
+    if (startDate && endDate) {
+      filtered = filtered.filter(r => {
+        const returnDate = new Date(r.return_date).toISOString().split('T')[0];
+        return returnDate >= startDate && returnDate <= endDate;
+      });
     }
 
     setFilteredReturns(filtered);
