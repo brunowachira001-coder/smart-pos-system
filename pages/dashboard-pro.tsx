@@ -38,6 +38,7 @@ export default function Dashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [dateRange, setDateRange] = useState('all');
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
   useEffect(() => {
     fetchStats();
@@ -386,7 +387,6 @@ export default function Dashboard() {
           <div className="relative bg-[var(--bg-secondary)] rounded border border-[var(--border-color)] p-4" style={{ height: '280px' }}>
             {(() => {
               const chartData = stats?.chartData || [];
-              const [hoveredIndex, setHoveredIndex] = React.useState<number | null>(null);
 
               if (chartData.length === 0) {
                 return (
