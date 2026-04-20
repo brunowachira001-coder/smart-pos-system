@@ -110,7 +110,7 @@ export default function Dashboard() {
       <div className="flex flex-col h-full relative">
         <div className="flex flex-1">
           {/* Y-axis labels */}
-          <div className="w-16 flex flex-col justify-between text-xs text-[var(--text-secondary)] pr-2 flex-shrink-0" style={{ paddingTop: '10px', paddingBottom: '35px' }}>
+          <div className="w-16 flex flex-col justify-between text-sm text-[var(--text-secondary)] pr-2 flex-shrink-0" style={{ paddingTop: '10px', paddingBottom: '35px' }}>
             {yLabels.map((label, i) => (
               <span key={i} className="text-right leading-none">{formatCurrency(label)}</span>
             ))}
@@ -221,9 +221,9 @@ export default function Dashboard() {
                         x={getX(i)}
                         y={svgHeight - 5}
                         textAnchor="middle"
-                        fontSize="9"
+                        fontSize="11"
                         fill="var(--text-secondary)"
-                        opacity="0.7"
+                        opacity="0.8"
                       >
                         {item.date}
                       </text>
