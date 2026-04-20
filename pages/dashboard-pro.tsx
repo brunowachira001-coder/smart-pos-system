@@ -303,17 +303,17 @@ export default function Dashboard() {
         {/* Header */}
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-semibold text-[var(--text-primary)]">Dashboard Overview</h1>
-            <p className="text-sm text-[var(--text-secondary)] mt-1">A summary of your business performance</p>
+            <h1 className="text-xl font-semibold text-[var(--text-primary)]">Dashboard Overview</h1>
+            <p className="text-xs text-[var(--text-secondary)] mt-1">A summary of your business performance</p>
           </div>
           <div className="flex items-center gap-4">
-            <select className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg px-4 py-2 text-sm text-[var(--text-primary)]">
+            <select className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg px-3 py-1.5 text-xs text-[var(--text-primary)]">
               <option>Retail</option>
               <option>Wholesale</option>
               <option>All</option>
             </select>
             <DateRangeFilter value={dateRange} onChange={setDateRange} />
-            <button className="px-4 py-2 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg text-sm hover:bg-[var(--bg-secondary)] text-[var(--text-primary)]">
+            <button className="px-3 py-1.5 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg text-xs hover:bg-[var(--bg-secondary)] text-[var(--text-primary)]">
               📤 Export Summary
             </button>
           </div>
@@ -322,9 +322,9 @@ export default function Dashboard() {
         {/* Top Row - Main Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {/* All Time Verified Profit */}
-          <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-6">
+          <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-5">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-sm text-[var(--text-secondary)]">
+              <p className="text-xs text-[var(--text-secondary)]">
                 {dateRange === 'all' ? 'All Time Verified Profit' :
                  dateRange === 'today' ? "Today's Verified Profit" :
                  dateRange === 'yesterday' ? "Yesterday's Verified Profit" :
@@ -337,10 +337,10 @@ export default function Dashboard() {
               </p>
               <span className="text-emerald-500">📈</span>
             </div>
-            <p className="text-3xl font-bold text-emerald-500 mb-2">
+            <p className="text-2xl font-bold text-emerald-500 mb-2">
               KSH {stats?.allTimeProfit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </p>
-            <div className="space-y-1 text-xs">
+            <div className="space-y-1 text-[10px]">
               <div className="flex justify-between">
                 <span className="text-[var(--text-secondary)]">Retail</span>
                 <span className="text-emerald-500">KSH {stats?.retailRevenue.toLocaleString()}</span>
@@ -349,36 +349,36 @@ export default function Dashboard() {
                 <span className="text-[var(--text-secondary)]">Wholesale</span>
                 <span className="text-emerald-500">KSH {stats?.wholesaleRevenue.toLocaleString()}</span>
               </div>
-              <div className="text-[var(--text-secondary)] mt-2 text-xs">
+              <div className="text-[var(--text-secondary)] mt-2 text-[10px]">
                 {stats?.retailSales} Retail + {stats?.wholesaleSales} Wholesale sales
               </div>
             </div>
-            <p className="text-xs text-[var(--text-secondary)] mt-3 italic">
+            <p className="text-[10px] text-[var(--text-secondary)] mt-3 italic">
               ✓ Strict validation applied • Excludes invalid pricing
             </p>
           </div>
 
           {/* Potential Profit */}
-          <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-6">
+          <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-5">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-sm text-[var(--text-secondary)]">Potential Profit</p>
+              <p className="text-xs text-[var(--text-secondary)]">Potential Profit</p>
               <span className="text-blue-500">📊</span>
             </div>
-            <p className="text-3xl font-bold text-blue-500 mb-2">
+            <p className="text-2xl font-bold text-blue-500 mb-2">
               KSH {stats?.potentialProfit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </p>
-            <p className="text-xs text-[var(--text-secondary)] mt-2">
+            <p className="text-[10px] text-[var(--text-secondary)] mt-2">
               Potential profit from current inventory at retail prices
             </p>
-            <p className="text-xs text-[var(--text-secondary)] mt-2 italic">
+            <p className="text-[10px] text-[var(--text-secondary)] mt-2 italic">
               ⚠ Profit is reduced due to pricing issues
             </p>
           </div>
 
           {/* Gross Sales Revenue */}
-          <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-6">
+          <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-5">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-sm text-[var(--text-secondary)]">
+              <p className="text-xs text-[var(--text-secondary)]">
                 {dateRange === 'all' ? 'Gross Sales Revenue' :
                  dateRange === 'today' ? "Today's Gross Sales" :
                  dateRange === 'yesterday' ? "Yesterday's Gross Sales" :
@@ -386,10 +386,10 @@ export default function Dashboard() {
               </p>
               <span className="text-purple-500">💰</span>
             </div>
-            <p className="text-3xl font-bold text-purple-500 mb-2">
+            <p className="text-2xl font-bold text-purple-500 mb-2">
               KSH {stats?.grossRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </p>
-            <div className="space-y-1 text-xs mt-2">
+            <div className="space-y-1 text-[10px] mt-2">
               <div className="flex justify-between">
                 <span className="text-[var(--text-secondary)]">Retail</span>
                 <span className="text-[var(--text-secondary)]">KSH {stats?.retailRevenue.toLocaleString()}</span>
@@ -399,25 +399,25 @@ export default function Dashboard() {
                 <span className="text-[var(--text-secondary)]">KSH {stats?.wholesaleRevenue.toLocaleString()}</span>
               </div>
             </div>
-            <p className="text-xs text-[var(--text-secondary)] mt-2">
+            <p className="text-[10px] text-[var(--text-secondary)] mt-2">
               Total sales before returns & expenses
             </p>
           </div>
 
           {/* Today's Net Revenue */}
-          <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-6">
+          <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-5">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-sm text-[var(--text-secondary)]">
+              <p className="text-xs text-[var(--text-secondary)]">
                 {dateRange === 'today' ? "Today's Net Revenue" :
                  dateRange === 'yesterday' ? "Yesterday's Net Revenue" :
                  'Net Revenue'}
               </p>
               <span className="text-emerald-500">💵</span>
             </div>
-            <p className="text-3xl font-bold text-emerald-500 mb-2">
+            <p className="text-2xl font-bold text-emerald-500 mb-2">
               KSH {stats?.todayNetRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </p>
-            <div className="bg-[var(--bg-secondary)] rounded p-2 space-y-1 text-xs mt-2">
+            <div className="bg-[var(--bg-secondary)] rounded p-2 space-y-1 text-[10px] mt-2">
               <div className="flex justify-between">
                 <span className="text-[var(--text-secondary)]">Gross Revenue</span>
                 <span className="text-[var(--text-primary)]">KSH {stats?.grossRevenue.toLocaleString()}</span>
@@ -445,31 +445,31 @@ export default function Dashboard() {
         {/* Bottom Row - Inventory & Expenses */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {/* Today's Expenses */}
-          <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-6">
+          <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-5">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-sm text-[var(--text-secondary)]">
+              <p className="text-xs text-[var(--text-secondary)]">
                 {dateRange === 'today' ? "Today's Expenses" :
                  dateRange === 'yesterday' ? "Yesterday's Expenses" :
                  'Expenses'}
               </p>
               <span className="text-red-500">📉</span>
             </div>
-            <p className="text-3xl font-bold text-red-500 mb-2">
+            <p className="text-2xl font-bold text-red-500 mb-2">
               KSH {stats?.todayExpenses.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </p>
-            <p className="text-xs text-[var(--text-secondary)] mt-2">
+            <p className="text-[10px] text-[var(--text-secondary)] mt-2">
               {stats?.todayExpenses === 0 ? 'No expenses recorded' : 'Total expenses for selected period'}
             </p>
-            <div className="mt-4 flex gap-2">
+            <div className="mt-3 flex gap-2">
               <button
                 onClick={() => router.push('/expenses')}
-                className="flex-1 px-3 py-1.5 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded text-xs hover:bg-[var(--bg-tertiary)] text-[var(--text-primary)]"
+                className="flex-1 px-2 py-1 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded text-[10px] hover:bg-[var(--bg-tertiary)] text-[var(--text-primary)]"
               >
                 ➕ Add
               </button>
               <button
                 onClick={() => router.push('/expenses')}
-                className="flex-1 px-3 py-1.5 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded text-xs hover:bg-[var(--bg-tertiary)] text-[var(--text-primary)]"
+                className="flex-1 px-2 py-1 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded text-[10px] hover:bg-[var(--bg-tertiary)] text-[var(--text-primary)]"
               >
                 👁 View
               </button>
@@ -477,43 +477,43 @@ export default function Dashboard() {
           </div>
 
           {/* Total Inventory Value (Cost) */}
-          <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-6">
+          <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-5">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-sm text-[var(--text-secondary)]">Total Inventory Value (Cost)</p>
+              <p className="text-xs text-[var(--text-secondary)]">Total Inventory Value (Cost)</p>
               <span className="text-orange-500">💼</span>
             </div>
-            <p className="text-3xl font-bold text-orange-500 mb-2">
+            <p className="text-2xl font-bold text-orange-500 mb-2">
               KSH {stats?.inventoryValueCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </p>
-            <p className="text-xs text-[var(--text-secondary)] mt-2">
+            <p className="text-[10px] text-[var(--text-secondary)] mt-2">
               Current value at buying price
             </p>
           </div>
 
           {/* Total Inventory Value (Selling) */}
-          <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-6">
+          <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-5">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-sm text-[var(--text-secondary)]">Total Inventory Value (Selling)</p>
+              <p className="text-xs text-[var(--text-secondary)]">Total Inventory Value (Selling)</p>
               <span className="text-blue-500">💎</span>
             </div>
-            <p className="text-3xl font-bold text-blue-500 mb-2">
+            <p className="text-2xl font-bold text-blue-500 mb-2">
               KSH {stats?.inventoryValueSelling.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </p>
-            <p className="text-xs text-[var(--text-secondary)] mt-2">
+            <p className="text-[10px] text-[var(--text-secondary)] mt-2">
               Current value at retail price
             </p>
           </div>
 
           {/* Total Units in Stock */}
-          <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-6">
+          <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-5">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-sm text-[var(--text-secondary)]">Total Units in Stock</p>
+              <p className="text-xs text-[var(--text-secondary)]">Total Units in Stock</p>
               <span className="text-purple-500">📦</span>
             </div>
-            <p className="text-3xl font-bold text-purple-500 mb-2">
+            <p className="text-2xl font-bold text-purple-500 mb-2">
               {stats?.totalUnits.toLocaleString()}
             </p>
-            <p className="text-xs text-[var(--text-secondary)] mt-2">
+            <p className="text-[10px] text-[var(--text-secondary)] mt-2">
               Total units for all products
             </p>
           </div>
@@ -522,70 +522,70 @@ export default function Dashboard() {
         {/* Additional Metrics Row */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {/* Product Categories */}
-          <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-6">
+          <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-5">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-sm text-[var(--text-secondary)]">Product Categories</p>
+              <p className="text-xs text-[var(--text-secondary)]">Product Categories</p>
               <span className="text-blue-500">📂</span>
             </div>
-            <p className="text-3xl font-bold text-[var(--text-primary)] mb-2">
+            <p className="text-2xl font-bold text-[var(--text-primary)] mb-2">
               {stats?.productCategories || 0}
             </p>
-            <p className="text-xs text-[var(--text-secondary)] mt-2">
+            <p className="text-[10px] text-[var(--text-secondary)] mt-2">
               Number of unique active categories
             </p>
           </div>
 
           {/* Outstanding Debt */}
-          <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-6">
+          <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-5">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-sm text-[var(--text-secondary)]">Outstanding Debt</p>
+              <p className="text-xs text-[var(--text-secondary)]">Outstanding Debt</p>
               <span className="text-orange-500">💳</span>
             </div>
-            <p className="text-3xl font-bold text-orange-500 mb-2">
+            <p className="text-2xl font-bold text-orange-500 mb-2">
               KSH {stats?.outstandingDebt?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}
             </p>
-            <p className="text-xs text-[var(--text-secondary)] mt-2">
+            <p className="text-[10px] text-[var(--text-secondary)] mt-2">
               Total outstanding customer debt
             </p>
           </div>
 
           {/* Low Stock Alerts */}
-          <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-6">
+          <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-5">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-sm text-[var(--text-secondary)]">Low Stock Alerts</p>
+              <p className="text-xs text-[var(--text-secondary)]">Low Stock Alerts</p>
               <span className="text-red-500">⚠️</span>
             </div>
-            <p className="text-3xl font-bold text-red-500 mb-2">
+            <p className="text-2xl font-bold text-red-500 mb-2">
               {stats?.lowStockCount || 0}
             </p>
-            <p className="text-xs text-[var(--text-secondary)] mt-2">
+            <p className="text-[10px] text-[var(--text-secondary)] mt-2">
               Items below minimum stock
             </p>
           </div>
 
           {/* Pricing Data Audit */}
-          <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-6">
+          <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-5">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-sm text-[var(--text-secondary)]">Pricing Data Audit</p>
+              <p className="text-xs text-[var(--text-secondary)]">Pricing Data Audit</p>
               <span className="text-yellow-500">⚠️</span>
             </div>
             <div className="space-y-1 mt-2">
-              <div className="flex justify-between text-xs">
+              <div className="flex justify-between text-[10px]">
                 <span className="text-[var(--text-secondary)]">Total Products:</span>
                 <span className="font-bold text-[var(--text-primary)]">{stats?.pricingAudit?.total || 0}</span>
               </div>
-              <div className="flex justify-between text-xs">
+              <div className="flex justify-between text-[10px]">
                 <span className="text-[var(--text-secondary)]">Valid Pricing:</span>
                 <span className="font-bold text-emerald-500">{stats?.pricingAudit?.valid || 0}</span>
               </div>
-              <div className="flex justify-between text-xs">
+              <div className="flex justify-between text-[10px]">
                 <span className="text-[var(--text-secondary)]">Issues Found:</span>
                 <span className="font-bold text-red-500">{stats?.pricingAudit?.issues || 0}</span>
               </div>
             </div>
             <button
               onClick={() => router.push('/inventory')}
-              className="mt-3 w-full px-3 py-1.5 bg-yellow-500/10 border border-yellow-500/30 rounded text-xs hover:bg-yellow-500/20 text-yellow-600 dark:text-yellow-400"
+              className="mt-3 w-full px-2 py-1 bg-yellow-500/10 border border-yellow-500/30 rounded text-[10px] hover:bg-yellow-500/20 text-yellow-600 dark:text-yellow-400"
             >
               View Issues
             </button>
@@ -593,9 +593,9 @@ export default function Dashboard() {
         </div>
 
         {/* Sales & Profit Trend Chart - Candlestick Style */}
-        <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-[var(--text-primary)]">Sales & Profit Trend</h2>
+        <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-5">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-base font-semibold text-[var(--text-primary)]">Sales & Profit Trend</h2>
           </div>
 
           {/* Chart Area */}
