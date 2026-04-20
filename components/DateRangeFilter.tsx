@@ -32,10 +32,18 @@ export default function DateRangeFilter({
   const [showDropdown, setShowDropdown] = useState(false);
 
   const formatDate = (date: Date) => {
-    return date.toISOString().split('T')[0];
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   };
 
-  const today = formatDate(new Date());
+  // Always get current date - recalculated on every render
+  const getCurrentDate = () => formatDate(new Date());
+  
+  // Use provided dates or fall back to current date
+  const displayStartDate = startDate || getCurrentDate();
+  const displayEndDate = endDate || getCurrentDate();
 
   return (
     <div className="flex items-center gap-3">
@@ -119,15 +127,15 @@ export default function DateRangeFilter({
         </svg>
         <input
           type="date"
-          value={startDate || today}
-          onChange={(e) => onDateChange?.(e.target.value, endDate || today)}
+          value={displayStartDate}
+          onChange={(e) => onDateChange?.(e.target.value, displayEndDate)}
           className="bg-transparent border-none text-sm text-[var(--text-primary)] focus:outline-none w-[110px]"
         />
         <span className="text-[var(--text-secondary)] text-sm">to</span>
         <input
           type="date"
-          value={endDate || today}
-          onChange={(e) => onDateChange?.(startDate || today, e.target.value)}
+          value={displayEndDate}
+          onChange={(e) => onDateChange?.(displayStartDate, e.target.value)}
           className="bg-transparent border-none text-sm text-[var(--text-primary)] focus:outline-none w-[110px]"
         />
       </div>
