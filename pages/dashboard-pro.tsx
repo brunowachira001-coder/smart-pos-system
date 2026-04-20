@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import DateRangeFilter from '../components/DateRangeFilter';
-import React from 'react';
 
 interface DashboardStats {
   allTimeProfit: number;
@@ -69,6 +68,178 @@ export default function Dashboard() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const renderChart = () => {
+    const chartData = stats?.chartData || [];
+
+    if (chartData.length === 0) {
+      return (
+        <div className="flex items-center justify-center h-full text-[var(--text-secondary)] text-sm">
+          No transaction data available
+        </div>
+      );
+    }
+
+    const scale = 140000;
+    const yLabels = [140000, 105000, 70000, 35000, 0];
+
+    const formatCurrency = (val: number) => {
+      if (val === 0) return 'KSH 0';
+      return `KSH ${(val / 1000).toFixed(0)}k`;
+    };
+
+    const groupSpacing = 25;
+    const svgWidth = Math.max(900, chartData.length * groupSpacing + 100);
+    const svgHeight = 240;
+    const padding = { top: 10, right: 20, bottom: 30, left: 70 };
+    const plotHeight = svgHeight - padding.top - padding.bottom;
+
+    const getY = (value: number) => padding.top + plotHeight - (value / scale) * plotHeight;
+    const getX = (index: number) => padding.left + (index * groupSpacing);
+    const zeroY = getY(0);
+
+    const handleMouseEnter = (index: number) => setHoveredIndex(index);
+    const handleMouseLeave = () => setHoveredIndex(null);
+
+    return (
+      <div className="flex h-full relative">
+        {/* Y-axis labels */}
+        <div className="w-16 flex flex-col justify-between text-[10px] text-[var(--text-secondary)] pr-2 flex-shrink-0 pt-2 pb-8">
+          {yLabels.map((label, i) => (
+            <span key={i} className="text-right leading-none">{formatCurrency(label)}</span>
+          ))}
+        </div>
+
+        {/* Chart SVG */}
+        <div className="flex-1 overflow-x-auto relative">
+          <svg width={svgWidth} height={svgHeight} style={{ minWidth: '100%' }}>
+            {/* Dotted grid lines */}
+            {yLabels.map((label, i) => (
+              <line
+                key={`grid-${i}`}
+                x1={padding.left}
+                y1={getY(label)}
+                x2={svgWidth - padding.right}
+                y2={getY(label)}
+                stroke="currentColor"
+                strokeOpacity="0.15"
+                strokeDasharray="2,3"
+                strokeWidth="1"
+              />
+            ))}
+
+            {/* Candlestick elements for each data point */}
+            {chartData.map((data, i) => {
+              const x = getX(i) + groupSpacing/2;
+              const grossY = getY(data.gross);
+              const netY = getY(data.net);
+              
+              return (
+                <g key={`candle-${i}`}>
+                  {/* Green candlestick for Gross Sales */}
+                  <line
+                    x1={x - 3}
+                    y1={zeroY}
+                    x2={x - 3}
+                    y2={grossY}
+                    stroke="#10b981"
+                    strokeWidth="2"
+                    opacity="0.8"
+                  />
+                  <circle cx={x - 3} cy={grossY} r="3" fill="#10b981" opacity="0.9" />
+                  
+                  {/* Blue candlestick for Net Sales */}
+                  <line
+                    x1={x + 3}
+                    y1={zeroY}
+                    x2={x + 3}
+                    y2={netY}
+                    stroke="#3b82f6"
+                    strokeWidth="2"
+                    opacity="0.8"
+                  />
+                  <circle cx={x + 3} cy={netY} r="3" fill="#3b82f6" opacity="0.9" />
+                  
+                  {/* Invisible hover area */}
+                  <rect
+                    x={x - 10}
+                    y={padding.top}
+                    width={20}
+                    height={plotHeight}
+                    fill="transparent"
+                    style={{ cursor: 'pointer' }}
+                    onMouseEnter={() => handleMouseEnter(i)}
+                    onMouseLeave={handleMouseLeave}
+                  />
+                </g>
+              );
+            })}
+
+            {/* Red line for Expenses */}
+            <polyline 
+              points={chartData.map((d, i) => `${getX(i) + groupSpacing/2},${getY(d.expenses)}`).join(' ')}
+              fill="none" 
+              stroke="#ef4444" 
+              strokeWidth="1.5" 
+              opacity="0.9"
+            />
+
+            {/* Blue line for Verified Profit */}
+            <polyline 
+              points={chartData.map((d, i) => `${getX(i) + groupSpacing/2},${getY(d.profit)}`).join(' ')}
+              fill="none" 
+              stroke="#60a5fa" 
+              strokeWidth="2" 
+              opacity="0.9"
+            />
+
+            {/* Dots on lines */}
+            {chartData.map((data, i) => {
+              const x = getX(i) + groupSpacing/2;
+              return (
+                <g key={`dots-${i}`}>
+                  <circle cx={x} cy={getY(data.expenses)} r="2" fill="#ef4444" opacity="0.9" />
+                  <circle cx={x} cy={getY(data.profit)} r="2.5" fill="#60a5fa" opacity="0.9" />
+                </g>
+              );
+            })}
+          </svg>
+
+          {/* Tooltip */}
+          {hoveredIndex !== null && (
+            <div 
+              className="absolute bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-3 shadow-lg text-xs z-10"
+              style={{
+                left: `${getX(hoveredIndex) + groupSpacing/2 + 10}px`,
+                top: '10px',
+                pointerEvents: 'none'
+              }}
+            >
+              <div className="font-semibold mb-2 text-[var(--text-primary)]">{chartData[hoveredIndex].date}</div>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+                  <span className="text-[var(--text-secondary)]">Gross: KSH {chartData[hoveredIndex].gross.toLocaleString()}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                  <span className="text-[var(--text-secondary)]">Net: KSH {chartData[hoveredIndex].net.toLocaleString()}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                  <span className="text-[var(--text-secondary)]">Expenses: KSH {chartData[hoveredIndex].expenses.toLocaleString()}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-blue-400"></div>
+                  <span className="text-[var(--text-secondary)]">Profit: KSH {chartData[hoveredIndex].profit.toLocaleString()}</span>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
   };
 
   if (loading) {
@@ -385,176 +556,7 @@ export default function Dashboard() {
 
           {/* Chart Area */}
           <div className="relative bg-[var(--bg-secondary)] rounded border border-[var(--border-color)] p-4" style={{ height: '280px' }}>
-            {(() => {
-              const chartData = stats?.chartData || [];
-
-              if (chartData.length === 0) {
-                return (
-                  <div className="flex items-center justify-center h-full text-[var(--text-secondary)] text-sm">
-                    No transaction data available
-                  </div>
-                );
-              }
-
-              const scale = 140000;
-              const yLabels = [140000, 105000, 70000, 35000, 0];
-
-              const formatCurrency = (val: number) => {
-                if (val === 0) return 'KSH 0';
-                return `KSH ${(val / 1000).toFixed(0)}k`;
-              };
-
-              const groupSpacing = 25; // Reduced spacing
-              const svgWidth = Math.max(900, chartData.length * groupSpacing + 100);
-              const svgHeight = 240;
-              const padding = { top: 10, right: 20, bottom: 30, left: 70 };
-              const plotHeight = svgHeight - padding.top - padding.bottom;
-
-              const getY = (value: number) => padding.top + plotHeight - (value / scale) * plotHeight;
-              const getX = (index: number) => padding.left + (index * groupSpacing);
-              const zeroY = getY(0);
-
-              return (
-                <div className="flex h-full relative">
-                  {/* Y-axis labels */}
-                  <div className="w-16 flex flex-col justify-between text-[10px] text-[var(--text-secondary)] pr-2 flex-shrink-0 pt-2 pb-8">
-                    {yLabels.map((label, i) => (
-                      <span key={i} className="text-right leading-none">{formatCurrency(label)}</span>
-                    ))}
-                  </div>
-
-                  {/* Chart SVG */}
-                  <div className="flex-1 overflow-x-auto relative">
-                    <svg width={svgWidth} height={svgHeight} style={{ minWidth: '100%' }}>
-                      {/* Dotted grid lines */}
-                      {yLabels.map((label, i) => (
-                        <line
-                          key={`grid-${i}`}
-                          x1={padding.left}
-                          y1={getY(label)}
-                          x2={svgWidth - padding.right}
-                          y2={getY(label)}
-                          stroke="currentColor"
-                          strokeOpacity="0.15"
-                          strokeDasharray="2,3"
-                          strokeWidth="1"
-                        />
-                      ))}
-
-                      {/* Candlestick elements for each data point */}
-                      {chartData.map((data, i) => {
-                        const x = getX(i) + groupSpacing/2;
-                        const grossY = getY(data.gross);
-                        const netY = getY(data.net);
-                        const expensesY = getY(data.expenses);
-                        const profitY = getY(data.profit);
-                        
-                        return (
-                          <g key={`candle-${i}`}>
-                            {/* Green candlestick for Gross Sales */}
-                            <line
-                              x1={x - 3}
-                              y1={zeroY}
-                              x2={x - 3}
-                              y2={grossY}
-                              stroke="#10b981"
-                              strokeWidth="2"
-                              opacity="0.8"
-                            />
-                            <circle cx={x - 3} cy={grossY} r="3" fill="#10b981" opacity="0.9" />
-                            
-                            {/* Blue candlestick for Net Sales */}
-                            <line
-                              x1={x + 3}
-                              y1={zeroY}
-                              x2={x + 3}
-                              y2={netY}
-                              stroke="#3b82f6"
-                              strokeWidth="2"
-                              opacity="0.8"
-                            />
-                            <circle cx={x + 3} cy={netY} r="3" fill="#3b82f6" opacity="0.9" />
-                            
-                            {/* Invisible hover area */}
-                            <rect
-                              x={x - 10}
-                              y={padding.top}
-                              width={20}
-                              height={plotHeight}
-                              fill="transparent"
-                              style={{ cursor: 'pointer' }}
-                              onMouseEnter={() => setHoveredIndex(i)}
-                              onMouseLeave={() => setHoveredIndex(null)}
-                            />
-                          </g>
-                        );
-                      })}
-
-                      {/* Red line for Expenses */}
-                      <polyline 
-                        points={chartData.map((d, i) => `${getX(i) + groupSpacing/2},${getY(d.expenses)}`).join(' ')}
-                        fill="none" 
-                        stroke="#ef4444" 
-                        strokeWidth="1.5" 
-                        opacity="0.9"
-                      />
-
-                      {/* Blue line for Verified Profit */}
-                      <polyline 
-                        points={chartData.map((d, i) => `${getX(i) + groupSpacing/2},${getY(d.profit)}`).join(' ')}
-                        fill="none" 
-                        stroke="#60a5fa" 
-                        strokeWidth="2" 
-                        opacity="0.9"
-                      />
-
-                      {/* Dots on lines */}
-                      {chartData.map((data, i) => {
-                        const x = getX(i) + groupSpacing/2;
-                        return (
-                          <g key={`dots-${i}`}>
-                            <circle cx={x} cy={getY(data.expenses)} r="2" fill="#ef4444" opacity="0.9" />
-                            <circle cx={x} cy={getY(data.profit)} r="2.5" fill="#60a5fa" opacity="0.9" />
-                          </g>
-                        );
-                      })}
-                    </svg>
-
-                    {/* Tooltip */}
-                    {hoveredIndex !== null && (
-                      <div 
-                        className="absolute bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-3 shadow-lg text-xs z-10"
-                        style={{
-                          left: `${getX(hoveredIndex) + groupSpacing/2 + 10}px`,
-                          top: '10px',
-                          pointerEvents: 'none'
-                        }}
-                      >
-                        <div className="font-semibold mb-2 text-[var(--text-primary)]">{chartData[hoveredIndex].date}</div>
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
-                            <span className="text-[var(--text-secondary)]">Gross: KSH {chartData[hoveredIndex].gross.toLocaleString()}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                            <span className="text-[var(--text-secondary)]">Net: KSH {chartData[hoveredIndex].net.toLocaleString()}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 rounded-full bg-red-500"></div>
-                            <span className="text-[var(--text-secondary)]">Expenses: KSH {chartData[hoveredIndex].expenses.toLocaleString()}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 rounded-full bg-blue-400"></div>
-                            <span className="text-[var(--text-secondary)]">Profit: KSH {chartData[hoveredIndex].profit.toLocaleString()}</span>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })()}
+            {renderChart()}
           </div>
 
           {/* X-axis dates */}
