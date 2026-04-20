@@ -37,13 +37,31 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const totalDiscounts = transactions?.reduce((sum, t) => sum + parseFloat(t.discount || 0), 0) || 0;
     const averageTransactionValue = totalTransactions > 0 ? totalRevenue / totalTransactions : 0;
 
-    const retailRevenue = transactions
-      ?.filter(t => t.customer_name && !t.customer_name.toLowerCase().includes('wholesale'))
-      .reduce((sum, t) => sum + parseFloat(t.total || 0), 0) || 0;
+    // Get transaction IDs to fetch items
+    const transactionIds = transactions?.map(t => t.id) || [];
+    
+    let retailRevenue = 0;
+    let wholesaleRevenue = 0;
 
-    const wholesaleRevenue = transactions
-      ?.filter(t => t.customer_name && t.customer_name.toLowerCase().includes('wholesale'))
-      .reduce((sum, t) => sum + parseFloat(t.total || 0), 0) || 0;
+    if (transactionIds.length > 0) {
+      // Fetch all transaction items to determine retail vs wholesale
+      const { data: items } = await supabase
+        .from('sales_transaction_items')
+        .select('transaction_id, unit_price, quantity, price_type')
+        .in('transaction_id', transactionIds);
+
+      // Calculate revenue by price type
+      if (items) {
+        for (const item of items) {
+          const itemRevenue = parseFloat(item.unit_price || 0) * (item.quantity || 0);
+          if (item.price_type === 'retail') {
+            retailRevenue += itemRevenue;
+          } else if (item.price_type === 'wholesale') {
+            wholesaleRevenue += itemRevenue;
+          }
+        }
+      }
+    }
 
     const paymentMethods = transactions?.reduce((acc: any, t) => {
       const method = t.payment_method || 'cash';
