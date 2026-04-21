@@ -54,16 +54,19 @@ async function getCustomer(req: NextApiRequest, res: NextApiResponse) {
 }
 
 async function createCustomer(req: NextApiRequest, res: NextApiResponse) {
-  const { name, email, phone, address, city, country, notes, customerType } = req.body;
+  const { firstName, lastName, name, email, phone, address, city, country, notes, customerType, debtLimit } = req.body;
 
-  if (!name) {
+  // Support both new format (firstName + lastName) and old format (name)
+  const fullName = name || `${firstName || ''} ${lastName || ''}`.trim();
+
+  if (!fullName) {
     return res.status(400).json({ error: 'Customer name is required' });
   }
 
   const { data, error } = await supabase
     .from('customers')
     .insert({
-      name,
+      name: fullName,
       email: email || null,
       phone: phone || null,
       address: address || null,
@@ -71,6 +74,7 @@ async function createCustomer(req: NextApiRequest, res: NextApiResponse) {
       country: country || 'Kenya',
       notes: notes || null,
       customer_type: customerType || 'retail',
+      debt_limit: debtLimit ? parseFloat(debtLimit) : null,
       status: 'active'
     })
     .select()

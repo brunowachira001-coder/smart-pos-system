@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
 
 interface Customer {
   id: string;
@@ -19,7 +18,6 @@ interface Customer {
 }
 
 export default function CustomersPage() {
-  const router = useRouter();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -32,6 +30,8 @@ export default function CustomersPage() {
   
   // Form state
   const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
     name: '',
     email: '',
     phone: '',
@@ -39,7 +39,8 @@ export default function CustomersPage() {
     city: '',
     country: 'Kenya',
     notes: '',
-    customerType: 'retail'
+    customerType: 'retail',
+    debtLimit: ''
   });
 
   useEffect(() => {
@@ -165,6 +166,8 @@ export default function CustomersPage() {
   const openEditModal = (customer: Customer) => {
     setSelectedCustomer(customer);
     setFormData({
+      firstName: '',
+      lastName: '',
       name: customer.name,
       email: customer.email || '',
       phone: customer.phone || '',
@@ -172,13 +175,16 @@ export default function CustomersPage() {
       city: customer.city || '',
       country: customer.country || 'Kenya',
       notes: customer.notes || '',
-      customerType: customer.customer_type
+      customerType: customer.customer_type,
+      debtLimit: ''
     });
     setShowEditModal(true);
   };
 
   const resetForm = () => {
     setFormData({
+      firstName: '',
+      lastName: '',
       name: '',
       email: '',
       phone: '',
@@ -186,7 +192,8 @@ export default function CustomersPage() {
       city: '',
       country: 'Kenya',
       notes: '',
-      customerType: 'retail'
+      customerType: 'retail',
+      debtLimit: ''
     });
   };
 
@@ -365,109 +372,108 @@ export default function CustomersPage() {
       {/* Add Customer Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
-          <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
-            <h2 className="text-xl font-bold mb-4">Add New Customer</h2>
+          <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-6 max-w-md w-full relative">
+            {/* Close Button */}
+            <button
+              onClick={() => { setShowAddModal(false); resetForm(); }}
+              className="absolute top-4 right-4 text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-2xl leading-none"
+            >
+              ×
+            </button>
+
+            {/* Header */}
+            <div className="mb-6">
+              <h2 className="text-xl font-bold mb-1">Add New Customer</h2>
+              <p className="text-sm text-[var(--text-secondary)]">Fill in the details for the new customer.</p>
+            </div>
             
             <form onSubmit={handleAddCustomer} className="space-y-4">
+              {/* First Name */}
               <div>
-                <label className="block text-sm font-medium mb-2">Name *</label>
+                <label className="block text-sm font-medium mb-2">First Name</label>
                 <input
                   type="text"
                   required
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-sm"
+                  value={formData.firstName}
+                  onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                  className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter first name"
                 />
               </div>
 
+              {/* Last Name */}
+              <div>
+                <label className="block text-sm font-medium mb-2">Last Name</label>
+                <input
+                  type="text"
+                  required
+                  value={formData.lastName}
+                  onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                  className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter last name"
+                />
+              </div>
+
+              {/* Email */}
               <div>
                 <label className="block text-sm font-medium mb-2">Email</label>
                 <input
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-sm"
+                  className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter email address"
                 />
               </div>
 
+              {/* Phone */}
               <div>
                 <label className="block text-sm font-medium mb-2">Phone</label>
                 <input
                   type="tel"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-sm"
+                  className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter phone number"
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium mb-2">Address</label>
-                <textarea
-                  value={formData.address}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-sm"
-                  rows={2}
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-sm font-medium mb-2">City</label>
-                  <input
-                    type="text"
-                    value={formData.city}
-                    onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                    className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-sm"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2">Country</label>
-                  <input
-                    type="text"
-                    value={formData.country}
-                    onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                    className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-sm"
-                  />
-                </div>
-              </div>
-
+              {/* Customer Type */}
               <div>
                 <label className="block text-sm font-medium mb-2">Customer Type</label>
                 <select
                   value={formData.customerType}
                   onChange={(e) => setFormData({ ...formData, customerType: e.target.value })}
-                  className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-sm"
+                  className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="retail">Retail</option>
-                  <option value="wholesale">Wholesale</option>
+                  <option value="retail">Retail Customer</option>
+                  <option value="wholesale">Wholesale Customer</option>
                 </select>
               </div>
 
+              {/* Debt Limit */}
               <div>
-                <label className="block text-sm font-medium mb-2">Notes</label>
-                <textarea
-                  value={formData.notes}
-                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-sm"
-                  rows={3}
+                <label className="block text-sm font-medium mb-2">Debt Limit</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={formData.debtLimit}
+                  onChange={(e) => setFormData({ ...formData, debtLimit: e.target.value })}
+                  className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="0.00"
                 />
+                <p className="text-xs text-[var(--text-secondary)] mt-1.5">Maximum credit limit for this customer</p>
               </div>
 
-              <div className="flex gap-3 pt-4">
-                <button
-                  type="button"
-                  onClick={() => { setShowAddModal(false); resetForm(); }}
-                  className="flex-1 bg-[var(--bg-primary)] border border-[var(--border-color)] py-2 rounded-lg hover:bg-[var(--bg-secondary)]"
-                >
-                  Cancel
-                </button>
+              {/* Submit Button */}
+              <div className="flex justify-end pt-2">
                 <button
                   type="submit"
                   disabled={loading}
-                  className="flex-1 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-600 text-white py-2 rounded-lg font-semibold"
+                  className="bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-600 text-white py-2.5 px-6 rounded-lg font-medium transition-colors"
                 >
-                  {loading ? 'Adding...' : 'Add Customer'}
+                  {loading ? 'Saving...' : 'Save Customer'}
                 </button>
               </div>
             </form>
