@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import DateRangeFilter, { getDateRange, formatDateLocal } from '../components/DateRangeFilter';
+import DateRangeFilter, { getDateRange } from '../components/DateRangeFilter';
 
 interface ProductPerformance {
   id: string;
@@ -18,6 +18,7 @@ export default function ProductPerformancePage() {
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
+  const [displayDateRange, setDisplayDateRange] = useState({ start: '', end: '' });
   const [selectedRange, setSelectedRange] = useState('all');
   const [currentDate, setCurrentDate] = useState(new Date().toDateString());
 
@@ -27,13 +28,28 @@ export default function ProductPerformancePage() {
       const { startDate: start, endDate: end } = getDateRange(selectedRange);
       
       if (start && end) {
+        // ISO timestamps for API
         setDateRange({
-          start: formatDateLocal(start),
-          end: formatDateLocal(end)
+          start: start.toISOString(),
+          end: end.toISOString()
+        });
+        
+        // YYYY-MM-DD format for display
+        const formatForDisplay = (date: Date) => {
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const day = String(date.getDate()).padStart(2, '0');
+          return `${year}-${month}-${day}`;
+        };
+        
+        setDisplayDateRange({
+          start: formatForDisplay(start),
+          end: formatForDisplay(end)
         });
       } else {
         // For 'all', clear the date range
         setDateRange({ start: '', end: '' });
+        setDisplayDateRange({ start: '', end: '' });
       }
     };
 
@@ -56,8 +72,20 @@ export default function ProductPerformancePage() {
         const { startDate: start, endDate: end } = getDateRange(selectedRange);
         if (start && end) {
           setDateRange({
-            start: formatDateLocal(start),
-            end: formatDateLocal(end)
+            start: start.toISOString(),
+            end: end.toISOString()
+          });
+          
+          const formatForDisplay = (date: Date) => {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+          };
+          
+          setDisplayDateRange({
+            start: formatForDisplay(start),
+            end: formatForDisplay(end)
           });
         }
       }
@@ -100,7 +128,14 @@ export default function ProductPerformancePage() {
   };
 
   const handleDateRangeChange = (start: string, end: string) => {
-    setDateRange({ start, end });
+    // Convert YYYY-MM-DD to ISO timestamp for API
+    const startDate = new Date(start + 'T00:00:00');
+    const endDate = new Date(end + 'T23:59:59.999');
+    setDateRange({ 
+      start: startDate.toISOString(), 
+      end: endDate.toISOString() 
+    });
+    setDisplayDateRange({ start, end });
   };
 
   const exportToCSV = () => {
@@ -142,8 +177,8 @@ export default function ProductPerformancePage() {
           <DateRangeFilter 
             value={selectedRange}
             onChange={setSelectedRange}
-            startDate={dateRange.start}
-            endDate={dateRange.end}
+            startDate={displayDateRange.start}
+            endDate={displayDateRange.end}
             onDateChange={handleDateRangeChange}
           />
           
