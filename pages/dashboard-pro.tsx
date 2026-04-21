@@ -35,6 +35,29 @@ interface DashboardStats {
   }>;
 }
 
+interface PricingAuditDetails {
+  totalProducts: number;
+  validPricing: number;
+  issuesFound: number;
+  issuesSummary: {
+    missingCost: number;
+    zeroSellingPrice: number;
+    sellingBelowCost: number;
+    unrealisticMarkup: number;
+  };
+  issues: Array<{
+    productId: string;
+    productName: string;
+    sku: string;
+    category: string;
+    issueType: string;
+    costPrice: number;
+    retailPrice: number;
+    wholesalePrice: number;
+    description: string;
+  }>;
+}
+
 export default function Dashboard() {
   const router = useRouter();
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -45,6 +68,9 @@ export default function Dashboard() {
   const [priceType, setPriceType] = useState('retail'); // retail or wholesale only
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [showPricingIssues, setShowPricingIssues] = useState(false);
+  const [pricingAuditDetails, setPricingAuditDetails] = useState<PricingAuditDetails | null>(null);
+  const [loadingAudit, setLoadingAudit] = useState(false);
 
   // Track the current date to detect changes
   const [currentDate, setCurrentDate] = useState(new Date().toDateString());
@@ -135,6 +161,23 @@ export default function Dashboard() {
       if (showLoading) {
         setLoading(false);
       }
+    }
+  };
+
+  const fetchPricingAudit = async () => {
+    setLoadingAudit(true);
+    try {
+      const response = await fetch('/api/pricing-audit');
+      const data = await response.json();
+      
+      if (data.success) {
+        setPricingAuditDetails(data.data);
+        setShowPricingIssues(true);
+      }
+    } catch (error) {
+      console.error('Failed to fetch pricing audit:', error);
+    } finally {
+      setLoadingAudit(false);
     }
   };
 
@@ -692,31 +735,71 @@ export default function Dashboard() {
             </p>
           </div>
 
-          {/* Pricing Data Audit */}
+          {/* Pricing Data Audit - Redesigned */}
           <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-6">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-xs text-[var(--text-secondary)]">Pricing Data Audit</p>
-              <span className="text-yellow-500">⚠️</span>
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <p className="text-sm text-[var(--text-secondary)]">Pricing Data Audit</p>
+                <span className="text-yellow-500">⚠️</span>
+              </div>
+              <button
+                onClick={fetchPricingAudit}
+                disabled={loadingAudit}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              >
+                👁
+              </button>
             </div>
-            <div className="space-y-1 mt-2">
-              <div className="flex justify-between text-xs">
-                <span className="text-[var(--text-secondary)]">Total Products:</span>
-                <span className="font-bold text-[var(--text-primary)]">{stats?.pricingAudit?.total || 0}</span>
+            
+            {/* Stats with badges */}
+            <div className="space-y-2 mb-3">
+              <div className="flex justify-between items-center">
+                <span className="text-xs text-[var(--text-secondary)]">Total Products:</span>
+                <span className="px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded-full text-sm font-semibold text-[var(--text-primary)]">
+                  {stats?.pricingAudit?.total || 0}
+                </span>
               </div>
-              <div className="flex justify-between text-xs">
-                <span className="text-[var(--text-secondary)]">Valid Pricing:</span>
-                <span className="font-bold text-emerald-500">{stats?.pricingAudit?.valid || 0}</span>
+              <div className="flex justify-between items-center">
+                <span className="text-xs text-[var(--text-secondary)]">Valid Pricing:</span>
+                <span className="px-3 py-1 bg-emerald-100 dark:bg-emerald-900/30 rounded-full text-sm font-semibold text-emerald-600 dark:text-emerald-400">
+                  {stats?.pricingAudit?.valid || 0}
+                </span>
               </div>
-              <div className="flex justify-between text-xs">
-                <span className="text-[var(--text-secondary)]">Issues Found:</span>
-                <span className="font-bold text-red-500">{stats?.pricingAudit?.issues || 0}</span>
+              <div className="flex justify-between items-center">
+                <span className="text-xs text-[var(--text-secondary)]">Issues Found:</span>
+                <span className="px-3 py-1 bg-red-100 dark:bg-red-900/30 rounded-full text-sm font-semibold text-red-600 dark:text-red-400">
+                  {stats?.pricingAudit?.issues || 0}
+                </span>
               </div>
             </div>
+            
+            {/* Issues breakdown - shown when available */}
+            {showPricingIssues && pricingAuditDetails && (
+              <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3 mb-3">
+                <p className="text-xs font-semibold text-yellow-800 dark:text-yellow-400 mb-2">Issues Found:</p>
+                <ul className="space-y-1 text-xs text-yellow-700 dark:text-yellow-500">
+                  {pricingAuditDetails.issuesSummary.missingCost > 0 && (
+                    <li>• {pricingAuditDetails.issuesSummary.missingCost} products missing cost price</li>
+                  )}
+                  {pricingAuditDetails.issuesSummary.zeroSellingPrice > 0 && (
+                    <li>• {pricingAuditDetails.issuesSummary.zeroSellingPrice} products with zero selling price</li>
+                  )}
+                  {pricingAuditDetails.issuesSummary.sellingBelowCost > 0 && (
+                    <li>• {pricingAuditDetails.issuesSummary.sellingBelowCost} products selling below cost</li>
+                  )}
+                  {pricingAuditDetails.issuesSummary.unrealisticMarkup > 0 && (
+                    <li>• {pricingAuditDetails.issuesSummary.unrealisticMarkup} products with unrealistic markup</li>
+                  )}
+                </ul>
+              </div>
+            )}
+            
             <button
-              onClick={() => router.push('/inventory')}
-              className="mt-3 w-full px-2 py-1 bg-yellow-500/10 border border-yellow-500/30 rounded text-xs hover:bg-yellow-500/20 text-yellow-600 dark:text-yellow-400"
+              onClick={fetchPricingAudit}
+              disabled={loadingAudit}
+              className="w-full px-2 py-1.5 bg-yellow-500/10 border border-yellow-500/30 rounded text-xs hover:bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 font-medium disabled:opacity-50"
             >
-              View Issues
+              {loadingAudit ? 'Loading...' : showPricingIssues ? 'Refresh Audit' : 'View Issues'}
             </button>
           </div>
         </div>
