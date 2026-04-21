@@ -49,27 +49,45 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       query = query.eq('status', status);
     }
 
-    // Date range filter - convert local dates to UTC for database query
+    // Date range filter - handle timezone properly (EAT = UTC+3)
     if (startDate) {
-      // Parse the local date and convert to UTC
-      const localStart = new Date(startDate as string);
-      const utcStart = new Date(localStart.getTime() - (localStart.getTimezoneOffset() * 60000));
-      query = query.gte('created_at', utcStart.toISOString());
+      // The startDate comes as local date string (e.g., "2024-04-21T00:00:00")
+      // We need to treat it as EAT and convert to UTC for database query
+      const localDate = new Date(startDate as string);
+      
+      // Get the timezone offset in minutes (for EAT it's -180, meaning UTC+3)
+      const timezoneOffset = localDate.getTimezoneOffset();
+      
+      // Convert to UTC by adding the offset
+      const utcDate = new Date(localDate.getTime() + (timezoneOffset * 60000));
+      
+      query = query.gte('created_at', utcDate.toISOString());
+      
       console.log('Start date filter:', {
         received: startDate,
-        localStart: localStart.toISOString(),
-        utcStart: utcStart.toISOString()
+        localDate: localDate.toISOString(),
+        timezoneOffset,
+        utcDate: utcDate.toISOString()
       });
     }
     if (endDate) {
-      // Parse the local date and convert to UTC
-      const localEnd = new Date(endDate as string);
-      const utcEnd = new Date(localEnd.getTime() - (localEnd.getTimezoneOffset() * 60000));
-      query = query.lte('created_at', utcEnd.toISOString());
+      // The endDate comes as local date string (e.g., "2024-04-21T23:59:59.999")
+      // We need to treat it as EAT and convert to UTC for database query
+      const localDate = new Date(endDate as string);
+      
+      // Get the timezone offset in minutes
+      const timezoneOffset = localDate.getTimezoneOffset();
+      
+      // Convert to UTC by adding the offset
+      const utcDate = new Date(localDate.getTime() + (timezoneOffset * 60000));
+      
+      query = query.lte('created_at', utcDate.toISOString());
+      
       console.log('End date filter:', {
         received: endDate,
-        localEnd: localEnd.toISOString(),
-        utcEnd: utcEnd.toISOString()
+        localDate: localDate.toISOString(),
+        timezoneOffset,
+        utcDate: utcDate.toISOString()
       });
     }
 
