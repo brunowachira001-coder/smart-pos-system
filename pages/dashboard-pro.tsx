@@ -495,7 +495,7 @@ export default function Dashboard() {
             <div className="bg-[var(--bg-secondary)] rounded p-2 space-y-1 text-xs mt-2">
               <div className="flex justify-between">
                 <span className="text-[var(--text-secondary)]">Gross Revenue</span>
-                <span className="text-[var(--text-primary)]">KSH {stats?.todayGrossRevenue?.toLocaleString() || '0'}</span>
+                <span className="text-[var(--text-primary)]">KSH {stats?.todayNetRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-[var(--text-secondary)]">Returns</span>
@@ -503,7 +503,7 @@ export default function Dashboard() {
               </div>
               <div className="flex justify-between">
                 <span className="text-[var(--text-secondary)]">Business Expenses</span>
-                <span className="text-red-500">-KSH {stats?.todayExpensesOnly?.toLocaleString() || '0'}</span>
+                <span className="text-red-500">-KSH {stats?.todayExpensesOnly?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-[var(--text-secondary)]">Personal Expenses</span>
@@ -511,7 +511,7 @@ export default function Dashboard() {
               </div>
               <div className="flex justify-between font-semibold pt-1 border-t border-[var(--border-color)]">
                 <span className="text-[var(--text-primary)]">Net Revenue (All)</span>
-                <span className="text-emerald-500">KSH {((stats?.todayGrossRevenue || 0) - (stats?.todayExpensesOnly || 0)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                <span className="text-emerald-500">KSH {((stats?.todayNetRevenue || 0) - (stats?.todayExpensesOnly || 0)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
               </div>
             </div>
           </div>
