@@ -6,10 +6,8 @@ interface DashboardStats {
   allTimeProfit: number;
   potentialProfit: number;
   grossRevenue: number;
-  todayNetRevenue: number;
-  todayExpenses: number;
-  todayGrossRevenue: number; // Today's gross revenue for breakdown
-  todayExpensesOnly: number; // Today's expenses for breakdown
+  todayNetRevenue: number; // Actually the selected range's net revenue
+  todayExpenses: number; // Actually the selected range's expenses
   inventoryValueCost: number;
   inventoryValueSelling: number;
   totalUnits: number;
@@ -483,10 +481,19 @@ export default function Dashboard() {
             </p>
           </div>
 
-          {/* Today's Net Revenue */}
+          {/* Net Revenue for Selected Range */}
           <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-6">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-sm text-[var(--text-secondary)]">Today's Net Revenue</p>
+              <p className="text-sm text-[var(--text-secondary)]">
+                {dateRange === 'today' ? "Today's Net Revenue" :
+                 dateRange === 'yesterday' ? "Yesterday's Net Revenue" :
+                 dateRange === 'last7days' ? "Last 7 Days Net Revenue" :
+                 dateRange === 'last30days' ? "Last 30 Days Net Revenue" :
+                 dateRange === 'thisMonth' ? "This Month Net Revenue" :
+                 dateRange === 'lastMonth' ? "Last Month Net Revenue" :
+                 dateRange === 'thisYear' ? "This Year Net Revenue" :
+                 "Today's Net Revenue"}
+              </p>
               <span className="text-emerald-500">💵</span>
             </div>
             <p className="text-3xl font-bold text-emerald-500 mb-2">
@@ -503,7 +510,7 @@ export default function Dashboard() {
               </div>
               <div className="flex justify-between">
                 <span className="text-[var(--text-secondary)]">Business Expenses</span>
-                <span className="text-red-500">-KSH {stats?.todayExpensesOnly?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}</span>
+                <span className="text-red-500">-KSH {stats?.todayExpenses?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-[var(--text-secondary)]">Personal Expenses</span>
@@ -511,7 +518,7 @@ export default function Dashboard() {
               </div>
               <div className="flex justify-between font-semibold pt-1 border-t border-[var(--border-color)]">
                 <span className="text-[var(--text-primary)]">Net Revenue (All)</span>
-                <span className="text-emerald-500">KSH {((stats?.todayNetRevenue || 0) - (stats?.todayExpensesOnly || 0)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                <span className="text-emerald-500">KSH {((stats?.todayNetRevenue || 0) - (stats?.todayExpenses || 0)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
               </div>
             </div>
           </div>
