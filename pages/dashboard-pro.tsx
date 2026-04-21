@@ -787,39 +787,47 @@ export default function Dashboard() {
             </div>
             
             {/* Issues breakdown - only shown after clicking View Issues */}
-            {(() => {
-              console.log('Rendering pricing audit card:');
-              console.log('- showPricingIssues:', showPricingIssues);
-              console.log('- pricingAuditDetails:', pricingAuditDetails);
-              console.log('- issuesFound:', pricingAuditDetails?.issuesFound);
-              return null;
-            })()}
-            {showPricingIssues && pricingAuditDetails && pricingAuditDetails.issuesFound > 0 && (
+            {showPricingIssues && pricingAuditDetails && (
               <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-300 dark:border-amber-700 rounded-lg p-4 mb-3">
-                <p className="text-sm font-semibold text-amber-900 dark:text-amber-400 mb-2">Issues Breakdown:</p>
-                <ul className="space-y-1.5 text-sm text-amber-800 dark:text-amber-500">
-                  {pricingAuditDetails.issuesSummary.missingCost > 0 && (
-                    <li>• {pricingAuditDetails.issuesSummary.missingCost} products missing cost price</li>
-                  )}
-                  {pricingAuditDetails.issuesSummary.zeroSellingPrice > 0 && (
-                    <li>• {pricingAuditDetails.issuesSummary.zeroSellingPrice} products with zero selling price</li>
-                  )}
-                  {pricingAuditDetails.issuesSummary.sellingBelowCost > 0 && (
-                    <li>• {pricingAuditDetails.issuesSummary.sellingBelowCost} products selling below cost</li>
-                  )}
-                  {pricingAuditDetails.issuesSummary.unrealisticMarkup > 0 && (
-                    <li>• {pricingAuditDetails.issuesSummary.unrealisticMarkup} products with unrealistic markup</li>
-                  )}
-                </ul>
+                {pricingAuditDetails.issuesFound > 0 ? (
+                  <>
+                    <p className="text-sm font-semibold text-amber-900 dark:text-amber-400 mb-2">Issues Breakdown:</p>
+                    <ul className="space-y-1.5 text-sm text-amber-800 dark:text-amber-500">
+                      {pricingAuditDetails.issuesSummary.missingCost > 0 && (
+                        <li>• {pricingAuditDetails.issuesSummary.missingCost} products missing cost price</li>
+                      )}
+                      {pricingAuditDetails.issuesSummary.zeroSellingPrice > 0 && (
+                        <li>• {pricingAuditDetails.issuesSummary.zeroSellingPrice} products with zero selling price</li>
+                      )}
+                      {pricingAuditDetails.issuesSummary.sellingBelowCost > 0 && (
+                        <li>• {pricingAuditDetails.issuesSummary.sellingBelowCost} products selling below cost</li>
+                      )}
+                      {pricingAuditDetails.issuesSummary.unrealisticMarkup > 0 && (
+                        <li>• {pricingAuditDetails.issuesSummary.unrealisticMarkup} products with unrealistic markup</li>
+                      )}
+                    </ul>
+                  </>
+                ) : (
+                  <div className="text-center">
+                    <p className="text-sm font-semibold text-green-700 dark:text-green-400 mb-1">✓ All Clear!</p>
+                    <p className="text-xs text-green-600 dark:text-green-500">No pricing issues found. All products have valid pricing data.</p>
+                  </div>
+                )}
               </div>
             )}
             
             <button
-              onClick={fetchPricingAudit}
+              onClick={() => {
+                if (showPricingIssues) {
+                  setShowPricingIssues(false);
+                } else {
+                  fetchPricingAudit();
+                }
+              }}
               disabled={loadingAudit}
               className="w-full px-2 py-1.5 bg-yellow-500/10 border border-yellow-500/30 rounded text-xs hover:bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 font-medium disabled:opacity-50"
             >
-              {loadingAudit ? 'Loading...' : showPricingIssues ? 'Refresh Audit' : 'View Issues'}
+              {loadingAudit ? 'Loading...' : showPricingIssues ? 'Hide Issues' : 'View Issues'}
             </button>
           </div>
         </div>
