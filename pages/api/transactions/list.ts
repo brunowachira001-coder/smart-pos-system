@@ -49,12 +49,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       query = query.eq('status', status);
     }
 
-    // Date range filter
+    // Date range filter - convert local dates to UTC for database query
     if (startDate) {
-      query = query.gte('created_at', startDate);
+      // Parse the local date and convert to UTC
+      const localStart = new Date(startDate as string);
+      const utcStart = new Date(localStart.getTime() - (localStart.getTimezoneOffset() * 60000));
+      query = query.gte('created_at', utcStart.toISOString());
+      console.log('Start date filter:', {
+        received: startDate,
+        localStart: localStart.toISOString(),
+        utcStart: utcStart.toISOString()
+      });
     }
     if (endDate) {
-      query = query.lte('created_at', endDate);
+      // Parse the local date and convert to UTC
+      const localEnd = new Date(endDate as string);
+      const utcEnd = new Date(localEnd.getTime() - (localEnd.getTimezoneOffset() * 60000));
+      query = query.lte('created_at', utcEnd.toISOString());
+      console.log('End date filter:', {
+        received: endDate,
+        localEnd: localEnd.toISOString(),
+        utcEnd: utcEnd.toISOString()
+      });
     }
 
     // Sorting
