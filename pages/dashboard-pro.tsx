@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import DateRangeFilter from '../components/DateRangeFilter';
+import DateRangeFilter, { getDateRange, formatDateLocal } from '../components/DateRangeFilter';
 
 interface DashboardStats {
   allTimeProfit: number;
@@ -37,12 +37,28 @@ export default function Dashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [dateRange, setDateRange] = useState('all');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   const [priceType, setPriceType] = useState('retail'); // retail or wholesale only
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   // Track the current date to detect changes
   const [currentDate, setCurrentDate] = useState(new Date().toDateString());
+
+  // Update startDate and endDate when dateRange changes
+  useEffect(() => {
+    const { startDate: start, endDate: end } = getDateRange(dateRange);
+    
+    if (start && end) {
+      setStartDate(formatDateLocal(start));
+      setEndDate(formatDateLocal(end));
+    } else {
+      // For 'all', clear the date range
+      setStartDate('');
+      setEndDate('');
+    }
+  }, [dateRange]);
 
   useEffect(() => {
     fetchStats(true); // Initial load with loading spinner
@@ -364,7 +380,16 @@ export default function Dashboard() {
               <option value="retail">Retail</option>
               <option value="wholesale">Wholesale</option>
             </select>
-            <DateRangeFilter value={dateRange} onChange={setDateRange} />
+            <DateRangeFilter 
+              value={dateRange} 
+              onChange={setDateRange}
+              startDate={startDate}
+              endDate={endDate}
+              onDateChange={(start, end) => {
+                setStartDate(start);
+                setEndDate(end);
+              }}
+            />
             <button className="px-4 py-2 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg text-sm hover:bg-[var(--bg-secondary)] text-[var(--text-primary)]">
               📤 Export Summary
             </button>

@@ -200,17 +200,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Calculate gross revenue based on filtered items
     const grossRevenue = retailRevenue + wholesaleRevenue;
 
-    // Fetch today's transactions
-    const { data: todayTransactions, error: todayTxnError } = await supabase
-      .from('sales_transactions')
-      .select('*')
-      .gte('created_at', todayUTC)
-      .lt('created_at', tomorrowUTC);
+    // Fetch transactions for the selected date range (not just today)
+    // This will be used for "Today's Net Revenue" or "Yesterday's Net Revenue" etc.
+    let rangeTransactions;
+    let rangeTransactionsQuery = supabase.from('sales_transactions').select('*');
+    
+    if (startDate && endDate) {
+      // Use the selected date range
+      rangeTransactionsQuery = rangeTransactionsQuery
+        .gte('created_at', startDate.toISOString())
+        .lte('created_at', endDate.toISOString());
+    } else {
+      // Default to today if no range specified
+      rangeTransactionsQuery = rangeTransactionsQuery
+        .gte('created_at', todayUTC)
+        .lt('created_at', tomorrowUTC);
+    }
+    
+    const { data: rangeTransactionsData, error: rangeTxnError } = await rangeTransactionsQuery;
 
-    if (todayTxnError) throw todayTxnError;
+    if (rangeTxnError) throw rangeTxnError;
 
-    // Calculate today's net revenue
-    const todayNetRevenue = todayTransactions?.reduce((sum, t) => {
+    // Calculate net revenue for the selected range
+    const rangeNetRevenue = rangeTransactionsData?.reduce((sum, t) => {
       return sum + (parseFloat(t.total) || 0);
     }, 0) || 0;
     
@@ -408,7 +420,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         allTimeProfit,
         potentialProfit,
         grossRevenue,
-        todayNetRevenue,
+        todayNetRevenue: rangeNetRevenue,
         todayExpenses,
         inventoryValueCost,
         inventoryValueSelling,
