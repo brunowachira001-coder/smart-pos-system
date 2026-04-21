@@ -38,8 +38,9 @@ export default function TransactionsPage() {
       const { startDate: start, endDate: end } = getDateRange(dateRange);
       
       if (start && end) {
-        setStartDate(formatDateLocal(start));
-        setEndDate(formatDateLocal(end));
+        // Format with full timestamp for API
+        setStartDate(start.toISOString());
+        setEndDate(end.toISOString());
       } else {
         // For 'all', clear the date range
         setStartDate('');
@@ -65,8 +66,8 @@ export default function TransactionsPage() {
         // Re-calculate date range for current selection
         const { startDate: start, endDate: end } = getDateRange(dateRange);
         if (start && end) {
-          setStartDate(formatDateLocal(start));
-          setEndDate(formatDateLocal(end));
+          setStartDate(start.toISOString());
+          setEndDate(end.toISOString());
         }
       }
     };
@@ -227,11 +228,16 @@ export default function TransactionsPage() {
               <DateRangeFilter
                 value={dateRange}
                 onChange={setDateRange}
-                startDate={startDate}
-                endDate={endDate}
+                startDate={startDate ? formatDateLocal(new Date(startDate)) : ''}
+                endDate={endDate ? formatDateLocal(new Date(endDate)) : ''}
                 onDateChange={(start, end) => {
-                  setStartDate(start);
-                  setEndDate(end);
+                  // Convert date strings to full ISO timestamps
+                  const startDateTime = new Date(start);
+                  startDateTime.setHours(0, 0, 0, 0);
+                  const endDateTime = new Date(end);
+                  endDateTime.setHours(23, 59, 59, 999);
+                  setStartDate(startDateTime.toISOString());
+                  setEndDate(endDateTime.toISOString());
                 }}
               />
             </div>
