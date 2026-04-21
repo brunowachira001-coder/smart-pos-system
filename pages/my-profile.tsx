@@ -137,22 +137,22 @@ export default function MyProfilePage() {
       console.log('API Response:', data);
       
       if (response.ok && data.profile) {
+        // Update profile state immediately
         setProfile(data.profile);
         
         // Update localStorage user data
         const userData = localStorage.getItem('user');
         if (userData) {
           const parsedUser = JSON.parse(userData);
-          parsedUser.username = editForm.full_name;
-          parsedUser.email = editForm.email;
+          parsedUser.username = data.profile.full_name;
+          parsedUser.email = data.profile.email;
           localStorage.setItem('user', JSON.stringify(parsedUser));
         }
         
         setShowEditModal(false);
         alert('Profile updated successfully!');
         
-        // Reload page to update sidebar/topbar
-        setTimeout(() => window.location.reload(), 500);
+        // No need to reload - state is already updated
       } else {
         console.error('Update failed:', data);
         alert('Failed to update profile: ' + (data.error || 'Unknown error'));
