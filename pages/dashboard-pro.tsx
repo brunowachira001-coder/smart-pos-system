@@ -91,7 +91,6 @@ export default function Dashboard() {
 
   useEffect(() => {
     fetchStats(true); // Initial load with loading spinner
-    fetchPricingAudit(); // Auto-fetch pricing audit on load
   }, [dateRange, priceType]);
 
   // Auto-refresh every 30 seconds (silent, no loading spinner)
@@ -774,8 +773,8 @@ export default function Dashboard() {
               </div>
             </div>
             
-            {/* Issues breakdown - always shown when available */}
-            {pricingAuditDetails && pricingAuditDetails.issuesFound > 0 && (
+            {/* Issues breakdown - only shown after clicking View Issues */}
+            {showPricingIssues && pricingAuditDetails && pricingAuditDetails.issuesFound > 0 && (
               <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 mb-3">
                 <p className="text-sm font-semibold text-yellow-800 dark:text-yellow-400 mb-2">Issues Found:</p>
                 <ul className="space-y-1.5 text-sm text-yellow-700 dark:text-yellow-500">
@@ -794,6 +793,14 @@ export default function Dashboard() {
                 </ul>
               </div>
             )}
+            
+            <button
+              onClick={fetchPricingAudit}
+              disabled={loadingAudit}
+              className="w-full px-2 py-1.5 bg-yellow-500/10 border border-yellow-500/30 rounded text-xs hover:bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 font-medium disabled:opacity-50"
+            >
+              {loadingAudit ? 'Loading...' : showPricingIssues ? 'Refresh Audit' : 'View Issues'}
+            </button>
           </div>
         </div>
 
