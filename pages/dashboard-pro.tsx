@@ -166,28 +166,29 @@ export default function Dashboard() {
 
   const fetchPricingAudit = async () => {
     setLoadingAudit(true);
+    console.log('=== FETCHING PRICING AUDIT ===');
     try {
-      console.log('Fetching pricing audit...');
       const response = await fetch('/api/pricing-audit');
-      const data = await response.json();
-      
-      console.log('Pricing audit response:', data);
       console.log('Response status:', response.status);
       
+      const data = await response.json();
+      console.log('Full API response:', JSON.stringify(data, null, 2));
+      
       if (data.success && data.data) {
-        console.log('Pricing audit details:', data.data);
-        console.log('Issues found:', data.data.issuesFound);
-        console.log('Issues summary:', data.data.issuesSummary);
-        console.log('Issues array length:', data.data.issues?.length);
+        console.log('✓ API Success');
+        console.log('Total Products:', data.data.totalProducts);
+        console.log('Valid Pricing:', data.data.validPricing);
+        console.log('Issues Found:', data.data.issuesFound);
+        console.log('Issues Summary:', JSON.stringify(data.data.issuesSummary, null, 2));
+        console.log('Issues Array:', data.data.issues);
         
         setPricingAuditDetails(data.data);
         setShowPricingIssues(true);
         
-        console.log('State updated - showPricingIssues:', true);
-        console.log('State updated - pricingAuditDetails:', data.data);
+        console.log('✓ State updated successfully');
       } else {
-        console.error('Pricing audit failed:', data.error);
-        // Show error state
+        console.error('✗ API returned error:', data.error);
+        // Show error state with empty data
         setPricingAuditDetails({
           totalProducts: 0,
           validPricing: 0,
@@ -203,7 +204,7 @@ export default function Dashboard() {
         setShowPricingIssues(true);
       }
     } catch (error) {
-      console.error('Failed to fetch pricing audit:', error);
+      console.error('✗ Fetch error:', error);
       // Show error state
       setPricingAuditDetails({
         totalProducts: 0,
@@ -220,7 +221,9 @@ export default function Dashboard() {
       setShowPricingIssues(true);
     } finally {
       setLoadingAudit(false);
-      console.log('Loading complete - showPricingIssues should be true now');
+      console.log('=== FETCH COMPLETE ===');
+      console.log('showPricingIssues:', true);
+      console.log('pricingAuditDetails will be:', pricingAuditDetails);
     }
   };
 
@@ -817,6 +820,19 @@ export default function Dashboard() {
             </div>
             
             {/* Issues breakdown - only shown after clicking View Issues */}
+            {(() => {
+              console.log('RENDER CHECK:');
+              console.log('- showPricingIssues:', showPricingIssues);
+              console.log('- pricingAuditDetails:', pricingAuditDetails);
+              if (showPricingIssues && pricingAuditDetails) {
+                console.log('✓ BOX SHOULD BE VISIBLE');
+                console.log('- issuesFound:', pricingAuditDetails.issuesFound);
+                console.log('- issuesSummary:', pricingAuditDetails.issuesSummary);
+              } else {
+                console.log('✗ BOX HIDDEN - Conditions not met');
+              }
+              return null;
+            })()}
             {showPricingIssues && pricingAuditDetails && (
               <div className="bg-[#FFF8E7] dark:bg-amber-900/10 border border-[#E5D4B5] dark:border-amber-700 rounded-lg p-4 mb-3">
                 <p className="text-base font-semibold text-[#B8733E] dark:text-amber-400 mb-3">Issues Found:</p>
