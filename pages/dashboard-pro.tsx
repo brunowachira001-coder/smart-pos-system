@@ -172,8 +172,9 @@ export default function Dashboard() {
       const data = await response.json();
       
       console.log('Pricing audit response:', data);
+      console.log('Response status:', response.status);
       
-      if (data.success) {
+      if (data.success && data.data) {
         console.log('Pricing audit details:', data.data);
         console.log('Issues found:', data.data.issuesFound);
         console.log('Issues summary:', data.data.issuesSummary);
@@ -186,11 +187,40 @@ export default function Dashboard() {
         console.log('State updated - pricingAuditDetails:', data.data);
       } else {
         console.error('Pricing audit failed:', data.error);
+        // Show error state
+        setPricingAuditDetails({
+          totalProducts: 0,
+          validPricing: 0,
+          issuesFound: 0,
+          issuesSummary: {
+            missingCost: 0,
+            zeroSellingPrice: 0,
+            sellingBelowCost: 0,
+            unrealisticMarkup: 0,
+          },
+          issues: []
+        });
+        setShowPricingIssues(true);
       }
     } catch (error) {
       console.error('Failed to fetch pricing audit:', error);
+      // Show error state
+      setPricingAuditDetails({
+        totalProducts: 0,
+        validPricing: 0,
+        issuesFound: 0,
+        issuesSummary: {
+          missingCost: 0,
+          zeroSellingPrice: 0,
+          sellingBelowCost: 0,
+          unrealisticMarkup: 0,
+        },
+        issues: []
+      });
+      setShowPricingIssues(true);
     } finally {
       setLoadingAudit(false);
+      console.log('Loading complete - showPricingIssues should be true now');
     }
   };
 
@@ -784,6 +814,11 @@ export default function Dashboard() {
                   {pricingAuditDetails?.issuesFound || stats?.pricingAudit?.issues || 0}
                 </span>
               </div>
+            </div>
+            
+            {/* Debug info - remove after testing */}
+            <div className="text-xs text-gray-500 mb-2">
+              Debug: showPricingIssues={String(showPricingIssues)}, hasDetails={String(!!pricingAuditDetails)}
             </div>
             
             {/* Issues breakdown - only shown after clicking View Issues */}
