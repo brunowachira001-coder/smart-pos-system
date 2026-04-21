@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { applyTheme, getCurrentTheme } from '../lib/themes';
+import Toast from '../components/Toast';
+import { useToast } from '../hooks/useToast';
 
 interface Profile {
   id: string;
@@ -22,6 +24,9 @@ export default function MyProfilePage() {
   const [editForm, setEditForm] = useState({ full_name: '', email: '', phone: '' });
   const [saving, setSaving] = useState(false);
   const [currentTheme, setCurrentTheme] = useState('dark');
+  
+  // Toast notification
+  const { toast, showToast, hideToast } = useToast();
 
   useEffect(() => {
     setCurrentTheme(getCurrentTheme());
@@ -30,7 +35,7 @@ export default function MyProfilePage() {
   const handleApplyTheme = (theme: string) => {
     applyTheme(theme as any);
     setCurrentTheme(theme);
-    alert(`${theme.charAt(0).toUpperCase() + theme.slice(1)} theme applied successfully!`);
+    showToast(`${theme.charAt(0).toUpperCase() + theme.slice(1)} theme applied successfully!`, 'success');
   };
 
   useEffect(() => {
@@ -150,16 +155,16 @@ export default function MyProfilePage() {
         }
         
         setShowEditModal(false);
-        alert('Profile updated successfully!');
+        showToast('Profile updated successfully!', 'success');
         
         // No need to reload - state is already updated
       } else {
         console.error('Update failed:', data);
-        alert('Failed to update profile: ' + (data.error || 'Unknown error'));
+        showToast('Failed to update profile: ' + (data.error || 'Unknown error'), 'error');
       }
     } catch (error) {
       console.error('Error updating profile:', error);
-      alert('Failed to update profile: ' + (error instanceof Error ? error.message : 'Network error'));
+      showToast('Failed to update profile: ' + (error instanceof Error ? error.message : 'Network error'), 'error');
     } finally {
       setSaving(false);
     }
@@ -258,6 +263,15 @@ export default function MyProfilePage() {
 
   return (
     <div className="min-h-screen bg-[var(--bg-primary)] flex flex-col">
+      {/* Toast Notification */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={hideToast}
+        />
+      )}
+      
       <div className="flex-1 flex flex-col p-6">
         {/* Header */}
         <div className="text-center mb-4">
@@ -487,7 +501,7 @@ export default function MyProfilePage() {
                     const theme = localStorage.getItem('theme');
                     localStorage.clear();
                     if (theme) localStorage.setItem('theme', theme);
-                    alert('Cache cleared! Redirecting to login...');
+                    showToast('Cache cleared! Redirecting to login...', 'success');
                     setTimeout(() => window.location.href = '/login', 1000);
                   }
                 }}
@@ -579,7 +593,7 @@ export default function MyProfilePage() {
             <h2 className="text-xl font-semibold mb-4 text-[var(--text-primary)]">Change Password</h2>
             <form onSubmit={(e) => {
               e.preventDefault();
-              alert('Password change functionality coming soon');
+              showToast('Password change functionality coming soon', 'info');
               setShowPasswordModal(false);
             }}>
               <div className="space-y-4">

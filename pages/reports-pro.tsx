@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import Toast from '../components/Toast';
+import { useToast } from '../hooks/useToast';
 
 export default function ReportsPro() {
   const [showExportModal, setShowExportModal] = useState(false);
@@ -18,9 +20,21 @@ export default function ReportsPro() {
       { month: 'Mar', revenue: 45230, orders: 328 },
     ]
   });
+  
+  // Toast notification
+  const { toast, showToast, hideToast } = useToast();
 
   return (
     <div className="space-y-6">
+      {/* Toast Notification */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={hideToast}
+        />
+      )}
+      
         <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold text-[var(--text-primary)]">Reports & Analytics</h1>
           <button 
@@ -93,13 +107,13 @@ export default function ReportsPro() {
             <div className="bg-[var(--card-bg)] rounded-lg p-6 max-w-md w-full mx-4">
               <h2 className="text-xl font-bold text-[var(--text-primary)] mb-4">Export Report</h2>
               <div className="space-y-3">
-                <button onClick={() => { alert('Exported as PDF!'); setShowExportModal(false); }} className="w-full px-4 py-3 text-left bg-[var(--bg-secondary)] hover:bg-[var(--bg-tertiary)] rounded-lg border border-[var(--border-color)]">
+                <button onClick={() => { showToast('Exported as PDF!', 'success'); setShowExportModal(false); }} className="w-full px-4 py-3 text-left bg-[var(--bg-secondary)] hover:bg-[var(--bg-tertiary)] rounded-lg border border-[var(--border-color)]">
                   <p className="font-semibold text-[var(--text-primary)]">Export as PDF</p>
                 </button>
-                <button onClick={() => { alert('Exported as Excel!'); setShowExportModal(false); }} className="w-full px-4 py-3 text-left bg-[var(--bg-secondary)] hover:bg-[var(--bg-tertiary)] rounded-lg border border-[var(--border-color)]">
+                <button onClick={() => { showToast('Exported as Excel!', 'success'); setShowExportModal(false); }} className="w-full px-4 py-3 text-left bg-[var(--bg-secondary)] hover:bg-[var(--bg-tertiary)] rounded-lg border border-[var(--border-color)]">
                   <p className="font-semibold text-[var(--text-primary)]">Export as Excel</p>
                 </button>
-                <button onClick={() => { alert('Exported as CSV!'); setShowExportModal(false); }} className="w-full px-4 py-3 text-left bg-[var(--bg-secondary)] hover:bg-[var(--bg-tertiary)] rounded-lg border border-[var(--border-color)]">
+                <button onClick={() => { showToast('Exported as CSV!', 'success'); setShowExportModal(false); }} className="w-full px-4 py-3 text-left bg-[var(--bg-secondary)] hover:bg-[var(--bg-tertiary)] rounded-lg border border-[var(--border-color)]">
                   <p className="font-semibold text-[var(--text-primary)]">Export as CSV</p>
                 </button>
               </div>

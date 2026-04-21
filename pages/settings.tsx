@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import Toast from '../components/Toast';
+import { useToast } from '../hooks/useToast';
 
 export default function Settings() {
   const [settings, setSettings] = useState({
@@ -13,6 +15,9 @@ export default function Settings() {
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  
+  // Toast notification
+  const { toast, showToast, hideToast } = useToast();
 
   useEffect(() => {
     fetchSettings();
@@ -58,13 +63,13 @@ export default function Settings() {
       });
       
       if (response.ok) {
-        alert('Settings saved successfully!');
+        showToast('Settings saved successfully!', 'success');
       } else {
-        alert('Error saving settings');
+        showToast('Error saving settings', 'error');
       }
     } catch (error) {
       console.error('Error saving settings:', error);
-      alert('Error saving settings');
+      showToast('Error saving settings', 'error');
     } finally {
       setSaving(false);
     }
@@ -76,6 +81,15 @@ export default function Settings() {
 
   return (
     <div className="space-y-6">
+      {/* Toast Notification */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={hideToast}
+        />
+      )}
+      
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-[var(--text-primary)]">Settings</h1>
         <button 

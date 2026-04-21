@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import Toast from '../components/Toast';
+import { useToast } from '../hooks/useToast';
 
 export default function ProductsPro() {
   const [showAddModal, setShowAddModal] = useState(false);
@@ -6,6 +8,9 @@ export default function ProductsPro() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [lowStockThreshold, setLowStockThreshold] = useState(50);
+  
+  // Toast notification
+  const { toast, showToast, hideToast } = useToast();
 
   useEffect(() => {
     fetchSettings();
@@ -40,7 +45,7 @@ export default function ProductsPro() {
 
   const handleAddProduct = async () => {
     if (!newProduct.name || !newProduct.sku || !newProduct.price || !newProduct.stock) {
-      alert('Please fill all fields');
+      showToast('Please fill all fields', 'error');
       return;
     }
     
@@ -61,13 +66,13 @@ export default function ProductsPro() {
         await fetchProducts();
         setNewProduct({ name: '', sku: '', price: '', stock: '', category: 'Electronics' });
         setShowAddModal(false);
-        alert('Product added successfully!');
+        showToast('Product added successfully!', 'success');
       } else {
-        alert('Error adding product');
+        showToast('Error adding product', 'error');
       }
     } catch (error) {
       console.error('Error adding product:', error);
-      alert('Error adding product');
+      showToast('Error adding product', 'error');
     }
   };
 
@@ -77,6 +82,15 @@ export default function ProductsPro() {
 
   return (
     <div className="space-y-6">
+      {/* Toast Notification */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={hideToast}
+        />
+      )}
+      
         <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold text-[var(--text-primary)]">Products</h1>
           <button 

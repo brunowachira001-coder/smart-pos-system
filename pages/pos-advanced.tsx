@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import Toast from '../components/Toast';
+import { useToast } from '../hooks/useToast';
 
 interface CartItem {
   productId: string;
@@ -21,6 +23,9 @@ export default function POSAdvanced() {
   const [search, setSearch] = useState('');
   const [showCheckout, setShowCheckout] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('CASH');
+  
+  // Toast notification
+  const { toast, showToast, hideToast } = useToast();
 
   const addToCart = (product: any) => {
     const existing = cart.find(item => item.productId === product.id);
@@ -63,10 +68,10 @@ export default function POSAdvanced() {
 
   const handleCheckout = () => {
     if (cart.length === 0) {
-      alert('Cart is empty');
+      showToast('Cart is empty', 'error');
       return;
     }
-    alert('Transaction completed successfully!');
+    showToast('Transaction completed successfully!', 'success');
     setCart([]);
     setShowCheckout(false);
   };
@@ -77,6 +82,15 @@ export default function POSAdvanced() {
 
   return (
     <>
+      {/* Toast Notification */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={hideToast}
+        />
+      )}
+      
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <div className="lg:col-span-2 space-y-4">
         <div>

@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import Toast from '../components/Toast';
+import { useToast } from '../hooks/useToast';
 
 export default function InventoryPro() {
   const [showAdjustModal, setShowAdjustModal] = useState(false);
@@ -9,9 +11,21 @@ export default function InventoryPro() {
     { id: 4, product: 'Screen Protector', warehouse: 'Main', quantity: 1000, reorderLevel: 200, status: 'Optimal' },
     { id: 5, product: 'Power Bank', warehouse: 'Branch B', quantity: 30, reorderLevel: 100, status: 'Critical' },
   ]);
+  
+  // Toast notification
+  const { toast, showToast, hideToast } = useToast();
 
   return (
     <div className="space-y-6">
+      {/* Toast Notification */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={hideToast}
+        />
+      )}
+      
         <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold text-[var(--text-primary)]">Inventory Management</h1>
           <button 
@@ -87,7 +101,7 @@ export default function InventoryPro() {
               </div>
               <div className="flex gap-2 mt-4">
                 <button onClick={() => setShowAdjustModal(false)} className="flex-1 px-4 py-2 border border-[var(--border-color)] rounded-lg hover:bg-[var(--bg-secondary)]">Cancel</button>
-                <button onClick={() => { alert('Stock adjusted!'); setShowAdjustModal(false); }} className="flex-1 px-4 py-2 bg-emerald-600 text-[var(--text-primary)] rounded-lg hover:bg-emerald-700">Adjust</button>
+                <button onClick={() => { showToast('Stock adjusted!', 'success'); setShowAdjustModal(false); }} className="flex-1 px-4 py-2 bg-emerald-600 text-[var(--text-primary)] rounded-lg hover:bg-emerald-700">Adjust</button>
               </div>
             </div>
           </div>

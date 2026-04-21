@@ -1,10 +1,15 @@
 import React, { useState, useEffect } from 'react';
+import Toast from '../components/Toast';
+import { useToast } from '../hooks/useToast';
 
 export default function CustomersPro() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [newCustomer, setNewCustomer] = useState({ name: '', email: '', phone: '' });
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
+  
+  // Toast notification
+  const { toast, showToast, hideToast } = useToast();
 
   useEffect(() => {
     fetchCustomers();
@@ -24,7 +29,7 @@ export default function CustomersPro() {
 
   const handleAddCustomer = async () => {
     if (!newCustomer.name || !newCustomer.email || !newCustomer.phone) {
-      alert('Please fill all fields');
+      showToast('Please fill all fields', 'error');
       return;
     }
     
@@ -43,13 +48,13 @@ export default function CustomersPro() {
         await fetchCustomers();
         setNewCustomer({ name: '', email: '', phone: '' });
         setShowAddModal(false);
-        alert('Customer added successfully!');
+        showToast('Customer added successfully!', 'success');
       } else {
-        alert('Error adding customer');
+        showToast('Error adding customer', 'error');
       }
     } catch (error) {
       console.error('Error adding customer:', error);
-      alert('Error adding customer');
+      showToast('Error adding customer', 'error');
     }
   };
 
@@ -59,6 +64,15 @@ export default function CustomersPro() {
 
   return (
     <div className="space-y-6">
+      {/* Toast Notification */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={hideToast}
+        />
+      )}
+      
         <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold text-[var(--text-primary)]">Customers</h1>
           <button 

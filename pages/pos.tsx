@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import DateRangeFilter from '../components/DateRangeFilter';
+import Toast from '../components/Toast';
+import { useToast } from '../hooks/useToast';
 
 interface Product {
   id: string;
@@ -33,6 +35,9 @@ export default function POSPage() {
   const [loading, setLoading] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
   const [sessionId] = useState(() => `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
+  
+  // Toast notification
+  const { toast, showToast, hideToast } = useToast();
   
   // Local state for quantity inputs (allows empty string for editing)
   const [quantityInputs, setQuantityInputs] = useState<Record<string, string>>({});
@@ -173,13 +178,13 @@ export default function POSPage() {
 
   const handleCheckout = async () => {
     if (cart.length === 0) {
-      alert('Cart is empty');
+      showToast('Cart is empty', 'error');
       return;
     }
 
     const paid = parseFloat(amountPaid) || 0;
     if (paid < cartTotal) {
-      alert('Amount paid is less than total');
+      showToast('Amount paid is less than total', 'error');
       return;
     }
 
@@ -205,18 +210,18 @@ export default function POSPage() {
       const data = await response.json();
 
       if (response.ok) {
-        alert(`Transaction completed!\nChange: KSH ${(paid - cartTotal).toFixed(2)}`);
+        showToast(`Transaction completed! Change: KSH ${(paid - cartTotal).toFixed(2)}`, 'success');
         setShowCheckout(false);
         setCustomerName('');
         setCustomerPhone('');
         setAmountPaid('');
         await fetchCart();
       } else {
-        alert(`Error: ${data.error}`);
+        showToast(`Error: ${data.error}`, 'error');
       }
     } catch (error) {
       console.error('Error during checkout:', error);
-      alert('Checkout failed');
+      showToast('Checkout failed', 'error');
     } finally {
       setLoading(false);
     }
@@ -224,6 +229,15 @@ export default function POSPage() {
 
   return (
     <div className="min-h-screen bg-[var(--bg-secondary)] pb-20">
+      {/* Toast Notification */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={hideToast}
+        />
+      )}
+      
       <div className="p-6">
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
