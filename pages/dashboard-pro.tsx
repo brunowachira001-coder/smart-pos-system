@@ -167,12 +167,25 @@ export default function Dashboard() {
   const fetchPricingAudit = async () => {
     setLoadingAudit(true);
     try {
+      console.log('Fetching pricing audit...');
       const response = await fetch('/api/pricing-audit');
       const data = await response.json();
       
+      console.log('Pricing audit response:', data);
+      
       if (data.success) {
+        console.log('Pricing audit details:', data.data);
+        console.log('Issues found:', data.data.issuesFound);
+        console.log('Issues summary:', data.data.issuesSummary);
+        console.log('Issues array length:', data.data.issues?.length);
+        
         setPricingAuditDetails(data.data);
         setShowPricingIssues(true);
+        
+        console.log('State updated - showPricingIssues:', true);
+        console.log('State updated - pricingAuditDetails:', data.data);
+      } else {
+        console.error('Pricing audit failed:', data.error);
       }
     } catch (error) {
       console.error('Failed to fetch pricing audit:', error);
@@ -774,10 +787,17 @@ export default function Dashboard() {
             </div>
             
             {/* Issues breakdown - only shown after clicking View Issues */}
+            {(() => {
+              console.log('Rendering pricing audit card:');
+              console.log('- showPricingIssues:', showPricingIssues);
+              console.log('- pricingAuditDetails:', pricingAuditDetails);
+              console.log('- issuesFound:', pricingAuditDetails?.issuesFound);
+              return null;
+            })()}
             {showPricingIssues && pricingAuditDetails && pricingAuditDetails.issuesFound > 0 && (
-              <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 mb-3">
-                <p className="text-sm font-semibold text-yellow-800 dark:text-yellow-400 mb-2">Issues Found:</p>
-                <ul className="space-y-1.5 text-sm text-yellow-700 dark:text-yellow-500">
+              <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-300 dark:border-amber-700 rounded-lg p-4 mb-3">
+                <p className="text-sm font-semibold text-amber-900 dark:text-amber-400 mb-2">Issues Breakdown:</p>
+                <ul className="space-y-1.5 text-sm text-amber-800 dark:text-amber-500">
                   {pricingAuditDetails.issuesSummary.missingCost > 0 && (
                     <li>• {pricingAuditDetails.issuesSummary.missingCost} products missing cost price</li>
                   )}
