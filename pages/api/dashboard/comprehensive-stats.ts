@@ -226,16 +226,45 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return sum + (parseFloat(t.total) || 0);
     }, 0) || 0;
     
+    // ALWAYS fetch today's transactions for the Net Revenue breakdown
+    const { data: todayTransactionsData, error: todayTxnError } = await supabase
+      .from('sales_transactions')
+      .select('*')
+      .gte('created_at', todayUTC)
+      .lt('created_at', tomorrowUTC);
+
+    if (todayTxnError) throw todayTxnError;
+
+    // Calculate today's gross revenue for the breakdown
+    let todayGrossRevenue = 0;
+    if (todayTransactionsData && todayTransactionsData.length > 0) {
+      const todayTransactionIds = todayTransactionsData.map(t => t.id);
+      
+      // Fetch today's transaction items
+      const { data: todayItems } = await supabase
+        .from('sales_transaction_items')
+        .select('unit_price, quantity')
+        .in('transaction_id', todayTransactionIds);
+
+      if (todayItems) {
+        todayGrossRevenue = todayItems.reduce((sum, item) => {
+          return sum + (parseFloat(item.unit_price) * item.quantity);
+        }, 0);
+      }
+    }
+    
     console.log('=== RANGE SALES CALCULATION ===');
     console.log('Range UTC:', startDate?.toISOString() || todayUTC, 'to', endDate?.toISOString() || tomorrowUTC);
     console.log('Range transactions found:', rangeTransactionsData?.length || 0);
     console.log('Range net revenue:', rangeNetRevenue);
+    console.log('Today gross revenue (for breakdown):', todayGrossRevenue);
     if (rangeTransactionsData && rangeTransactionsData.length > 0) {
       console.log('Sample transaction:', rangeTransactionsData[0]);
     }
 
     // Fetch expenses for the selected date range
-    let todayExpenses = 0;
+    let rangeExpenses = 0;
+    let todayExpensesOnly = 0;
     try {
       let expensesQuery = supabase
         .from('expenses')
@@ -253,11 +282,51 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
       
       const { data: expenses } = await expensesQuery;
+      rangeExpenses = expenses?.reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0) || 0;
       
-      todayExpenses = expenses?.reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0) || 0;
+      // ALWAYS fetch today's expenses for the breakdown
+      const todayDateStr = todayLocal.toISOString().split('T')[0];
+      const { data: todayExpensesData } = await supabase
+        .from('expenses')
+        .select('amount, expense_date, status')
+        .eq('status', 'Approved')
+        .eq('expense_date', todayDateStr);
+      
+      todayExpensesOnly = todayExpensesData?.reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0) || 0;
     } catch (e) {
       // Expenses table might not exist
-      todayExpenses = 0;
+      rangeExpenses = 0;
+      todayExpensesOnly = 0;
+    }
+
+    // Fetch returns for the selected date range
+    let rangeReturns = 0;
+    try {
+      let returnsQuery = supabase
+        .from('returns')
+        .select('amount, return_date, status')
+        .in('status', ['Completed', 'Approved']); // Only count completed/approved returns
+      
+      if (startDate && endDate) {
+        returnsQuery = returnsQuery
+          .gte('return_date', startDate.toISOString())
+          .lte('return_date', endDate.toISOString());
+      } else {
+        // Default to today if no range specified
+        returnsQuery = returnsQuery
+          .gte('return_date', todayUTC)
+          .lt('return_date', tomorrowUTC);
+      }
+      
+      const { data: returns } = await returnsQuery;
+      rangeReturns = returns?.reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0) || 0;
+      
+      console.log('=== RETURNS CALCULATION ===');
+      console.log('Range returns found:', returns?.length || 0);
+      console.log('Range returns amount:', rangeReturns);
+    } catch (e) {
+      console.error('Error fetching returns:', e);
+      rangeReturns = 0;
     }
 
     // Count product categories
@@ -421,7 +490,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         potentialProfit,
         grossRevenue,
         todayNetRevenue: rangeNetRevenue,
-        todayExpenses,
+        todayExpenses: rangeExpenses,
+        todayReturns: rangeReturns, // Returns for the selected date range
+        todayGrossRevenue, // For the breakdown in Net Revenue card
+        todayExpensesOnly, // For the breakdown in Net Revenue card
         inventoryValueCost,
         inventoryValueSelling,
         totalUnits,
@@ -451,6 +523,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         grossRevenue: 0,
         todayNetRevenue: 0,
         todayExpenses: 0,
+        todayReturns: 0,
         inventoryValueCost: 0,
         inventoryValueSelling: 0,
         totalUnits: 0,

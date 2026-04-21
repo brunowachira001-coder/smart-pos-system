@@ -8,6 +8,7 @@ interface DashboardStats {
   grossRevenue: number;
   todayNetRevenue: number; // Actually the selected range's net revenue
   todayExpenses: number; // Actually the selected range's expenses
+  todayReturns: number; // Actually the selected range's returns
   inventoryValueCost: number;
   inventoryValueSelling: number;
   totalUnits: number;
@@ -497,7 +498,7 @@ export default function Dashboard() {
               <span className="text-emerald-500">💵</span>
             </div>
             <p className="text-3xl font-bold text-emerald-500 mb-2">
-              KSH {stats?.todayNetRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              KSH {((stats?.todayNetRevenue || 0) - (stats?.todayReturns || 0) - (stats?.todayExpenses || 0)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </p>
             <div className="bg-[var(--bg-secondary)] rounded p-2 space-y-1 text-xs mt-2">
               <div className="flex justify-between">
@@ -506,7 +507,7 @@ export default function Dashboard() {
               </div>
               <div className="flex justify-between">
                 <span className="text-[var(--text-secondary)]">Returns</span>
-                <span className="text-red-500">-KSH 0.00</span>
+                <span className="text-red-500">-KSH {stats?.todayReturns?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-[var(--text-secondary)]">Business Expenses</span>
@@ -518,7 +519,7 @@ export default function Dashboard() {
               </div>
               <div className="flex justify-between font-semibold pt-1 border-t border-[var(--border-color)]">
                 <span className="text-[var(--text-primary)]">Net Revenue (All)</span>
-                <span className="text-emerald-500">KSH {((stats?.todayNetRevenue || 0) - (stats?.todayExpenses || 0)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                <span className="text-emerald-500">KSH {((stats?.todayNetRevenue || 0) - (stats?.todayReturns || 0) - (stats?.todayExpenses || 0)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
               </div>
             </div>
           </div>
