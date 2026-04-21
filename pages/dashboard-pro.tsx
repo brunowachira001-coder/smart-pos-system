@@ -512,8 +512,8 @@ export default function Dashboard() {
             </p>
           </div>
 
-          {/* Net Revenue for Selected Range */}
-          <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-6">
+          {/* Net Revenue for Selected Range - Redesigned to Fill Card */}
+          <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-6 flex flex-col">
             <div className="flex items-center justify-between mb-2">
               <p className="text-sm text-[var(--text-secondary)]">
                 {dateRange === 'today' ? "Today's Net Revenue" :
@@ -527,29 +527,62 @@ export default function Dashboard() {
               </p>
               <span className="text-emerald-500">💵</span>
             </div>
+            
+            {/* Main Net Revenue Amount */}
             <p className="text-3xl font-bold text-emerald-500 mb-2">
               KSH {((stats?.todayNetRevenue || 0) - (stats?.todayReturns || 0) - (stats?.todayExpenses || 0)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </p>
-            <div className="bg-[var(--bg-secondary)] rounded p-2 space-y-1 text-xs mt-2">
-              <div className="flex justify-between">
-                <span className="text-[var(--text-secondary)]">Gross Revenue</span>
-                <span className="text-[var(--text-primary)]">KSH {stats?.todayNetRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+            
+            {/* From Gross and Margin */}
+            <div className="flex items-center justify-between mb-3 text-xs">
+              <p className="text-[var(--text-secondary)]">
+                from KSH {stats?.todayNetRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} gross
+              </p>
+              <div className="px-3 py-0.5 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-full">
+                <span className="text-xs font-semibold text-[var(--text-primary)]">
+                  {stats?.todayNetRevenue > 0 ? (((stats?.todayNetRevenue - stats?.todayReturns - stats?.todayExpenses) / stats?.todayNetRevenue) * 100).toFixed(1) : '100.0'}%
+                </span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-[var(--text-secondary)]">Returns</span>
-                <span className="text-red-500">-KSH {stats?.todayReturns?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}</span>
+            </div>
+            
+            {/* Breakdown Boxes - Full Width */}
+            <div className="space-y-2 flex-1">
+              {/* Gross Revenue Box */}
+              <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg p-3 flex justify-between items-center">
+                <span className="text-sm text-[var(--text-secondary)]">Gross Revenue</span>
+                <span className="text-base font-semibold text-emerald-600 dark:text-emerald-400">
+                  KSH {stats?.todayNetRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-[var(--text-secondary)]">Business Expenses</span>
-                <span className="text-red-500">-KSH {stats?.todayExpenses?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}</span>
+              
+              {/* Returns Box */}
+              <div className="bg-gray-50 dark:bg-gray-900/20 border border-gray-200 dark:border-gray-800 rounded-lg p-3 flex justify-between items-center">
+                <span className="text-sm text-[var(--text-secondary)]">Returns</span>
+                <span className="text-base font-semibold text-red-500">
+                  -KSH {stats?.todayReturns?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}
+                </span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-[var(--text-secondary)]">Personal Expenses</span>
-                <span className="text-red-500">-KSH 0.00</span>
+              
+              {/* Business Expenses Box */}
+              <div className="bg-gray-50 dark:bg-gray-900/20 border border-gray-200 dark:border-gray-800 rounded-lg p-3 flex justify-between items-center">
+                <span className="text-sm text-[var(--text-secondary)]">Business Expenses</span>
+                <span className="text-base font-semibold text-red-500">
+                  -KSH {stats?.todayExpenses?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}
+                </span>
               </div>
-              <div className="flex justify-between font-semibold pt-1 border-t border-[var(--border-color)]">
-                <span className="text-[var(--text-primary)]">Net Revenue (All)</span>
-                <span className="text-emerald-500">KSH {((stats?.todayNetRevenue || 0) - (stats?.todayReturns || 0) - (stats?.todayExpenses || 0)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              
+              {/* Personal Expenses Box */}
+              <div className="bg-gray-50 dark:bg-gray-900/20 border border-gray-200 dark:border-gray-800 rounded-lg p-3 flex justify-between items-center">
+                <span className="text-sm text-[var(--text-secondary)]">Personal Expenses</span>
+                <span className="text-base font-semibold text-red-500">-KSH 0.00</span>
+              </div>
+              
+              {/* Net Revenue (All) Box */}
+              <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg p-3 flex justify-between items-center">
+                <span className="text-sm font-semibold text-[var(--text-primary)]">Net Revenue (All)</span>
+                <span className="text-base font-bold text-emerald-600 dark:text-emerald-400">
+                  KSH {((stats?.todayNetRevenue || 0) - (stats?.todayReturns || 0) - (stats?.todayExpenses || 0)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
               </div>
             </div>
           </div>
