@@ -27,6 +27,7 @@ export default function Expenses() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [categories, setCategories] = useState<any[]>([]);
   const [currentDate, setCurrentDate] = useState(new Date().toDateString());
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
   const [newExpense, setNewExpense] = useState({
     category: '',
@@ -193,7 +194,7 @@ export default function Expenses() {
     }
   };
 
-  const handleApproveExpense = async (expenseId: string, status: 'Approved' | 'Rejected') => {
+  const handleApproveExpense = async (expenseId: string, status: 'Approved' | 'Rejected' | 'Pending') => {
     try {
       const user = JSON.parse(localStorage.getItem('user') || '{}');
       const response = await fetch(`/api/expenses/${expenseId}/approve`, {
@@ -413,29 +414,58 @@ export default function Expenses() {
                       </span>
                     </td>
                     <td className="px-4 py-4">
-                      {expense.status === 'Pending' && (
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => handleApproveExpense(expense.id, 'Approved')}
-                            className="px-3 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700"
-                            title="Approve expense"
-                          >
-                            ✓ Approve
-                          </button>
-                          <button
-                            onClick={() => handleApproveExpense(expense.id, 'Rejected')}
-                            className="px-3 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700"
-                            title="Reject expense"
-                          >
-                            ✗ Reject
-                          </button>
-                        </div>
-                      )}
-                      {expense.status !== 'Pending' && (
-                        <span className="text-xs text-[var(--text-secondary)]">
-                          {expense.status === 'Approved' ? '✓ Approved' : '✗ Rejected'}
-                        </span>
-                      )}
+                      <div className="relative">
+                        <button
+                          onClick={() => setOpenMenuId(openMenuId === expense.id ? null : expense.id)}
+                          className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-lg font-bold"
+                        >
+                          ⋯
+                        </button>
+                        
+                        {openMenuId === expense.id && (
+                          <>
+                            <div 
+                              className="fixed inset-0 z-10" 
+                              onClick={() => setOpenMenuId(null)}
+                            />
+                            <div className="absolute right-0 mt-2 w-40 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg shadow-xl z-20 py-1">
+                              {expense.status !== 'Approved' && (
+                                <button
+                                  onClick={() => {
+                                    handleApproveExpense(expense.id, 'Approved');
+                                    setOpenMenuId(null);
+                                  }}
+                                  className="w-full text-left px-4 py-2 text-sm hover:bg-[var(--bg-primary)] text-green-600 hover:text-green-700 transition-colors"
+                                >
+                                  ✓ Approve
+                                </button>
+                              )}
+                              {expense.status !== 'Rejected' && (
+                                <button
+                                  onClick={() => {
+                                    handleApproveExpense(expense.id, 'Rejected');
+                                    setOpenMenuId(null);
+                                  }}
+                                  className="w-full text-left px-4 py-2 text-sm hover:bg-[var(--bg-primary)] text-red-600 hover:text-red-700 transition-colors"
+                                >
+                                  ✗ Reject
+                                </button>
+                              )}
+                              {expense.status !== 'Pending' && (
+                                <button
+                                  onClick={() => {
+                                    handleApproveExpense(expense.id, 'Pending');
+                                    setOpenMenuId(null);
+                                  }}
+                                  className="w-full text-left px-4 py-2 text-sm hover:bg-[var(--bg-primary)] text-yellow-600 hover:text-yellow-700 transition-colors"
+                                >
+                                  ⟳ Set Pending
+                                </button>
+                              )}
+                            </div>
+                          </>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))
