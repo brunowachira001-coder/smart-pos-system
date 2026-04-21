@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Toast from '../components/Toast';
 
 interface Product {
   id: string;
@@ -35,6 +36,9 @@ export default function InventoryPage() {
   const [showRestockModal, setShowRestockModal] = useState(false);
   const [showAdjustModal, setShowAdjustModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  
+  // Toast notification
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
   
   // Form state
   const [formData, setFormData] = useState({
@@ -112,16 +116,16 @@ export default function InventoryPage() {
       const data = await response.json();
 
       if (response.ok) {
-        alert('Product added successfully!');
+        setToast({ message: 'Product added successfully!', type: 'success' });
         setShowAddModal(false);
         resetForm();
         fetchProducts();
       } else {
-        alert(`Error: ${data.error}`);
+        setToast({ message: `Error: ${data.error}`, type: 'error' });
       }
     } catch (error) {
       console.error('Error adding product:', error);
-      alert('Failed to add product');
+      setToast({ message: 'Failed to add product', type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -155,17 +159,17 @@ export default function InventoryPage() {
       const data = await response.json();
 
       if (response.ok) {
-        alert('Product updated successfully!');
+        setToast({ message: 'Product updated successfully!', type: 'success' });
         setShowEditModal(false);
         setSelectedProduct(null);
         resetForm();
         fetchProducts();
       } else {
-        alert(`Error: ${data.error}`);
+        setToast({ message: `Error: ${data.error}`, type: 'error' });
       }
     } catch (error) {
       console.error('Error updating product:', error);
-      alert('Failed to update product');
+      setToast({ message: 'Failed to update product', type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -190,17 +194,17 @@ export default function InventoryPage() {
       const data = await response.json();
 
       if (response.ok) {
-        alert(`Stock restocked! Previous: ${data.previousStock}, New: ${data.newStock}`);
+        setToast({ message: `Stock restocked! Previous: ${data.previousStock}, New: ${data.newStock}`, type: 'success' });
         setShowRestockModal(false);
         setSelectedProduct(null);
         setRestockQuantity('');
         fetchProducts();
       } else {
-        alert(`Error: ${data.error}`);
+        setToast({ message: `Error: ${data.error}`, type: 'error' });
       }
     } catch (error) {
       console.error('Error restocking:', error);
-      alert('Failed to restock');
+      setToast({ message: 'Failed to restock', type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -226,18 +230,18 @@ export default function InventoryPage() {
       const data = await response.json();
 
       if (response.ok) {
-        alert(`Stock adjusted! Previous: ${data.previousStock}, New: ${data.newStock}`);
+        setToast({ message: `Stock adjusted! Previous: ${data.previousStock}, New: ${data.newStock}`, type: 'success' });
         setShowAdjustModal(false);
         setSelectedProduct(null);
         setAdjustQuantity('');
         setAdjustReason('');
         fetchProducts();
       } else {
-        alert(`Error: ${data.error}`);
+        setToast({ message: `Error: ${data.error}`, type: 'error' });
       }
     } catch (error) {
       console.error('Error adjusting stock:', error);
-      alert('Failed to adjust stock');
+      setToast({ message: 'Failed to adjust stock', type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -256,14 +260,14 @@ export default function InventoryPage() {
       const data = await response.json();
 
       if (response.ok) {
-        alert('Product deleted successfully!');
+        setToast({ message: 'Product deleted successfully!', type: 'success' });
         fetchProducts();
       } else {
-        alert(`Error: ${data.error}`);
+        setToast({ message: `Error: ${data.error}`, type: 'error' });
       }
     } catch (error) {
       console.error('Error deleting product:', error);
-      alert('Failed to delete product');
+      setToast({ message: 'Failed to delete product', type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -338,6 +342,15 @@ export default function InventoryPage() {
 
   return (
     <div className="min-h-screen bg-[var(--bg-secondary)]">
+      {/* Toast Notification */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
+      
       <div className="p-6">
         {/* Header */}
         <div className="flex justify-between items-start mb-6">
