@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/router';
 import DateRangeFilter, { getDateRange } from '../components/DateRangeFilter';
 
 interface Debt {
@@ -22,7 +21,6 @@ interface Payment {
 }
 
 export default function DebtManagement() {
-  const router = useRouter();
   const [debts, setDebts] = useState<Debt[]>([]);
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -44,10 +42,6 @@ export default function DebtManagement() {
     activeDebts: 0,
     recentPayments: 0,
   });
-
-  useEffect(() => {
-    fetchData();
-  }, []);
 
   // Update dates when dateRange changes
   useEffect(() => {
