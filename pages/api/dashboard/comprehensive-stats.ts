@@ -152,6 +152,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     let allTimeProfit = 0;
     let retailRevenue = 0;
     let wholesaleRevenue = 0;
+    let retailProfit = 0;
+    let wholesaleProfit = 0;
     let retailSales = 0;
     let wholesaleSales = 0;
     
@@ -184,8 +186,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           // Track retail vs wholesale
           if (item.price_type === 'retail') {
             retailRevenue += itemRevenue;
+            retailProfit += itemProfit;
           } else if (item.price_type === 'wholesale') {
             wholesaleRevenue += itemRevenue;
+            wholesaleProfit += itemProfit;
           }
         }
         
@@ -499,6 +503,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         totalUnits,
         retailRevenue,
         wholesaleRevenue,
+        retailProfit,
+        wholesaleProfit,
         retailSales,
         wholesaleSales,
         productCategories,
