@@ -819,30 +819,24 @@ export default function Dashboard() {
             {/* Issues breakdown - only shown after clicking View Issues */}
             {showPricingIssues && pricingAuditDetails && (
               <div className="bg-[#FFF8E7] dark:bg-amber-900/10 border border-[#E5D4B5] dark:border-amber-700 rounded-lg p-4 mb-3">
-                {pricingAuditDetails.issuesFound > 0 ? (
-                  <>
-                    <p className="text-base font-semibold text-[#B8733E] dark:text-amber-400 mb-3">Issues Found:</p>
-                    <ul className="space-y-2 text-sm text-[#B8733E] dark:text-amber-500">
-                      {pricingAuditDetails.issuesSummary.missingCost > 0 && (
-                        <li>• {pricingAuditDetails.issuesSummary.missingCost} products missing cost price</li>
-                      )}
-                      {pricingAuditDetails.issuesSummary.zeroSellingPrice > 0 && (
-                        <li>• {pricingAuditDetails.issuesSummary.zeroSellingPrice} products with zero selling price</li>
-                      )}
-                      {pricingAuditDetails.issuesSummary.sellingBelowCost > 0 && (
-                        <li>• {pricingAuditDetails.issuesSummary.sellingBelowCost} products selling below cost</li>
-                      )}
-                      {pricingAuditDetails.issuesSummary.unrealisticMarkup > 0 && (
-                        <li>• {pricingAuditDetails.issuesSummary.unrealisticMarkup} products with unrealistic markup</li>
-                      )}
-                    </ul>
-                  </>
-                ) : (
-                  <div className="text-center">
-                    <p className="text-sm font-semibold text-green-700 dark:text-green-400 mb-1">✓ All Clear!</p>
-                    <p className="text-xs text-green-600 dark:text-green-500">No pricing issues found. All products have valid pricing data.</p>
-                  </div>
-                )}
+                <p className="text-base font-semibold text-[#B8733E] dark:text-amber-400 mb-3">Issues Found:</p>
+                <ul className="space-y-2 text-sm text-[#B8733E] dark:text-amber-500">
+                  {pricingAuditDetails.issuesSummary.missingCost > 0 && (
+                    <li>• {pricingAuditDetails.issuesSummary.missingCost} products missing cost price</li>
+                  )}
+                  {pricingAuditDetails.issuesSummary.zeroSellingPrice > 0 && (
+                    <li>• {pricingAuditDetails.issuesSummary.zeroSellingPrice} products with zero selling price</li>
+                  )}
+                  {pricingAuditDetails.issuesSummary.sellingBelowCost > 0 && (
+                    <li>• {pricingAuditDetails.issuesSummary.sellingBelowCost} products selling below cost</li>
+                  )}
+                  {pricingAuditDetails.issuesSummary.unrealisticMarkup > 0 && (
+                    <li>• {pricingAuditDetails.issuesSummary.unrealisticMarkup} products with unrealistic markup</li>
+                  )}
+                  {pricingAuditDetails.issuesFound === 0 && (
+                    <li className="text-green-600 dark:text-green-400">✓ No pricing issues found. All products have valid pricing data.</li>
+                  )}
+                </ul>
               </div>
             )}
             
