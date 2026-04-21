@@ -43,11 +43,20 @@ export default function DebtManagement() {
     recentPayments: 0,
   });
 
-  // Update dates when dateRange changes
+  // Initialize dates on mount
   useEffect(() => {
     const { startDate: start, endDate: end } = getDateRange(dateRange);
     setStartDate(start.toISOString());
     setEndDate(end.toISOString());
+  }, []);
+
+  // Update dates when dateRange changes
+  useEffect(() => {
+    const { startDate: start, endDate: end } = getDateRange(dateRange);
+    const startISO = start.toISOString();
+    const endISO = end.toISOString();
+    setStartDate(startISO);
+    setEndDate(endISO);
   }, [dateRange]);
 
   // Fetch data when dates change
@@ -55,6 +64,7 @@ export default function DebtManagement() {
     if (startDate && endDate) {
       fetchData();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [startDate, endDate]);
 
   // Check for date change every 10 seconds and refresh data
