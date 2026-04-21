@@ -403,8 +403,8 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {/* All Time Verified Profit - Redesigned */}
           <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-6">
-            <div className="flex items-center justify-between mb-3">
-              <p className="text-base text-[var(--text-secondary)]">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-sm text-[var(--text-secondary)]">
                 {dateRange === 'all' ? 'All Time Verified Profit' :
                  dateRange === 'today' ? "Today's Verified Profit" :
                  dateRange === 'yesterday' ? "Yesterday's Verified Profit" :
@@ -415,32 +415,32 @@ export default function Dashboard() {
                  dateRange === 'thisYear' ? 'This Year Verified Profit' :
                  'Verified Profit'}
               </p>
-              <span className="text-2xl">📈</span>
+              <span className="text-emerald-500">📈</span>
             </div>
             
             {/* Main Profit Amount */}
-            <p className="text-4xl font-bold text-emerald-500 mb-3">
+            <p className="text-3xl font-bold text-emerald-500 mb-2">
               KSH {stats?.allTimeProfit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </p>
             
             {/* Revenue and Margin */}
-            <div className="flex items-center justify-between mb-4">
-              <p className="text-sm text-[var(--text-secondary)]">
-                from KSH {stats?.grossRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} revenue
+            <div className="flex items-center justify-between mb-3 text-xs">
+              <p className="text-[var(--text-secondary)]">
+                from KSH {stats?.grossRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </p>
-              <div className="px-4 py-1 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-full">
-                <span className="text-sm font-semibold text-[var(--text-primary)]">
-                  {stats?.grossRevenue > 0 ? ((stats?.allTimeProfit / stats?.grossRevenue) * 100).toFixed(1) : '0.0'}% margin
+              <div className="px-3 py-0.5 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-full">
+                <span className="text-xs font-semibold text-[var(--text-primary)]">
+                  {stats?.grossRevenue > 0 ? ((stats?.allTimeProfit / stats?.grossRevenue) * 100).toFixed(1) : '0.0'}%
                 </span>
               </div>
             </div>
             
             {/* Retail and Wholesale Boxes */}
-            <div className="grid grid-cols-2 gap-3 mb-4">
+            <div className="grid grid-cols-2 gap-2 mb-3">
               {/* Retail Box */}
-              <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg p-3">
-                <p className="text-xs text-[var(--text-secondary)] mb-1">Retail</p>
-                <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400 mb-1">
+              <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg p-2">
+                <p className="text-xs text-[var(--text-secondary)] mb-0.5">Retail</p>
+                <p className="text-base font-bold text-emerald-600 dark:text-emerald-400 mb-0.5">
                   KSH {stats?.retailProfit?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}
                 </p>
                 <p className="text-xs text-[var(--text-secondary)]">
@@ -449,9 +449,9 @@ export default function Dashboard() {
               </div>
               
               {/* Wholesale Box */}
-              <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg p-3">
-                <p className="text-xs text-[var(--text-secondary)] mb-1">Wholesale</p>
-                <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400 mb-1">
+              <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg p-2">
+                <p className="text-xs text-[var(--text-secondary)] mb-0.5">Wholesale</p>
+                <p className="text-base font-bold text-emerald-600 dark:text-emerald-400 mb-0.5">
                   KSH {stats?.wholesaleProfit?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}
                 </p>
                 <p className="text-xs text-[var(--text-secondary)]">
