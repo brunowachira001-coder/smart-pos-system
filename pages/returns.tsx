@@ -66,8 +66,9 @@ export default function Returns() {
       const { startDate: start, endDate: end } = getDateRange(dateRange);
       
       if (start && end) {
-        setStartDate(formatDateLocal(start));
-        setEndDate(formatDateLocal(end));
+        // Format with full timestamp for API
+        setStartDate(start.toISOString());
+        setEndDate(end.toISOString());
       } else {
         // For 'all', clear the date range
         setStartDate('');
@@ -93,8 +94,8 @@ export default function Returns() {
         // Re-calculate date range for current selection
         const { startDate: start, endDate: end } = getDateRange(dateRange);
         if (start && end) {
-          setStartDate(formatDateLocal(start));
-          setEndDate(formatDateLocal(end));
+          setStartDate(start.toISOString());
+          setEndDate(end.toISOString());
         }
         
         // Refresh data
@@ -171,10 +172,10 @@ export default function Returns() {
       );
     }
 
-    // Date range filtering
+    // Date range filtering - compare ISO timestamps
     if (startDate && endDate) {
       filtered = filtered.filter(r => {
-        const returnDate = new Date(r.return_date).toISOString().split('T')[0];
+        const returnDate = new Date(r.return_date).toISOString();
         return returnDate >= startDate && returnDate <= endDate;
       });
     }
@@ -378,7 +379,21 @@ export default function Returns() {
           <p className="text-sm text-[var(--text-secondary)]">Manage product returns and process refunds.</p>
         </div>
         <div className="flex items-center gap-4">
-          <DateRangeFilter value={dateRange} onChange={setDateRange} />
+          <DateRangeFilter 
+            value={dateRange} 
+            onChange={setDateRange}
+            startDate={startDate ? formatDateLocal(new Date(startDate)) : ''}
+            endDate={endDate ? formatDateLocal(new Date(endDate)) : ''}
+            onDateChange={(start, end) => {
+              // Convert date strings to full ISO timestamps
+              const startDateTime = new Date(start);
+              startDateTime.setHours(0, 0, 0, 0);
+              const endDateTime = new Date(end);
+              endDateTime.setHours(23, 59, 59, 999);
+              setStartDate(startDateTime.toISOString());
+              setEndDate(endDateTime.toISOString());
+            }}
+          />
           <button className="px-4 py-2 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg text-sm text-[var(--text-primary)] hover:bg-[var(--bg-secondary)]">
             📤 Export
           </button>
@@ -444,33 +459,41 @@ export default function Returns() {
               </tr>
             </thead>
             <tbody>
-              {filteredReturns.map((returnItem) => (
-                <tr key={returnItem.id} className="border-b border-[var(--border-color)] hover:bg-[var(--bg-secondary)]">
-                  <td className="px-4 py-4 text-sm text-[var(--text-primary)] font-mono">{returnItem.return_id}</td>
-                  <td className="px-4 py-4 text-sm text-[var(--text-primary)]">{returnItem.transaction_id}</td>
-                  <td className="px-4 py-4 text-sm text-[var(--text-primary)]">{returnItem.reason}</td>
-                  <td className="px-4 py-4">
-                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(returnItem.status)}`}>
-                      {returnItem.status}
-                    </span>
-                  </td>
-                  <td className="px-4 py-4 text-sm text-[var(--text-primary)]">{returnItem.quantity}</td>
-                  <td className="px-4 py-4 text-sm text-[var(--text-primary)]">
-                    {new Date(returnItem.return_date).toLocaleString()}
-                  </td>
-                  <td className="px-4 py-4">
-                    <button
-                      onClick={() => {
-                        setSelectedReturn(returnItem);
-                        setShowProcessModal(true);
-                      }}
-                      className="text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-                    >
-                      ⋯
-                    </button>
+              {filteredReturns.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="px-4 py-12 text-center text-[var(--text-secondary)]">
+                    No returns found
                   </td>
                 </tr>
-              ))}
+              ) : (
+                filteredReturns.map((returnItem) => (
+                  <tr key={returnItem.id} className="border-b border-[var(--border-color)] hover:bg-[var(--bg-secondary)]">
+                    <td className="px-4 py-4 text-sm text-[var(--text-primary)] font-mono">{returnItem.return_id}</td>
+                    <td className="px-4 py-4 text-sm text-[var(--text-primary)]">{returnItem.transaction_id}</td>
+                    <td className="px-4 py-4 text-sm text-[var(--text-primary)]">{returnItem.reason}</td>
+                    <td className="px-4 py-4">
+                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(returnItem.status)}`}>
+                        {returnItem.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-4 text-sm text-[var(--text-primary)]">{returnItem.quantity}</td>
+                    <td className="px-4 py-4 text-sm text-[var(--text-primary)]">
+                      {new Date(returnItem.return_date).toLocaleString()}
+                    </td>
+                    <td className="px-4 py-4">
+                      <button
+                        onClick={() => {
+                          setSelectedReturn(returnItem);
+                          setShowProcessModal(true);
+                        }}
+                        className="text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                      >
+                        ⋯
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
