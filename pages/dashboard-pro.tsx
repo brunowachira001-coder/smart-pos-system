@@ -487,7 +487,7 @@ export default function Dashboard() {
               <p className="text-sm text-[var(--text-secondary)]">
                 {dateRange === 'today' ? "Today's Net Revenue" :
                  dateRange === 'yesterday' ? "Yesterday's Net Revenue" :
-                 'Net Revenue'}
+                 "Today's Net Revenue"}
               </p>
               <span className="text-emerald-500">💵</span>
             </div>
@@ -513,7 +513,7 @@ export default function Dashboard() {
               </div>
               <div className="flex justify-between font-semibold pt-1 border-t border-[var(--border-color)]">
                 <span className="text-[var(--text-primary)]">Net Revenue (All)</span>
-                <span className="text-emerald-500">KSH {(stats?.grossRevenue - stats?.todayExpenses).toLocaleString()}</span>
+                <span className="text-emerald-500">KSH {stats?.todayNetRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
               </div>
             </div>
           </div>
