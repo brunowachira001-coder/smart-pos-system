@@ -43,27 +43,33 @@ export default function DebtManagement() {
     recentPayments: 0,
   });
 
-  // Initialize dates on mount
   useEffect(() => {
-    const { startDate: start, endDate: end } = getDateRange(dateRange);
-    setStartDate(start.toISOString());
-    setEndDate(end.toISOString());
+    fetchData();
   }, []);
 
-  // Update dates when dateRange changes
   useEffect(() => {
-    const { startDate: start, endDate: end } = getDateRange(dateRange);
-    const startISO = start.toISOString();
-    const endISO = end.toISOString();
-    setStartDate(startISO);
-    setEndDate(endISO);
+    // Convert selected range to actual dates
+    const updateDates = () => {
+      const { startDate: start, endDate: end } = getDateRange(dateRange);
+      
+      if (start && end) {
+        // Format with full timestamp for API
+        setStartDate(start.toISOString());
+        setEndDate(end.toISOString());
+      } else {
+        // For 'all', clear the date range
+        setStartDate('');
+        setEndDate('');
+      }
+    };
+
+    // Update dates immediately
+    updateDates();
   }, [dateRange]);
 
   // Fetch data when dates change
   useEffect(() => {
-    if (startDate && endDate) {
-      fetchData();
-    }
+    fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [startDate, endDate]);
 
@@ -91,6 +97,7 @@ export default function DebtManagement() {
   }, [currentDate, dateRange]);
 
   const fetchData = async () => {
+    setLoading(true);
     try {
       // Build query params for date filtering
       const params = new URLSearchParams();
@@ -115,7 +122,7 @@ export default function DebtManagement() {
         recentPayments: statsData.recentPayments || 0,
       });
 
-      setDebts(debtsData);
+      setDebts(debtsData || []);
       setPayments(statsData.payments || []);
     } catch (error) {
       console.error('Error fetching data:', error);
