@@ -91,6 +91,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     fetchStats(true); // Initial load with loading spinner
+    fetchPricingAudit(); // Auto-fetch pricing audit on load
   }, [dateRange, priceType]);
 
   // Auto-refresh every 30 seconds (silent, no loading spinner)
@@ -754,30 +755,30 @@ export default function Dashboard() {
             {/* Stats with badges */}
             <div className="space-y-2 mb-3">
               <div className="flex justify-between items-center">
-                <span className="text-xs text-[var(--text-secondary)]">Total Products:</span>
-                <span className="px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded-full text-sm font-semibold text-[var(--text-primary)]">
-                  {stats?.pricingAudit?.total || 0}
+                <span className="text-sm text-[var(--text-secondary)]">Total Products:</span>
+                <span className="px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded-full text-base font-semibold text-[var(--text-primary)]">
+                  {pricingAuditDetails?.totalProducts || stats?.pricingAudit?.total || 0}
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-xs text-[var(--text-secondary)]">Valid Pricing:</span>
-                <span className="px-3 py-1 bg-emerald-100 dark:bg-emerald-900/30 rounded-full text-sm font-semibold text-emerald-600 dark:text-emerald-400">
-                  {stats?.pricingAudit?.valid || 0}
+                <span className="text-sm text-[var(--text-secondary)]">Valid Pricing:</span>
+                <span className="px-3 py-1 bg-white dark:bg-gray-700 rounded-full text-base font-semibold text-[var(--text-primary)]">
+                  {pricingAuditDetails?.validPricing || stats?.pricingAudit?.valid || 0}
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-xs text-[var(--text-secondary)]">Issues Found:</span>
-                <span className="px-3 py-1 bg-red-100 dark:bg-red-900/30 rounded-full text-sm font-semibold text-red-600 dark:text-red-400">
-                  {stats?.pricingAudit?.issues || 0}
+                <span className="text-sm text-[var(--text-secondary)]">Issues Found:</span>
+                <span className="px-3 py-1 bg-red-500 rounded-full text-base font-semibold text-white">
+                  {pricingAuditDetails?.issuesFound || stats?.pricingAudit?.issues || 0}
                 </span>
               </div>
             </div>
             
-            {/* Issues breakdown - shown when available */}
-            {showPricingIssues && pricingAuditDetails && (
-              <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3 mb-3">
-                <p className="text-xs font-semibold text-yellow-800 dark:text-yellow-400 mb-2">Issues Found:</p>
-                <ul className="space-y-1 text-xs text-yellow-700 dark:text-yellow-500">
+            {/* Issues breakdown - always shown when available */}
+            {pricingAuditDetails && pricingAuditDetails.issuesFound > 0 && (
+              <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 mb-3">
+                <p className="text-sm font-semibold text-yellow-800 dark:text-yellow-400 mb-2">Issues Found:</p>
+                <ul className="space-y-1.5 text-sm text-yellow-700 dark:text-yellow-500">
                   {pricingAuditDetails.issuesSummary.missingCost > 0 && (
                     <li>• {pricingAuditDetails.issuesSummary.missingCost} products missing cost price</li>
                   )}
@@ -793,14 +794,6 @@ export default function Dashboard() {
                 </ul>
               </div>
             )}
-            
-            <button
-              onClick={fetchPricingAudit}
-              disabled={loadingAudit}
-              className="w-full px-2 py-1.5 bg-yellow-500/10 border border-yellow-500/30 rounded text-xs hover:bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 font-medium disabled:opacity-50"
-            >
-              {loadingAudit ? 'Loading...' : showPricingIssues ? 'Refresh Audit' : 'View Issues'}
-            </button>
           </div>
         </div>
 
