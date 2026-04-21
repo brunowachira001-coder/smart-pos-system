@@ -816,18 +816,13 @@ export default function Dashboard() {
               </div>
             </div>
             
-            {/* Debug info - remove after testing */}
-            <div className="text-xs text-gray-500 mb-2">
-              Debug: showPricingIssues={String(showPricingIssues)}, hasDetails={String(!!pricingAuditDetails)}
-            </div>
-            
             {/* Issues breakdown - only shown after clicking View Issues */}
             {showPricingIssues && pricingAuditDetails && (
-              <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-300 dark:border-amber-700 rounded-lg p-4 mb-3">
+              <div className="bg-[#FFF8E7] dark:bg-amber-900/10 border border-[#E5D4B5] dark:border-amber-700 rounded-lg p-4 mb-3">
                 {pricingAuditDetails.issuesFound > 0 ? (
                   <>
-                    <p className="text-sm font-semibold text-amber-900 dark:text-amber-400 mb-2">Issues Breakdown:</p>
-                    <ul className="space-y-1.5 text-sm text-amber-800 dark:text-amber-500">
+                    <p className="text-base font-semibold text-[#B8733E] dark:text-amber-400 mb-3">Issues Found:</p>
+                    <ul className="space-y-2 text-sm text-[#B8733E] dark:text-amber-500">
                       {pricingAuditDetails.issuesSummary.missingCost > 0 && (
                         <li>• {pricingAuditDetails.issuesSummary.missingCost} products missing cost price</li>
                       )}
