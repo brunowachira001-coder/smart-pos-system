@@ -33,6 +33,8 @@ export default function DebtManagement() {
   const [dateRange, setDateRange] = useState('all');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [displayStartDate, setDisplayStartDate] = useState('');
+  const [displayEndDate, setDisplayEndDate] = useState('');
   const [currentDate, setCurrentDate] = useState(new Date().toDateString());
   
   const [stats, setStats] = useState({
@@ -56,10 +58,23 @@ export default function DebtManagement() {
         // Format with full timestamp for API
         setStartDate(start.toISOString());
         setEndDate(end.toISOString());
+        
+        // Format for display in date inputs (YYYY-MM-DD)
+        const formatForDisplay = (date: Date) => {
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const day = String(date.getDate()).padStart(2, '0');
+          return `${year}-${month}-${day}`;
+        };
+        
+        setDisplayStartDate(formatForDisplay(start));
+        setDisplayEndDate(formatForDisplay(end));
       } else {
         // For 'all', clear the date range
         setStartDate('');
         setEndDate('');
+        setDisplayStartDate('');
+        setDisplayEndDate('');
       }
     };
 
@@ -182,11 +197,16 @@ export default function DebtManagement() {
           <DateRangeFilter 
             value={dateRange} 
             onChange={setDateRange}
-            startDate={startDate}
-            endDate={endDate}
+            startDate={displayStartDate}
+            endDate={displayEndDate}
             onDateChange={(start, end) => {
-              setStartDate(start);
-              setEndDate(end);
+              // Convert YYYY-MM-DD to ISO timestamp for API
+              const startDate = new Date(start + 'T00:00:00');
+              const endDate = new Date(end + 'T23:59:59.999');
+              setStartDate(startDate.toISOString());
+              setEndDate(endDate.toISOString());
+              setDisplayStartDate(start);
+              setDisplayEndDate(end);
             }}
           />
         </div>
