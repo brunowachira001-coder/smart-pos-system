@@ -226,12 +226,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return sum + (parseFloat(t.total) || 0);
     }, 0) || 0;
     
-    console.log('=== TODAY\'S SALES CALCULATION ===');
-    console.log('Today UTC range:', todayUTC, 'to', tomorrowUTC);
-    console.log('Today transactions found:', todayTransactions?.length || 0);
-    console.log('Today net revenue:', todayNetRevenue);
-    if (todayTransactions && todayTransactions.length > 0) {
-      console.log('Sample transaction:', todayTransactions[0]);
+    console.log('=== RANGE SALES CALCULATION ===');
+    console.log('Range UTC:', startDate?.toISOString() || todayUTC, 'to', endDate?.toISOString() || tomorrowUTC);
+    console.log('Range transactions found:', rangeTransactionsData?.length || 0);
+    console.log('Range net revenue:', rangeNetRevenue);
+    if (rangeTransactionsData && rangeTransactionsData.length > 0) {
+      console.log('Sample transaction:', rangeTransactionsData[0]);
     }
 
     // Fetch expenses for the selected date range
