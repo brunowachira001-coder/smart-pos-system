@@ -33,6 +33,8 @@ export default function DebtManagement() {
   const [referenceNumber, setReferenceNumber] = useState('');
   const [activeTab, setActiveTab] = useState('overview');
   const [dateRange, setDateRange] = useState('all');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   const [currentDate, setCurrentDate] = useState(new Date().toDateString());
   
   const [stats, setStats] = useState({
@@ -47,6 +49,20 @@ export default function DebtManagement() {
     fetchData();
   }, []);
 
+  // Update dates when dateRange changes
+  useEffect(() => {
+    const { startDate: start, endDate: end } = getDateRange(dateRange);
+    setStartDate(start.toISOString());
+    setEndDate(end.toISOString());
+  }, [dateRange]);
+
+  // Fetch data when dates change
+  useEffect(() => {
+    if (startDate && endDate) {
+      fetchData();
+    }
+  }, [startDate, endDate]);
+
   // Check for date change every 10 seconds and refresh data
   useEffect(() => {
     const checkDateChange = () => {
@@ -57,7 +73,10 @@ export default function DebtManagement() {
       if (newDate !== currentDate) {
         console.log('Date changed from', currentDate, 'to', newDate, '- refreshing debt management data...');
         setCurrentDate(newDate);
-        fetchData();
+        // Recalculate date range for current selection
+        const { startDate: start, endDate: end } = getDateRange(dateRange);
+        setStartDate(start.toISOString());
+        setEndDate(end.toISOString());
       }
     };
 
@@ -65,13 +84,20 @@ export default function DebtManagement() {
     const interval = setInterval(checkDateChange, 10000);
 
     return () => clearInterval(interval);
-  }, [currentDate]);
+  }, [currentDate, dateRange]);
 
   const fetchData = async () => {
     try {
+      // Build query params for date filtering
+      const params = new URLSearchParams();
+      if (dateRange !== 'all' && startDate && endDate) {
+        params.append('startDate', startDate);
+        params.append('endDate', endDate);
+      }
+
       const [statsRes, debtsRes] = await Promise.all([
-        fetch('/api/debts/stats'),
-        fetch('/api/debts'),
+        fetch(`/api/debts/stats?${params.toString()}`),
+        fetch(`/api/debts?${params.toString()}`),
       ]);
 
       const statsData = await statsRes.json();
@@ -142,7 +168,16 @@ export default function DebtManagement() {
             className="px-4 py-2 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg text-sm text-[var(--text-primary)] hover:bg-[var(--bg-secondary)]">
             🔄 Refresh Data
           </button>
-          <DateRangeFilter value={dateRange} onChange={setDateRange} />
+          <DateRangeFilter 
+            value={dateRange} 
+            onChange={setDateRange}
+            startDate={startDate}
+            endDate={endDate}
+            onDateChange={(start, end) => {
+              setStartDate(start);
+              setEndDate(end);
+            }}
+          />
         </div>
       </div>
 
@@ -215,7 +250,12 @@ export default function DebtManagement() {
       <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-6">
         <h2 className="text-lg font-bold text-[var(--text-primary)] mb-4">Recent Outstanding Debts</h2>
         <div className="space-y-3">
-          {debts.filter(d => d.status !== 'Paid').map((debt) => (
+          {debts.filter(d => d.status !== 'Paid').length === 0 ? (
+            <div className="text-center py-8 text-[var(--text-secondary)]">
+              No outstanding debts found for the selected date range
+            </div>
+          ) : (
+            debts.filter(d => d.status !== 'Paid').map((debt) => (
             <div
               key={debt.id}
               className="flex justify-between items-center p-4 bg-[var(--bg-secondary)] rounded-lg border border-[var(--border-color)]"
@@ -250,7 +290,7 @@ export default function DebtManagement() {
                 </button>
               </div>
             </div>
-          ))}
+          )))}
         </div>
       </div>
 

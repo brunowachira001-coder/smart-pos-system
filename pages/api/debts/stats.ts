@@ -7,10 +7,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    // Get all debts
-    const { data: debts, error: debtsError } = await supabase
-      .from('debts')
-      .select('*');
+    const { startDate, endDate } = req.query;
+
+    // Get debts with optional date filtering
+    let debtsQuery = supabase.from('debts').select('*');
+    
+    if (startDate && endDate) {
+      debtsQuery = debtsQuery
+        .gte('created_at', startDate)
+        .lte('created_at', endDate);
+    }
+
+    const { data: debts, error: debtsError } = await debtsQuery;
 
     if (debtsError) throw debtsError;
 
@@ -21,12 +29,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (creditsError) throw creditsError;
 
-    // Get recent payments
-    const { data: payments, error: paymentsError } = await supabase
+    // Get recent payments with optional date filtering
+    let paymentsQuery = supabase
       .from('debt_payments')
       .select('*')
       .order('created_at', { ascending: false })
       .limit(20);
+
+    if (startDate && endDate) {
+      paymentsQuery = paymentsQuery
+        .gte('created_at', startDate)
+        .lte('created_at', endDate);
+    }
+
+    const { data: payments, error: paymentsError } = await paymentsQuery;
 
     if (paymentsError) throw paymentsError;
 

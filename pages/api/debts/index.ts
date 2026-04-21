@@ -4,10 +4,20 @@ import { supabase } from '../../../lib/supabase';
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
     try {
-      const { data: debts, error } = await supabase
+      const { startDate, endDate } = req.query;
+
+      let query = supabase
         .from('debts')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .select('*');
+
+      // Apply date filtering if provided
+      if (startDate && endDate) {
+        query = query
+          .gte('created_at', startDate)
+          .lte('created_at', endDate);
+      }
+
+      const { data: debts, error } = await query.order('created_at', { ascending: false });
 
       if (error) throw error;
 
