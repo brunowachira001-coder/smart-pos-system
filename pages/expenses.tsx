@@ -57,8 +57,9 @@ export default function Expenses() {
       const { startDate: start, endDate: end } = getDateRange(dateRange);
       
       if (start && end) {
-        setStartDate(formatDateLocal(start));
-        setEndDate(formatDateLocal(end));
+        // Format with full timestamp for API
+        setStartDate(start.toISOString());
+        setEndDate(end.toISOString());
       } else {
         // For 'all', clear the date range
         setStartDate('');
@@ -84,8 +85,8 @@ export default function Expenses() {
         // Re-calculate date range for current selection
         const { startDate: start, endDate: end } = getDateRange(dateRange);
         if (start && end) {
-          setStartDate(formatDateLocal(start));
-          setEndDate(formatDateLocal(end));
+          setStartDate(start.toISOString());
+          setEndDate(end.toISOString());
         }
         
         // Refresh data
@@ -155,10 +156,10 @@ export default function Expenses() {
       );
     }
 
-    // Date range filtering
+    // Date range filtering - compare ISO timestamps
     if (startDate && endDate) {
       filtered = filtered.filter(e => {
-        const expenseDate = new Date(e.expense_date).toISOString().split('T')[0];
+        const expenseDate = new Date(e.expense_date).toISOString();
         return expenseDate >= startDate && expenseDate <= endDate;
       });
     }
@@ -229,7 +230,21 @@ export default function Expenses() {
           <p className="text-sm text-[var(--text-secondary)]">Track and manage your business and personal expenses.</p>
         </div>
         <div className="flex items-center gap-4">
-          <DateRangeFilter value={dateRange} onChange={setDateRange} />
+          <DateRangeFilter 
+            value={dateRange} 
+            onChange={setDateRange}
+            startDate={startDate ? formatDateLocal(new Date(startDate)) : ''}
+            endDate={endDate ? formatDateLocal(new Date(endDate)) : ''}
+            onDateChange={(start, end) => {
+              // Convert date strings to full ISO timestamps
+              const startDateTime = new Date(start);
+              startDateTime.setHours(0, 0, 0, 0);
+              const endDateTime = new Date(end);
+              endDateTime.setHours(23, 59, 59, 999);
+              setStartDate(startDateTime.toISOString());
+              setEndDate(endDateTime.toISOString());
+            }}
+          />
           <button className="px-4 py-2 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg text-sm text-[var(--text-primary)] hover:bg-[var(--bg-secondary)]">
             📤 Export Report
           </button>
@@ -371,52 +386,60 @@ export default function Expenses() {
               </tr>
             </thead>
             <tbody>
-              {filteredExpenses.map((expense) => (
-                <tr key={expense.id} className="border-b border-[var(--border-color)] hover:bg-[var(--bg-secondary)]">
-                  <td className="px-4 py-4 text-sm text-[var(--text-primary)] font-mono">{expense.expense_id}</td>
-                  <td className="px-4 py-4 text-sm text-[var(--text-primary)]">{expense.category}</td>
-                  <td className="px-4 py-4 text-sm text-[var(--text-primary)]">{expense.description}</td>
-                  <td className="px-4 py-4 text-sm text-[var(--text-primary)] font-semibold">KSH {expense.amount.toFixed(2)}</td>
-                  <td className="px-4 py-4 text-sm text-[var(--text-primary)]">{expense.payment_method}</td>
-                  <td className="px-4 py-4 text-sm text-[var(--text-primary)]">
-                    {new Date(expense.expense_date).toLocaleDateString()}
-                  </td>
-                  <td className="px-4 py-4">
-                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                      expense.status === 'Approved' ? 'bg-green-500/20 text-green-500' : 
-                      expense.status === 'Rejected' ? 'bg-red-500/20 text-red-500' :
-                      'bg-yellow-500/20 text-yellow-500'
-                    }`}>
-                      {expense.status}
-                    </span>
-                  </td>
-                  <td className="px-4 py-4">
-                    {expense.status === 'Pending' && (
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleApproveExpense(expense.id, 'Approved')}
-                          className="px-3 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700"
-                          title="Approve expense"
-                        >
-                          ✓ Approve
-                        </button>
-                        <button
-                          onClick={() => handleApproveExpense(expense.id, 'Rejected')}
-                          className="px-3 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700"
-                          title="Reject expense"
-                        >
-                          ✗ Reject
-                        </button>
-                      </div>
-                    )}
-                    {expense.status !== 'Pending' && (
-                      <span className="text-xs text-[var(--text-secondary)]">
-                        {expense.status === 'Approved' ? '✓ Approved' : '✗ Rejected'}
-                      </span>
-                    )}
+              {filteredExpenses.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="px-4 py-12 text-center text-[var(--text-secondary)]">
+                    No expenses found
                   </td>
                 </tr>
-              ))}
+              ) : (
+                filteredExpenses.map((expense) => (
+                  <tr key={expense.id} className="border-b border-[var(--border-color)] hover:bg-[var(--bg-secondary)]">
+                    <td className="px-4 py-4 text-sm text-[var(--text-primary)] font-mono">{expense.expense_id}</td>
+                    <td className="px-4 py-4 text-sm text-[var(--text-primary)]">{expense.category}</td>
+                    <td className="px-4 py-4 text-sm text-[var(--text-primary)]">{expense.description}</td>
+                    <td className="px-4 py-4 text-sm text-[var(--text-primary)] font-semibold">KSH {expense.amount.toFixed(2)}</td>
+                    <td className="px-4 py-4 text-sm text-[var(--text-primary)]">{expense.payment_method}</td>
+                    <td className="px-4 py-4 text-sm text-[var(--text-primary)]">
+                      {new Date(expense.expense_date).toLocaleDateString()}
+                    </td>
+                    <td className="px-4 py-4">
+                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                        expense.status === 'Approved' ? 'bg-green-500/20 text-green-500' : 
+                        expense.status === 'Rejected' ? 'bg-red-500/20 text-red-500' :
+                        'bg-yellow-500/20 text-yellow-500'
+                      }`}>
+                        {expense.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-4">
+                      {expense.status === 'Pending' && (
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleApproveExpense(expense.id, 'Approved')}
+                            className="px-3 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700"
+                            title="Approve expense"
+                          >
+                            ✓ Approve
+                          </button>
+                          <button
+                            onClick={() => handleApproveExpense(expense.id, 'Rejected')}
+                            className="px-3 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700"
+                            title="Reject expense"
+                          >
+                            ✗ Reject
+                          </button>
+                        </div>
+                      )}
+                      {expense.status !== 'Pending' && (
+                        <span className="text-xs text-[var(--text-secondary)]">
+                          {expense.status === 'Approved' ? '✓ Approved' : '✗ Rejected'}
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
