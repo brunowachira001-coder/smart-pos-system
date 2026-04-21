@@ -49,46 +49,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       query = query.eq('status', status);
     }
 
-    // Date range filter - handle timezone properly (EAT = UTC+3)
+    // Date range filter - dates come already formatted from frontend
     if (startDate) {
-      // The startDate comes as local date string (e.g., "2024-04-21T00:00:00")
-      // We need to treat it as EAT and convert to UTC for database query
-      const localDate = new Date(startDate as string);
-      
-      // Get the timezone offset in minutes (for EAT it's -180, meaning UTC+3)
-      const timezoneOffset = localDate.getTimezoneOffset();
-      
-      // Convert to UTC by adding the offset
-      const utcDate = new Date(localDate.getTime() + (timezoneOffset * 60000));
-      
-      query = query.gte('created_at', utcDate.toISOString());
-      
-      console.log('Start date filter:', {
-        received: startDate,
-        localDate: localDate.toISOString(),
-        timezoneOffset,
-        utcDate: utcDate.toISOString()
-      });
+      query = query.gte('created_at', startDate);
+      console.log('Start date filter (raw):', startDate);
     }
     if (endDate) {
-      // The endDate comes as local date string (e.g., "2024-04-21T23:59:59.999")
-      // We need to treat it as EAT and convert to UTC for database query
-      const localDate = new Date(endDate as string);
-      
-      // Get the timezone offset in minutes
-      const timezoneOffset = localDate.getTimezoneOffset();
-      
-      // Convert to UTC by adding the offset
-      const utcDate = new Date(localDate.getTime() + (timezoneOffset * 60000));
-      
-      query = query.lte('created_at', utcDate.toISOString());
-      
-      console.log('End date filter:', {
-        received: endDate,
-        localDate: localDate.toISOString(),
-        timezoneOffset,
-        utcDate: utcDate.toISOString()
-      });
+      query = query.lte('created_at', endDate);
+      console.log('End date filter (raw):', endDate);
     }
 
     // Sorting
