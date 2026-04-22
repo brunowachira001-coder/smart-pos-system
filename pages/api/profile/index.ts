@@ -78,8 +78,8 @@ async function getProfile(req: NextApiRequest, res: NextApiResponse) {
 async function updateProfile(req: NextApiRequest, res: NextApiResponse) {
   const { id, full_name, email, phone, avatar_url } = req.body;
 
-  if (!id) {
-    return res.status(400).json({ error: 'User ID is required' });
+  if (!id && !email) {
+    return res.status(400).json({ error: 'User ID or email is required' });
   }
 
   // Build updates object
@@ -90,13 +90,35 @@ async function updateProfile(req: NextApiRequest, res: NextApiResponse) {
   if (avatar_url !== undefined) updates.avatar_url = avatar_url;
   updates.updated_at = new Date().toISOString();
 
-  // Update user by ID
-  const { data, error } = await supabase
-    .from('users')
-    .update(updates)
-    .eq('id', id)
-    .select()
-    .single();
+  let data, error;
+
+  // If ID is invalid (like '1'), use email instead
+  if (id && id !== '1' && id.length > 10) {
+    // Try to update by ID first
+    const result = await supabase
+      .from('users')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+    
+    data = result.data;
+    error = result.error;
+  }
+  
+  // If ID update failed or ID is invalid, try by email
+  if ((!data || error) && email) {
+    console.log('Updating by email instead:', email);
+    const result = await supabase
+      .from('users')
+      .update(updates)
+      .eq('email', email)
+      .select()
+      .single();
+    
+    data = result.data;
+    error = result.error;
+  }
 
   if (error) {
     console.error('Error updating profile:', error);

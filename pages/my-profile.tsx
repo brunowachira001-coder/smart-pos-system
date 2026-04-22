@@ -165,29 +165,39 @@ export default function MyProfilePage() {
       return;
     }
 
-    if (!profile.id) {
-      showToast('User ID is missing. Please refresh the page and try again.', 'error');
-      return;
+    // Clear localStorage if it has invalid ID
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      try {
+        const parsedUser = JSON.parse(userData);
+        if (parsedUser.id === '1') {
+          console.log('Clearing invalid localStorage data');
+          localStorage.removeItem('user');
+        }
+      } catch (e) {
+        console.error('Error checking localStorage:', e);
+      }
     }
 
     setSaving(true);
     try {
-      console.log('Updating profile with data:', {
-        id: profile.id,
+      const updateData: any = {
         full_name: editForm.full_name,
         email: editForm.email,
         phone: editForm.phone
-      });
+      };
+
+      // Only include ID if it's valid (not '1' and not empty)
+      if (profile.id && profile.id !== '1' && profile.id.length > 10) {
+        updateData.id = profile.id;
+      }
+
+      console.log('Updating profile with data:', updateData);
 
       const response = await fetch('/api/profile', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: profile.id,
-          full_name: editForm.full_name,
-          email: editForm.email,
-          phone: editForm.phone
-        })
+        body: JSON.stringify(updateData)
       });
       
       const data = await response.json();
@@ -199,31 +209,15 @@ export default function MyProfilePage() {
         // Update profile state immediately
         setProfile(data.profile);
         
-        // Update localStorage user data with all updated fields
-        const userData = localStorage.getItem('user');
-        if (userData) {
-          try {
-            const parsedUser = JSON.parse(userData);
-            parsedUser.id = data.profile.id;
-            parsedUser.username = data.profile.full_name;
-            parsedUser.email = data.profile.email;
-            parsedUser.phone = data.profile.phone;
-            localStorage.setItem('user', JSON.stringify(parsedUser));
-            console.log('localStorage updated:', parsedUser);
-          } catch (e) {
-            console.error('Error updating localStorage:', e);
-          }
-        } else {
-          // Create new localStorage entry if it doesn't exist
-          const newUserData = {
-            id: data.profile.id,
-            username: data.profile.full_name,
-            email: data.profile.email,
-            phone: data.profile.phone
-          };
-          localStorage.setItem('user', JSON.stringify(newUserData));
-          console.log('localStorage created:', newUserData);
-        }
+        // Update localStorage with the real data from database
+        const newUserData = {
+          id: data.profile.id,
+          username: data.profile.full_name,
+          email: data.profile.email,
+          phone: data.profile.phone
+        };
+        localStorage.setItem('user', JSON.stringify(newUserData));
+        console.log('localStorage updated with real data:', newUserData);
         
         setShowEditModal(false);
         showToast('Profile updated successfully!', 'success');
