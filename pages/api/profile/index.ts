@@ -63,22 +63,27 @@ async function updateProfile(req: NextApiRequest, res: NextApiResponse) {
   // Build updates object
   const updates: any = {};
   if (full_name !== undefined) updates.full_name = full_name;
-  if (email !== undefined) updates.email = email;
+  if (email !== undefined && email !== userEmail) updates.email = email; // Only update email if it changed
   if (phone !== undefined) updates.phone = phone;
   if (avatar_url !== undefined) updates.avatar_url = avatar_url;
   updates.updated_at = new Date().toISOString();
 
   // Check if user exists first
-  const { data: existingUser } = await supabase
+  const { data: existingUsers, error: checkError } = await supabase
     .from('users')
     .select('*')
-    .eq('email', userEmail)
-    .single();
+    .eq('email', userEmail);
+
+  if (checkError) {
+    console.error('Error checking for existing user:', checkError);
+    return res.status(500).json({ error: checkError.message });
+  }
 
   let data, error;
 
-  if (existingUser) {
+  if (existingUsers && existingUsers.length > 0) {
     // Update existing user
+    console.log('Updating existing user:', userEmail);
     const result = await supabase
       .from('users')
       .update(updates)
@@ -90,6 +95,7 @@ async function updateProfile(req: NextApiRequest, res: NextApiResponse) {
     error = result.error;
   } else {
     // Create new user if doesn't exist
+    console.log('Creating new user:', userEmail);
     const newUser = {
       email: email || userEmail,
       full_name: full_name || 'Admin User',
