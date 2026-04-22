@@ -21,7 +21,7 @@ export default function MyProfilePage() {
   const [loading, setLoading] = useState(true);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [editForm, setEditForm] = useState({ full_name: '', email: '', phone: '' });
+  const [editForm, setEditForm] = useState({ full_name: '', phone: '' });
   const [saving, setSaving] = useState(false);
   const [currentTheme, setCurrentTheme] = useState('dark');
   
@@ -147,7 +147,6 @@ export default function MyProfilePage() {
     if (profile) {
       setEditForm({
         full_name: profile.full_name,
-        email: profile.email,
         phone: profile.phone || ''
       });
       setShowEditModal(true);
@@ -578,19 +577,6 @@ export default function MyProfilePage() {
 
                 <div>
                   <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
-                    Email Address
-                  </label>
-                  <input
-                    type="email"
-                    value={editForm.email}
-                    onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
-                    required
-                    className="w-full bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-lg px-4 py-2.5 text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
                     Phone Number
                   </label>
                   <input
@@ -600,6 +586,12 @@ export default function MyProfilePage() {
                     placeholder="Enter phone number"
                     className="w-full bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-lg px-4 py-2.5 text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   />
+                </div>
+
+                <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
+                  <p className="text-xs text-blue-400">
+                    <strong>Note:</strong> Email address cannot be changed as it's used to identify your account.
+                  </p>
                 </div>
               </div>
 
