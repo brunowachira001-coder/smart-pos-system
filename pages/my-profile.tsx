@@ -72,12 +72,16 @@ export default function MyProfilePage() {
         const parsedUser = JSON.parse(userData);
         userId = parsedUser.id || userId;
         userEmail = parsedUser.email || userEmail;
+        console.log('Loaded user from localStorage:', { userId, userEmail });
       } catch (e) {
         console.error('Error parsing user data:', e);
       }
     }
     
-    if (!userId && !userEmail) return;
+    if (!userId && !userEmail) {
+      console.log('No user ID or email available, skipping profile fetch');
+      return;
+    }
     
     setLoading(true);
     try {
@@ -86,15 +90,19 @@ export default function MyProfilePage() {
 
       // Prefer fetching by ID if available, fallback to email
       const queryParam = userId ? `id=${encodeURIComponent(userId)}` : `email=${encodeURIComponent(userEmail!)}`;
+      console.log('Fetching profile with:', queryParam);
+      
       const response = await fetch(`/api/profile?${queryParam}`, {
         signal: controller.signal
       });
       clearTimeout(timeoutId);
 
       const data = await response.json();
+      console.log('Profile fetch response:', data);
 
       if (response.ok && data.profile) {
         setProfile(data.profile);
+        console.log('Profile loaded successfully:', data.profile);
       } else {
         setProfile({
           id: user.id || '1',
@@ -133,7 +141,15 @@ export default function MyProfilePage() {
 
   const handleUpdateProfile = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!profile) return;
+    if (!profile) {
+      showToast('Profile data not loaded', 'error');
+      return;
+    }
+
+    if (!profile.id) {
+      showToast('User ID is missing. Please refresh the page and try again.', 'error');
+      return;
+    }
 
     setSaving(true);
     try {
@@ -159,24 +175,39 @@ export default function MyProfilePage() {
       console.log('API Response:', data);
       
       if (response.ok && data.profile) {
+        console.log('Profile updated successfully, updating state and localStorage');
+        
         // Update profile state immediately
         setProfile(data.profile);
         
         // Update localStorage user data with all updated fields
         const userData = localStorage.getItem('user');
         if (userData) {
-          const parsedUser = JSON.parse(userData);
-          parsedUser.id = data.profile.id;
-          parsedUser.username = data.profile.full_name;
-          parsedUser.email = data.profile.email;
-          parsedUser.phone = data.profile.phone;
-          localStorage.setItem('user', JSON.stringify(parsedUser));
+          try {
+            const parsedUser = JSON.parse(userData);
+            parsedUser.id = data.profile.id;
+            parsedUser.username = data.profile.full_name;
+            parsedUser.email = data.profile.email;
+            parsedUser.phone = data.profile.phone;
+            localStorage.setItem('user', JSON.stringify(parsedUser));
+            console.log('localStorage updated:', parsedUser);
+          } catch (e) {
+            console.error('Error updating localStorage:', e);
+          }
+        } else {
+          // Create new localStorage entry if it doesn't exist
+          const newUserData = {
+            id: data.profile.id,
+            username: data.profile.full_name,
+            email: data.profile.email,
+            phone: data.profile.phone
+          };
+          localStorage.setItem('user', JSON.stringify(newUserData));
+          console.log('localStorage created:', newUserData);
         }
         
         setShowEditModal(false);
         showToast('Profile updated successfully!', 'success');
-        
-        // No need to reload - state is already updated
       } else {
         console.error('Update failed:', data);
         showToast('Failed to update profile: ' + (data.error || 'Unknown error'), 'error');
