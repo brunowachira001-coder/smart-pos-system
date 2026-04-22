@@ -23,17 +23,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 }
 
 async function getProfile(req: NextApiRequest, res: NextApiResponse) {
-  const { email } = req.query;
+  const { email, id } = req.query;
 
-  if (!email || typeof email !== 'string') {
-    return res.status(400).json({ error: 'Email is required' });
+  if (!email && !id) {
+    return res.status(400).json({ error: 'Email or ID is required' });
   }
 
-  const { data, error } = await supabase
-    .from('users')
-    .select('*')
-    .eq('email', email)
-    .single();
+  let query = supabase.from('users').select('*');
+  
+  if (id && typeof id === 'string') {
+    query = query.eq('id', id);
+  } else if (email && typeof email === 'string') {
+    query = query.eq('email', email);
+  }
+
+  const { data, error } = await query.single();
 
   if (error) {
     console.error('Error fetching profile:', error);
@@ -46,61 +50,34 @@ async function getProfile(req: NextApiRequest, res: NextApiResponse) {
 async function updateProfile(req: NextApiRequest, res: NextApiResponse) {
   const { id, full_name, email, phone, avatar_url } = req.body;
 
-  if (!email) {
-    return res.status(400).json({ error: 'Email is required' });
+  if (!id) {
+    return res.status(400).json({ error: 'User ID is required' });
   }
 
-  // First, check if user exists
-  const { data: existingUser } = await supabase
-    .from('users')
-    .select('*')
-    .eq('email', email)
-    .single();
-
+  // Build updates object
   const updates: any = {};
   if (full_name !== undefined) updates.full_name = full_name;
   if (email !== undefined) updates.email = email;
   if (phone !== undefined) updates.phone = phone;
   if (avatar_url !== undefined) updates.avatar_url = avatar_url;
+  updates.updated_at = new Date().toISOString();
 
-  let result;
-  
-  if (existingUser) {
-    // Update existing user
-    const { data, error } = await supabase
-      .from('users')
-      .update(updates)
-      .eq('email', email)
-      .select()
-      .single();
+  // Update user by ID
+  const { data, error } = await supabase
+    .from('users')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single();
 
-    if (error) {
-      console.error('Error updating profile:', error);
-      return res.status(500).json({ error: error.message });
-    }
-    result = data;
-  } else {
-    // Create new user if doesn't exist
-    const newUser = {
-      full_name: full_name || 'User',
-      email: email,
-      phone: phone || '',
-      role: 'Admin',
-      is_active: true
-    };
-
-    const { data, error } = await supabase
-      .from('users')
-      .insert([newUser])
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error creating profile:', error);
-      return res.status(500).json({ error: error.message });
-    }
-    result = data;
+  if (error) {
+    console.error('Error updating profile:', error);
+    return res.status(500).json({ error: error.message });
   }
 
-  res.status(200).json({ profile: result });
+  if (!data) {
+    return res.status(404).json({ error: 'User not found' });
+  }
+
+  res.status(200).json({ profile: data });
 }

@@ -62,14 +62,31 @@ export default function MyProfilePage() {
   }, [authLoading, user?.email]);
 
   const fetchProfile = async () => {
-    if (!user?.email) return;
+    // Try to get user ID from localStorage first
+    const userData = localStorage.getItem('user');
+    let userId = user?.id;
+    let userEmail = user?.email;
+    
+    if (userData) {
+      try {
+        const parsedUser = JSON.parse(userData);
+        userId = parsedUser.id || userId;
+        userEmail = parsedUser.email || userEmail;
+      } catch (e) {
+        console.error('Error parsing user data:', e);
+      }
+    }
+    
+    if (!userId && !userEmail) return;
     
     setLoading(true);
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000);
 
-      const response = await fetch(`/api/profile?email=${encodeURIComponent(user.email)}`, {
+      // Prefer fetching by ID if available, fallback to email
+      const queryParam = userId ? `id=${encodeURIComponent(userId)}` : `email=${encodeURIComponent(userEmail!)}`;
+      const response = await fetch(`/api/profile?${queryParam}`, {
         signal: controller.signal
       });
       clearTimeout(timeoutId);
@@ -145,12 +162,14 @@ export default function MyProfilePage() {
         // Update profile state immediately
         setProfile(data.profile);
         
-        // Update localStorage user data
+        // Update localStorage user data with all updated fields
         const userData = localStorage.getItem('user');
         if (userData) {
           const parsedUser = JSON.parse(userData);
+          parsedUser.id = data.profile.id;
           parsedUser.username = data.profile.full_name;
           parsedUser.email = data.profile.email;
+          parsedUser.phone = data.profile.phone;
           localStorage.setItem('user', JSON.stringify(parsedUser));
         }
         
