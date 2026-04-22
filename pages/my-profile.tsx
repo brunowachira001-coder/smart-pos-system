@@ -168,7 +168,7 @@ export default function MyProfilePage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email: profile.email,
+          identifier_email: profile.email, // Use as identifier only, not for update
           full_name: editForm.full_name,
           phone: editForm.phone
         })

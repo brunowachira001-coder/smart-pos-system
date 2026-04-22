@@ -12,13 +12,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const { email, full_name, phone } = req.body;
+    const { identifier_email, full_name, phone } = req.body;
 
-    if (!email) {
-      return res.status(400).json({ error: 'Email is required' });
+    if (!identifier_email) {
+      return res.status(400).json({ error: 'Email identifier is required' });
     }
 
-    // Try to update first
+    // Try to update first - ONLY update full_name and phone, NOT email
     const { data: updateData, error: updateError } = await supabase
       .from('users')
       .update({
@@ -26,7 +26,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         phone: phone || '',
         updated_at: new Date().toISOString()
       })
-      .eq('email', email)
+      .eq('email', identifier_email)
       .select()
       .single();
 
@@ -40,7 +40,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const { data: insertData, error: insertError } = await supabase
         .from('users')
         .insert([{
-          email: email,
+          email: identifier_email,
           full_name: full_name || 'Admin User',
           phone: phone || '',
           role: 'Admin',
