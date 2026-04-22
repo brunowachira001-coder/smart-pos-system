@@ -115,22 +115,24 @@ export default function MyProfilePage() {
         localStorage.setItem('user', JSON.stringify(newUserData));
         console.log('localStorage updated with real user data:', newUserData);
       } else {
-        console.log('Profile not found, using fallback');
+        console.log('Profile not found in database, using fallback data');
+        // Use fallback data if profile not found
         setProfile({
-          id: user?.id || '',
-          full_name: user?.username || user?.firstName || 'User',
-          email: user?.email || '',
+          id: '',
+          full_name: user?.username || 'Admin User',
+          email: userEmail,
           role: 'Admin',
           created_at: new Date().toISOString()
         });
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
-      if (user) {
+      // Use fallback data on error
+      if (userEmail) {
         setProfile({
-          id: user.id || '',
-          full_name: user.username || user.firstName || 'User',
-          email: user.email || '',
+          id: '',
+          full_name: user?.username || 'Admin User',
+          email: userEmail,
           role: 'Admin',
           created_at: new Date().toISOString()
         });

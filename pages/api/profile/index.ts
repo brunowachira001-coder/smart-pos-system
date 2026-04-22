@@ -68,21 +68,53 @@ async function updateProfile(req: NextApiRequest, res: NextApiResponse) {
   if (avatar_url !== undefined) updates.avatar_url = avatar_url;
   updates.updated_at = new Date().toISOString();
 
-  // Always update by email (the original email before any changes)
-  const { data, error } = await supabase
+  // Check if user exists first
+  const { data: existingUser } = await supabase
     .from('users')
-    .update(updates)
+    .select('*')
     .eq('email', userEmail)
-    .select()
     .single();
 
+  let data, error;
+
+  if (existingUser) {
+    // Update existing user
+    const result = await supabase
+      .from('users')
+      .update(updates)
+      .eq('email', userEmail)
+      .select()
+      .single();
+    
+    data = result.data;
+    error = result.error;
+  } else {
+    // Create new user if doesn't exist
+    const newUser = {
+      email: email || userEmail,
+      full_name: full_name || 'Admin User',
+      phone: phone || '',
+      role: 'Admin',
+      is_active: true
+    };
+
+    const result = await supabase
+      .from('users')
+      .insert([newUser])
+      .select()
+      .single();
+    
+    data = result.data;
+    error = result.error;
+  }
+
   if (error) {
-    console.error('Error updating profile:', error);
+    console.error('Error updating/creating profile:', error);
     return res.status(500).json({ error: error.message });
   }
 
   if (!data) {
-    return res.status(404).json({ error: 'User not found' });
+    return res.status(404).json({ error: 'Failed to update or create user' });
   }
 
   res.status(200).json({ profile: data });
