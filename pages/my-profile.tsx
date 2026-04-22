@@ -46,13 +46,16 @@ export default function MyProfilePage() {
       if (userData) {
         try {
           const parsedUser = JSON.parse(userData);
-          setProfile({
-            id: parsedUser.id || '1',
-            full_name: parsedUser.username || 'User',
-            email: parsedUser.email || '',
-            role: 'Admin',
-            created_at: new Date().toISOString()
-          });
+          // Only use localStorage data if it has a valid UUID (not '1')
+          if (parsedUser.id && parsedUser.id !== '1') {
+            setProfile({
+              id: parsedUser.id,
+              full_name: parsedUser.username || 'User',
+              email: parsedUser.email || '',
+              role: 'Admin',
+              created_at: new Date().toISOString()
+            });
+          }
         } catch (e) {
           console.error('Error parsing user data:', e);
         }
@@ -78,6 +81,11 @@ export default function MyProfilePage() {
       }
     }
     
+    // Skip if ID is the fallback '1' - use email instead
+    if (userId === '1') {
+      userId = undefined;
+    }
+    
     if (!userId && !userEmail) {
       console.log('No user ID or email available, skipping profile fetch');
       return;
@@ -88,8 +96,8 @@ export default function MyProfilePage() {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000);
 
-      // Prefer fetching by ID if available, fallback to email
-      const queryParam = userId ? `id=${encodeURIComponent(userId)}` : `email=${encodeURIComponent(userEmail!)}`;
+      // Prefer fetching by ID if available and valid, fallback to email
+      const queryParam = (userId && userId !== '1') ? `id=${encodeURIComponent(userId)}` : `email=${encodeURIComponent(userEmail!)}`;
       console.log('Fetching profile with:', queryParam);
       
       const response = await fetch(`/api/profile?${queryParam}`, {
@@ -103,11 +111,22 @@ export default function MyProfilePage() {
       if (response.ok && data.profile) {
         setProfile(data.profile);
         console.log('Profile loaded successfully:', data.profile);
+        
+        // Update localStorage with the real user data from database
+        const newUserData = {
+          id: data.profile.id,
+          username: data.profile.full_name,
+          email: data.profile.email,
+          phone: data.profile.phone
+        };
+        localStorage.setItem('user', JSON.stringify(newUserData));
+        console.log('localStorage updated with real user data:', newUserData);
       } else {
+        console.log('Profile not found, using fallback');
         setProfile({
-          id: user.id || '1',
-          full_name: user.username || user.firstName || 'User',
-          email: user.email,
+          id: user?.id || '',
+          full_name: user?.username || user?.firstName || 'User',
+          email: user?.email || '',
           role: 'Admin',
           created_at: new Date().toISOString()
         });
@@ -116,9 +135,9 @@ export default function MyProfilePage() {
       console.error('Error fetching profile:', error);
       if (user) {
         setProfile({
-          id: user.id || '1',
+          id: user.id || '',
           full_name: user.username || user.firstName || 'User',
-          email: user.email,
+          email: user.email || '',
           role: 'Admin',
           created_at: new Date().toISOString()
         });

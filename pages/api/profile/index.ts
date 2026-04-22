@@ -31,15 +31,43 @@ async function getProfile(req: NextApiRequest, res: NextApiResponse) {
 
   let query = supabase.from('users').select('*');
   
-  if (id && typeof id === 'string') {
+  if (id && typeof id === 'string' && id !== '1') {
+    // Only query by ID if it's a valid UUID (not the fallback '1')
     query = query.eq('id', id);
   } else if (email && typeof email === 'string') {
     query = query.eq('email', email);
+  } else {
+    return res.status(400).json({ error: 'Valid email or UUID is required' });
   }
 
   const { data, error } = await query.single();
 
   if (error) {
+    // If user not found, create them
+    if (error.code === 'PGRST116' && email && typeof email === 'string') {
+      console.log('User not found, creating new user for:', email);
+      
+      const newUser = {
+        email: email,
+        full_name: 'User',
+        role: 'Admin',
+        is_active: true
+      };
+
+      const { data: createdUser, error: createError } = await supabase
+        .from('users')
+        .insert([newUser])
+        .select()
+        .single();
+
+      if (createError) {
+        console.error('Error creating user:', createError);
+        return res.status(500).json({ error: createError.message });
+      }
+
+      return res.status(200).json({ profile: createdUser });
+    }
+    
     console.error('Error fetching profile:', error);
     return res.status(500).json({ error: error.message });
   }
