@@ -23,11 +23,49 @@ export default function Login() {
       // Mock login - no backend call needed
       if (username === 'admin' && password === 'admin123') {
         const token = 'mock-jwt-token-' + Date.now();
-        const user = { id: 1, username: 'admin', role: 'ADMIN', email: 'admin@pos.com' };
+        const email = 'admin@pos.com';
         
-        localStorage.setItem('token', token);
-        localStorage.setItem('user', JSON.stringify(user));
-        router.push('/dashboard-pro');
+        // Fetch the real user profile from database
+        try {
+          const profileResponse = await fetch(`/api/profile?email=${encodeURIComponent(email)}`);
+          const profileData = await profileResponse.json();
+          
+          let user;
+          if (profileResponse.ok && profileData.profile) {
+            // Use real profile data from database
+            user = {
+              id: profileData.profile.id,
+              username: profileData.profile.full_name,
+              email: profileData.profile.email,
+              phone: profileData.profile.phone,
+              role: profileData.profile.role || 'ADMIN'
+            };
+          } else {
+            // Fallback to basic user data if profile fetch fails
+            user = {
+              id: '',
+              username: 'admin',
+              email: email,
+              role: 'ADMIN'
+            };
+          }
+          
+          localStorage.setItem('token', token);
+          localStorage.setItem('user', JSON.stringify(user));
+          router.push('/dashboard-pro');
+        } catch (profileError) {
+          console.error('Error fetching profile:', profileError);
+          // Still allow login with basic data
+          const user = {
+            id: '',
+            username: 'admin',
+            email: email,
+            role: 'ADMIN'
+          };
+          localStorage.setItem('token', token);
+          localStorage.setItem('user', JSON.stringify(user));
+          router.push('/dashboard-pro');
+        }
       } else {
         throw new Error('Invalid credentials');
       }
