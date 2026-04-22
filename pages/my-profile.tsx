@@ -156,43 +156,35 @@ export default function MyProfilePage() {
 
   const handleUpdateProfile = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!profile) {
-      showToast('Profile data not loaded', 'error');
-      return;
-    }
-
-    if (!profile.email) {
+    if (!profile || !profile.email) {
       showToast('Email is required to update profile', 'error');
       return;
     }
 
     setSaving(true);
     try {
-      const updateData: any = {
-        full_name: editForm.full_name,
-        email: editForm.email,
-        phone: editForm.phone,
-        original_email: profile.email // Send the current email to identify the user
-      };
+      console.log('Updating profile for email:', profile.email);
 
-      console.log('Updating profile with data:', updateData);
-
-      const response = await fetch('/api/profile', {
-        method: 'PUT',
+      const response = await fetch('/api/profile/simple-update', {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updateData)
+        body: JSON.stringify({
+          email: profile.email,
+          full_name: editForm.full_name,
+          phone: editForm.phone
+        })
       });
       
       const data = await response.json();
       console.log('API Response:', data);
       
-      if (response.ok && data.profile) {
-        console.log('Profile updated successfully, updating state and localStorage');
+      if (response.ok && data.success && data.profile) {
+        console.log('Profile updated successfully');
         
-        // Update profile state immediately
+        // Update profile state
         setProfile(data.profile);
         
-        // Update localStorage with the real data from database
+        // Update localStorage
         const newUserData = {
           id: data.profile.id,
           username: data.profile.full_name,
@@ -201,7 +193,7 @@ export default function MyProfilePage() {
           role: data.profile.role
         };
         localStorage.setItem('user', JSON.stringify(newUserData));
-        console.log('localStorage updated with real data:', newUserData);
+        console.log('localStorage updated:', newUserData);
         
         setShowEditModal(false);
         showToast('Profile updated successfully!', 'success');
