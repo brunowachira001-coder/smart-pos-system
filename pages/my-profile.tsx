@@ -46,13 +46,14 @@ export default function MyProfilePage() {
       if (userData) {
         try {
           const parsedUser = JSON.parse(userData);
-          // Only use localStorage data if it has a valid UUID (not '1')
-          if (parsedUser.id && parsedUser.id !== '1') {
+          // Use localStorage data to show profile
+          if (parsedUser.email) {
             setProfile({
-              id: parsedUser.id,
-              full_name: parsedUser.username || 'User',
-              email: parsedUser.email || '',
-              role: 'Admin',
+              id: parsedUser.id || '',
+              full_name: parsedUser.username || 'Admin User',
+              email: parsedUser.email,
+              phone: parsedUser.phone || '',
+              role: parsedUser.role || 'Admin',
               created_at: new Date().toISOString()
             });
           }
