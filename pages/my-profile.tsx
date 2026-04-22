@@ -65,29 +65,22 @@ export default function MyProfilePage() {
   }, [authLoading, user?.email]);
 
   const fetchProfile = async () => {
-    // Try to get user ID from localStorage first
+    // Try to get user email from localStorage or auth context
     const userData = localStorage.getItem('user');
-    let userId = user?.id;
     let userEmail = user?.email;
     
     if (userData) {
       try {
         const parsedUser = JSON.parse(userData);
-        userId = parsedUser.id || userId;
         userEmail = parsedUser.email || userEmail;
-        console.log('Loaded user from localStorage:', { userId, userEmail });
+        console.log('Loaded user email from localStorage:', userEmail);
       } catch (e) {
         console.error('Error parsing user data:', e);
       }
     }
     
-    // Skip if ID is the fallback '1' - use email instead
-    if (userId === '1') {
-      userId = undefined;
-    }
-    
-    if (!userId && !userEmail) {
-      console.log('No user ID or email available, skipping profile fetch');
+    if (!userEmail) {
+      console.log('No user email available, skipping profile fetch');
       return;
     }
     
@@ -96,11 +89,10 @@ export default function MyProfilePage() {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000);
 
-      // Prefer fetching by ID if available and valid, fallback to email
-      const queryParam = (userId && userId !== '1') ? `id=${encodeURIComponent(userId)}` : `email=${encodeURIComponent(userEmail!)}`;
-      console.log('Fetching profile with:', queryParam);
+      // Always fetch by email to avoid confusion with multiple users
+      console.log('Fetching profile by email:', userEmail);
       
-      const response = await fetch(`/api/profile?${queryParam}`, {
+      const response = await fetch(`/api/profile?email=${encodeURIComponent(userEmail)}`, {
         signal: controller.signal
       });
       clearTimeout(timeoutId);
@@ -117,7 +109,8 @@ export default function MyProfilePage() {
           id: data.profile.id,
           username: data.profile.full_name,
           email: data.profile.email,
-          phone: data.profile.phone
+          phone: data.profile.phone,
+          role: data.profile.role
         };
         localStorage.setItem('user', JSON.stringify(newUserData));
         console.log('localStorage updated with real user data:', newUserData);
@@ -165,18 +158,9 @@ export default function MyProfilePage() {
       return;
     }
 
-    // Clear localStorage if it has invalid ID
-    const userData = localStorage.getItem('user');
-    if (userData) {
-      try {
-        const parsedUser = JSON.parse(userData);
-        if (parsedUser.id === '1') {
-          console.log('Clearing invalid localStorage data');
-          localStorage.removeItem('user');
-        }
-      } catch (e) {
-        console.error('Error checking localStorage:', e);
-      }
+    if (!profile.email) {
+      showToast('Email is required to update profile', 'error');
+      return;
     }
 
     setSaving(true);
@@ -184,13 +168,9 @@ export default function MyProfilePage() {
       const updateData: any = {
         full_name: editForm.full_name,
         email: editForm.email,
-        phone: editForm.phone
+        phone: editForm.phone,
+        original_email: profile.email // Send the current email to identify the user
       };
-
-      // Only include ID if it's valid (not '1' and not empty)
-      if (profile.id && profile.id !== '1' && profile.id.length > 10) {
-        updateData.id = profile.id;
-      }
 
       console.log('Updating profile with data:', updateData);
 
@@ -214,7 +194,8 @@ export default function MyProfilePage() {
           id: data.profile.id,
           username: data.profile.full_name,
           email: data.profile.email,
-          phone: data.profile.phone
+          phone: data.profile.phone,
+          role: data.profile.role
         };
         localStorage.setItem('user', JSON.stringify(newUserData));
         console.log('localStorage updated with real data:', newUserData);

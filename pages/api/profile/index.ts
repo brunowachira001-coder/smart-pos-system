@@ -31,11 +31,11 @@ async function getProfile(req: NextApiRequest, res: NextApiResponse) {
 
   let query = supabase.from('users').select('*');
   
-  if (id && typeof id === 'string' && id !== '1') {
-    // Only query by ID if it's a valid UUID (not the fallback '1')
-    query = query.eq('id', id);
-  } else if (email && typeof email === 'string') {
+  // Always prefer email over ID for querying to avoid confusion
+  if (email && typeof email === 'string') {
     query = query.eq('email', email);
+  } else if (id && typeof id === 'string' && id !== '1') {
+    query = query.eq('id', id);
   } else {
     return res.status(400).json({ error: 'Valid email or UUID is required' });
   }
@@ -43,43 +43,21 @@ async function getProfile(req: NextApiRequest, res: NextApiResponse) {
   const { data, error } = await query.single();
 
   if (error) {
-    // If user not found, create them
-    if (error.code === 'PGRST116' && email && typeof email === 'string') {
-      console.log('User not found, creating new user for:', email);
-      
-      const newUser = {
-        email: email,
-        full_name: 'User',
-        role: 'Admin',
-        is_active: true
-      };
-
-      const { data: createdUser, error: createError } = await supabase
-        .from('users')
-        .insert([newUser])
-        .select()
-        .single();
-
-      if (createError) {
-        console.error('Error creating user:', createError);
-        return res.status(500).json({ error: createError.message });
-      }
-
-      return res.status(200).json({ profile: createdUser });
-    }
-    
     console.error('Error fetching profile:', error);
-    return res.status(500).json({ error: error.message });
+    return res.status(404).json({ error: 'User not found', details: error.message });
   }
 
   res.status(200).json({ profile: data });
 }
 
 async function updateProfile(req: NextApiRequest, res: NextApiResponse) {
-  const { id, full_name, email, phone, avatar_url } = req.body;
+  const { id, full_name, email, phone, avatar_url, original_email } = req.body;
 
-  if (!id && !email) {
-    return res.status(400).json({ error: 'User ID or email is required' });
+  // We need either the current email or original_email to identify the user
+  const userEmail = original_email || email;
+  
+  if (!userEmail) {
+    return res.status(400).json({ error: 'Email is required to identify user' });
   }
 
   // Build updates object
@@ -90,35 +68,13 @@ async function updateProfile(req: NextApiRequest, res: NextApiResponse) {
   if (avatar_url !== undefined) updates.avatar_url = avatar_url;
   updates.updated_at = new Date().toISOString();
 
-  let data, error;
-
-  // If ID is invalid (like '1'), use email instead
-  if (id && id !== '1' && id.length > 10) {
-    // Try to update by ID first
-    const result = await supabase
-      .from('users')
-      .update(updates)
-      .eq('id', id)
-      .select()
-      .single();
-    
-    data = result.data;
-    error = result.error;
-  }
-  
-  // If ID update failed or ID is invalid, try by email
-  if ((!data || error) && email) {
-    console.log('Updating by email instead:', email);
-    const result = await supabase
-      .from('users')
-      .update(updates)
-      .eq('email', email)
-      .select()
-      .single();
-    
-    data = result.data;
-    error = result.error;
-  }
+  // Always update by email (the original email before any changes)
+  const { data, error } = await supabase
+    .from('users')
+    .update(updates)
+    .eq('email', userEmail)
+    .select()
+    .single();
 
   if (error) {
     console.error('Error updating profile:', error);
