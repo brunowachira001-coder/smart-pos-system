@@ -18,7 +18,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: 'Email identifier is required' });
     }
 
-    // Check if new email is different and already exists
+    // First, get the current user's ID
+    const { data: currentUser } = await supabase
+      .from('users')
+      .select('id')
+      .eq('email', identifier_email)
+      .single();
+
+    // Check if new email is different and already exists for a DIFFERENT user
     if (email && email !== identifier_email) {
       const { data: existingUser } = await supabase
         .from('users')
@@ -26,7 +33,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .eq('email', email)
         .single();
 
-      if (existingUser) {
+      // Only reject if email exists AND belongs to a different user
+      if (existingUser && currentUser && existingUser.id !== currentUser.id) {
         return res.status(400).json({ error: 'Email already in use by another account' });
       }
     }
