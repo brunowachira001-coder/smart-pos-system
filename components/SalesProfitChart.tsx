@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
 interface ChartDataPoint {
   date: string;
@@ -14,6 +14,15 @@ interface SalesProfitChartProps {
 
 export default function SalesProfitChart({ data }: SalesProfitChartProps) {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to show most recent data (right side) when chart loads
+  useEffect(() => {
+    if (scrollContainerRef.current) {
+      // Scroll to the far right to show today's data
+      scrollContainerRef.current.scrollLeft = scrollContainerRef.current.scrollWidth;
+    }
+  }, [data]);
 
   if (!data || data.length === 0) {
     return (
@@ -57,7 +66,7 @@ export default function SalesProfitChart({ data }: SalesProfitChartProps) {
       </div>
 
       {/* Chart SVG */}
-      <div className="flex-1 overflow-x-auto relative">
+      <div ref={scrollContainerRef} className="flex-1 overflow-x-auto relative">
         <svg width={svgWidth} height={svgHeight} style={{ minWidth: '100%' }}>
           {/* Dotted grid lines */}
           {yLabels.map((label, i) => (
