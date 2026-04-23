@@ -21,10 +21,8 @@ export default function MyProfilePage() {
   const [loading, setLoading] = useState(true);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [showUsernameModal, setShowUsernameModal] = useState(false);
   const [editForm, setEditForm] = useState({ full_name: '', email: '', phone: '' });
   const [passwordForm, setPasswordForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
-  const [usernameForm, setUsernameForm] = useState({ newUsername: '' });
   const [saving, setSaving] = useState(false);
   const [currentTheme, setCurrentTheme] = useState('dark');
   
@@ -254,47 +252,6 @@ export default function MyProfilePage() {
     }
   };
 
-  const handleChangeUsername = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    if (usernameForm.newUsername.length < 3) {
-      showToast('Username must be at least 3 characters', 'error');
-      return;
-    }
-
-    setSaving(true);
-    try {
-      const response = await fetch('/api/profile/change-username', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: profile?.email,
-          newUsername: usernameForm.newUsername
-        })
-      });
-
-      const data = await response.json();
-
-      if (response.ok && data.success) {
-        showToast('Username changed successfully! Please login again with your new username.', 'success');
-        setShowUsernameModal(false);
-        setUsernameForm({ newUsername: '' });
-        
-        // Logout after 2 seconds
-        setTimeout(() => {
-          localStorage.clear();
-          window.location.href = '/login';
-        }, 2000);
-      } else {
-        showToast(data.error || 'Failed to change username', 'error');
-      }
-    } catch (error) {
-      showToast('Failed to change username: Network error', 'error');
-    } finally {
-      setSaving(false);
-    }
-  };
-
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
@@ -481,12 +438,6 @@ export default function MyProfilePage() {
                     className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-2.5 rounded-lg text-sm font-medium transition-colors shadow-sm"
                   >
                     Edit Profile
-                  </button>
-                  <button
-                    onClick={() => setShowUsernameModal(true)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-2.5 rounded-lg text-sm font-medium transition-colors shadow-sm"
-                  >
-                    Change Username
                   </button>
                   <button
                     onClick={() => setShowPasswordModal(true)}
@@ -774,56 +725,6 @@ export default function MyProfilePage() {
                   className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg px-4 py-2 text-sm transition-colors disabled:opacity-50"
                 >
                   {saving ? 'Changing...' : 'Change Password'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Change Username Modal */}
-      {showUsernameModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-6 w-full max-w-md shadow-xl">
-            <h2 className="text-xl font-semibold mb-4 text-[var(--text-primary)]">Change Username</h2>
-            <form onSubmit={handleChangeUsername}>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-[var(--text-primary)] mb-1">New Username</label>
-                  <input
-                    type="text"
-                    required
-                    value={usernameForm.newUsername}
-                    onChange={(e) => setUsernameForm({ newUsername: e.target.value })}
-                    placeholder="Enter new username"
-                    className="w-full bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  <p className="text-xs text-[var(--text-secondary)] mt-1">Minimum 3 characters. You'll need to login again after changing.</p>
-                </div>
-                <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3">
-                  <p className="text-xs text-amber-400">
-                    <strong>Warning:</strong> After changing your username, you will be logged out and need to login with your new username.
-                  </p>
-                </div>
-              </div>
-              <div className="flex gap-3 mt-6">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowUsernameModal(false);
-                    setUsernameForm({ newUsername: '' });
-                  }}
-                  disabled={saving}
-                  className="flex-1 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-lg px-4 py-2 text-sm text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)] transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={saving}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-4 py-2 text-sm transition-colors disabled:opacity-50"
-                >
-                  {saving ? 'Changing...' : 'Change Username'}
                 </button>
               </div>
             </form>

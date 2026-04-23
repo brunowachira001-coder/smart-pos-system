@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 
 export default function Login() {
   const router = useRouter();
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -20,54 +20,28 @@ export default function Login() {
     setError('');
 
     try {
-      // Mock login - no backend call needed
-      if (username === 'admin' && password === 'admin123') {
-        const token = 'mock-jwt-token-' + Date.now();
-        const email = 'admin@pos.com';
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        const user = {
+          id: data.user.id,
+          username: data.user.full_name,
+          email: data.user.email,
+          phone: data.user.phone,
+          role: data.user.role || 'ADMIN'
+        };
         
-        // Fetch the real user profile from database
-        try {
-          const profileResponse = await fetch(`/api/profile?email=${encodeURIComponent(email)}`);
-          const profileData = await profileResponse.json();
-          
-          let user;
-          if (profileResponse.ok && profileData.profile) {
-            // Use real profile data from database
-            user = {
-              id: profileData.profile.id,
-              username: profileData.profile.full_name,
-              email: profileData.profile.email,
-              phone: profileData.profile.phone,
-              role: profileData.profile.role || 'ADMIN'
-            };
-          } else {
-            // Fallback to basic user data if profile fetch fails
-            user = {
-              id: '',
-              username: 'admin',
-              email: email,
-              role: 'ADMIN'
-            };
-          }
-          
-          localStorage.setItem('token', token);
-          localStorage.setItem('user', JSON.stringify(user));
-          router.push('/dashboard-pro');
-        } catch (profileError) {
-          console.error('Error fetching profile:', profileError);
-          // Still allow login with basic data
-          const user = {
-            id: '',
-            username: 'admin',
-            email: email,
-            role: 'ADMIN'
-          };
-          localStorage.setItem('token', token);
-          localStorage.setItem('user', JSON.stringify(user));
-          router.push('/dashboard-pro');
-        }
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(user));
+        router.push('/dashboard-pro');
       } else {
-        throw new Error('Invalid credentials');
+        throw new Error(data.error || 'Login failed');
       }
     } catch (err: any) {
       setError(err.message || 'Login failed. Please try again.');
@@ -88,14 +62,15 @@ export default function Login() {
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
-                Username
+                Email
               </label>
               <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
                 className="w-full px-4 py-2 bg-[var(--bg-primary)] border border-[var(--border-color)] text-[var(--text-primary)] rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition"
-                placeholder="Enter username"
+                placeholder="Enter your email"
               />
             </div>
 
@@ -107,8 +82,9 @@ export default function Login() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                required
                 className="w-full px-4 py-2 bg-[var(--bg-primary)] border border-[var(--border-color)] text-[var(--text-primary)] rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition"
-                placeholder="Enter password"
+                placeholder="Enter your password"
               />
             </div>
 
