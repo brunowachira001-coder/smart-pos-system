@@ -158,7 +158,7 @@ export default function Dashboard() {
       const response = await fetch('/api/products/list');
       const data = await response.json();
       
-      if (data.success && data.products) {
+      if (data.products) {
         // Filter products with pricing issues
         const productsWithIssues = data.products.filter((product: any) => {
           const costPrice = parseFloat(product.cost_price) || 0;
@@ -178,6 +178,7 @@ export default function Dashboard() {
           return false;
         });
         
+        console.log('Products with issues:', productsWithIssues);
         setPricingProducts(productsWithIssues);
       }
     } catch (error) {
