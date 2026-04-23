@@ -158,42 +158,64 @@ export default function Dashboard() {
       const response = await fetch('/api/products/list');
       const data = await response.json();
       
+      console.log('=== PRICING PRODUCTS FETCH ===');
+      console.log('API Response:', data);
+      console.log('Total products fetched:', data.products?.length || 0);
+      
       if (data.products) {
         // Filter products with pricing issues and add issue type
+        // Match the exact logic from comprehensive-stats API
         const productsWithIssues = data.products.filter((product: any) => {
           const costPrice = parseFloat(product.cost_price) || 0;
           const retailPrice = parseFloat(product.retail_price) || 0;
           const wholesalePrice = parseFloat(product.wholesale_price) || 0;
           
-          // Determine issue types
+          // Determine issue types - using same logic as API
           const issues: string[] = [];
-          
+          let hasIssue = false;
+
+          // Check 1: Missing cost price
           if (costPrice === 0 || !product.cost_price) {
+            hasIssue = true;
             issues.push('No Cost');
           }
-          if ((retailPrice === 0 || !product.retail_price) && (wholesalePrice === 0 || !product.wholesale_price)) {
+
+          // Check 2: Zero selling price (both retail and wholesale)
+          if (!hasIssue && (retailPrice === 0 || !product.retail_price) && (wholesalePrice === 0 || !product.wholesale_price)) {
+            hasIssue = true;
             issues.push('Zero Price');
           }
-          if (costPrice > 0 && retailPrice > 0 && retailPrice < costPrice) {
+
+          // Check 3: Selling below cost (retail)
+          if (!hasIssue && costPrice > 0 && retailPrice > 0 && retailPrice < costPrice) {
+            hasIssue = true;
             issues.push('Below Cost');
           }
-          if (costPrice > 0 && wholesalePrice > 0 && wholesalePrice < costPrice) {
+
+          // Check 4: Selling below cost (wholesale)
+          if (!hasIssue && costPrice > 0 && wholesalePrice > 0 && wholesalePrice < costPrice) {
+            hasIssue = true;
             issues.push('Below Cost');
           }
-          if (costPrice > 0 && retailPrice > 0) {
+
+          // Check 5: Unrealistic markup (>500%)
+          if (!hasIssue && costPrice > 0 && retailPrice > 0) {
             const markup = ((retailPrice - costPrice) / costPrice) * 100;
             if (markup > 500) {
+              hasIssue = true;
               issues.push('High Markup');
             }
           }
           
-          if (issues.length > 0) {
+          if (hasIssue) {
             product.issues = issues;
+            console.log('Product with issue:', product.name, 'Issues:', issues, 'Cost:', costPrice, 'Retail:', retailPrice, 'Wholesale:', wholesalePrice);
             return true;
           }
           return false;
         });
         
+        console.log('Total products with issues:', productsWithIssues.length);
         console.log('Products with issues:', productsWithIssues);
         setPricingProducts(productsWithIssues);
       }
