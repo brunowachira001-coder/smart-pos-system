@@ -1,9 +1,30 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 
 export default function Sidebar() {
   const router = useRouter();
+  const [shopSettings, setShopSettings] = useState<any>(null);
+
+  useEffect(() => {
+    fetchShopSettings();
+  }, []);
+
+  const fetchShopSettings = async () => {
+    try {
+      const userData = localStorage.getItem('user');
+      if (userData) {
+        const user = JSON.parse(userData);
+        const response = await fetch(`/api/shop-settings?email=${encodeURIComponent(user.email)}`);
+        const data = await response.json();
+        if (response.ok && data.settings) {
+          setShopSettings(data.settings);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching shop settings:', error);
+    }
+  };
 
   const menuItems = [
     { label: 'Dashboard', href: '/dashboard-pro', icon: '📊' },
@@ -18,6 +39,7 @@ export default function Sidebar() {
     { label: 'Inventory Analytics', href: '/inventory-analytics', icon: '📊' },
     { label: 'Product Performance', href: '/product-performance', icon: '🎯' },
     { label: 'User Management', href: '/user-management', icon: '👤' },
+    { label: 'Shop Settings', href: '/shop-settings', icon: '🏪' },
     { label: 'My Profile', href: '/my-profile', icon: '⚙️' },
   ];
 
@@ -32,8 +54,12 @@ export default function Sidebar() {
   return (
     <aside className="w-64 bg-[var(--bg-primary)] border-r border-[var(--border-color)] overflow-y-auto flex flex-col h-screen">
       <div className="p-6 border-b border-[var(--border-color)]">
-        <h1 className="text-2xl font-bold text-emerald-500">Smart Traders</h1>
-        <p className="text-sm text-[var(--text-secondary)] mt-1">Inventory System</p>
+        <h1 className="text-2xl font-bold text-emerald-500">
+          {shopSettings?.business_name || 'Smart Traders'}
+        </h1>
+        <p className="text-sm text-[var(--text-secondary)] mt-1">
+          {shopSettings?.business_tagline || 'Inventory System'}
+        </p>
       </div>
 
       <nav className="px-3 py-4 space-y-1 flex-1">
