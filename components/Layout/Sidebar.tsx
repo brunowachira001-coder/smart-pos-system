@@ -57,12 +57,10 @@ export default function Sidebar() {
         <div className="flex gap-3">
           <button
             onClick={() => {
-              if (confirm('This will clear all cached data and restart the app. Continue?')) {
-                const theme = localStorage.getItem('theme');
-                localStorage.clear();
-                if (theme) localStorage.setItem('theme', theme);
-                window.location.href = '/login';
-              }
+              const theme = localStorage.getItem('theme');
+              localStorage.clear();
+              if (theme) localStorage.setItem('theme', theme);
+              window.location.href = '/login';
             }}
             className="flex-shrink-0 p-3 text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] rounded-lg transition-colors border border-[var(--border-color)]"
             title="Clear & Restart"
