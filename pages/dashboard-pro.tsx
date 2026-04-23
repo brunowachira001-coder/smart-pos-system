@@ -825,27 +825,27 @@ export default function Dashboard() {
                 ) : pricingProducts.length === 0 ? (
                   <div className="text-center py-4 text-[var(--text-secondary)]">No products with issues found</div>
                 ) : (
-                  <div className="overflow-x-auto">
+                  <div className="overflow-x-auto bg-[#0a1628] rounded-lg border border-[var(--border-color)]">
                     <table className="w-full text-sm">
                       <thead>
-                        <tr className="border-b border-[var(--border-color)]">
-                          <th className="text-left py-2 px-2 text-[var(--text-secondary)] font-medium">Product</th>
-                          <th className="text-left py-2 px-2 text-[var(--text-secondary)] font-medium">Cost</th>
-                          <th className="text-left py-2 px-2 text-[var(--text-secondary)] font-medium">Retail</th>
-                          <th className="text-left py-2 px-2 text-[var(--text-secondary)] font-medium">Wholesale</th>
+                        <tr className="border-b border-gray-700">
+                          <th className="text-left py-3 px-4 text-gray-400 font-normal">Product</th>
+                          <th className="text-left py-3 px-4 text-gray-400 font-normal">Cost</th>
+                          <th className="text-left py-3 px-4 text-gray-400 font-normal">Retail</th>
+                          <th className="text-left py-3 px-4 text-gray-400 font-normal">Wholesale</th>
                         </tr>
                       </thead>
                       <tbody>
                         {pricingProducts.slice(0, 5).map((product: any, index: number) => (
-                          <tr key={product.id} className="border-b border-[var(--border-color)]">
-                            <td className="py-3 px-2 text-[var(--text-primary)]">{product.name}</td>
-                            <td className="py-3 px-2 text-[var(--text-primary)]">
+                          <tr key={product.id} className="border-b border-gray-800 hover:bg-gray-900/50">
+                            <td className="py-4 px-4 text-gray-200">{product.name}</td>
+                            <td className="py-4 px-4 text-gray-200">
                               KSH {parseFloat(product.cost_price || 0).toFixed(2)}
                             </td>
-                            <td className="py-3 px-2 text-[var(--text-primary)]">
+                            <td className="py-4 px-4 text-gray-200">
                               KSH {parseFloat(product.retail_price || 0).toFixed(2)}
                             </td>
-                            <td className="py-3 px-2 text-[var(--text-primary)]">
+                            <td className="py-4 px-4 text-gray-200">
                               KSH {parseFloat(product.wholesale_price || 0).toFixed(2)}
                             </td>
                           </tr>
@@ -853,7 +853,7 @@ export default function Dashboard() {
                       </tbody>
                     </table>
                     {pricingProducts.length > 5 && (
-                      <div className="text-center py-2 text-xs text-[var(--text-secondary)]">
+                      <div className="text-center py-3 text-xs text-gray-400 border-t border-gray-800">
                         Showing 1 to 5 of {pricingProducts.length} products
                       </div>
                     )}
