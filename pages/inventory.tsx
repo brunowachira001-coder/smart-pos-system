@@ -51,7 +51,8 @@ export default function InventoryPage() {
     stockQuantity: '',
     minimumStockLevel: '10',
     description: '',
-    barcode: ''
+    barcode: '',
+    imageUrl: ''
   });
 
   const [restockQuantity, setRestockQuantity] = useState('');
@@ -109,7 +110,8 @@ export default function InventoryPage() {
           stockQuantity: parseInt(formData.stockQuantity) || 0,
           minimumStockLevel: parseInt(formData.minimumStockLevel) || 10,
           description: formData.description,
-          barcode: formData.barcode
+          barcode: formData.barcode,
+          imageUrl: formData.imageUrl
         })
       });
 
@@ -152,7 +154,8 @@ export default function InventoryPage() {
           stockQuantity: parseInt(formData.stockQuantity) || 0,
           minimumStockLevel: parseInt(formData.minimumStockLevel) || 10,
           description: formData.description,
-          barcode: formData.barcode
+          barcode: formData.barcode,
+          imageUrl: formData.imageUrl
         })
       });
 
@@ -285,7 +288,8 @@ export default function InventoryPage() {
       stockQuantity: product.stock_quantity?.toString() || '',
       minimumStockLevel: product.minimum_stock_level?.toString() || '10',
       description: product.description || '',
-      barcode: product.barcode || ''
+      barcode: product.barcode || '',
+      imageUrl: product.image_url || ''
     });
     setShowEditModal(true);
   };
@@ -301,7 +305,8 @@ export default function InventoryPage() {
       stockQuantity: '',
       minimumStockLevel: '10',
       description: '',
-      barcode: ''
+      barcode: '',
+      imageUrl: ''
     });
   };
 
