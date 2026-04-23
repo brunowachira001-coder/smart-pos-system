@@ -371,7 +371,7 @@ export default function Dashboard() {
               {/* X-axis dates positioned below chart */}
               <g>
                 {chartData.map((item, i) => {
-                  const showEvery = Math.max(1, Math.floor(chartData.length / 15));
+                  const showEvery = Math.max(1, Math.floor(chartData.length / 6));
                   if (i % showEvery === 0 || i === chartData.length - 1) {
                     return (
                       <text
@@ -379,7 +379,7 @@ export default function Dashboard() {
                         x={getX(i)}
                         y={svgHeight - 5}
                         textAnchor="middle"
-                        fontSize="9"
+                        fontSize="11"
                         fill="var(--text-secondary)"
                         opacity="0.8"
                       >
