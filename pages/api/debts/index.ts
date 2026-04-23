@@ -4,15 +4,11 @@ import { supabase } from '../../../lib/supabase';
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
     try {
-      const { startDate, endDate, page = '1', limit = '20' } = req.query;
-      
-      const pageNum = parseInt(page as string);
-      const limitNum = parseInt(limit as string);
-      const offset = (pageNum - 1) * limitNum;
+      const { startDate, endDate } = req.query;
 
       let query = supabase
         .from('debts')
-        .select('*', { count: 'exact' });
+        .select('*');
 
       // Apply date filtering if provided
       if (startDate && endDate) {
@@ -21,21 +17,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           .lte('created_at', endDate);
       }
 
-      const { data: debts, error, count } = await query
-        .order('created_at', { ascending: false })
-        .range(offset, offset + limitNum - 1);
+      const { data: debts, error } = await query.order('created_at', { ascending: false });
 
       if (error) throw error;
 
-      return res.status(200).json({
-        debts: debts || [],
-        pagination: {
-          page: pageNum,
-          limit: limitNum,
-          total: count || 0,
-          totalPages: Math.ceil((count || 0) / limitNum)
-        }
-      });
+      return res.status(200).json(debts || []);
     } catch (error: any) {
       return res.status(500).json({ error: error.message });
     }
