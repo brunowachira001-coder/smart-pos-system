@@ -291,8 +291,8 @@ export default function CustomersPage() {
         </div>
 
         {/* Customers Table */}
-        <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg overflow-visible">
-          <div className="overflow-x-auto overflow-y-visible">
+        <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg overflow-hidden">
+          <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-[var(--bg-primary)] border-b border-[var(--border-color)]">
                 <tr>
@@ -318,7 +318,7 @@ export default function CustomersPage() {
                     </td>
                   </tr>
                 ) : (
-                  customers.map((customer) => (
+                  customers.map((customer, index) => (
                     <tr key={customer.id} className="hover:bg-[var(--bg-primary)] transition-colors">
                       <td className="px-6 py-4 text-sm font-medium text-[var(--text-primary)]">
                         {customer.name}
@@ -335,10 +335,13 @@ export default function CustomersPage() {
                       <td className="px-6 py-4 text-sm text-[var(--text-secondary)]">
                         {formatDate(customer.last_purchase_date)}
                       </td>
-                      <td className="px-6 py-4 relative">
-                        <div className="relative">
+                      <td className="px-6 py-4">
+                        <div className="relative inline-block">
                           <button
-                            onClick={() => setOpenDropdownId(openDropdownId === customer.id ? null : customer.id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setOpenDropdownId(openDropdownId === customer.id ? null : customer.id);
+                            }}
                             className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-lg font-bold p-2"
                           >
                             •••
@@ -349,12 +352,18 @@ export default function CustomersPage() {
                             <>
                               {/* Backdrop to close dropdown */}
                               <div 
-                                className="fixed inset-0 z-10" 
+                                className="fixed inset-0 z-40" 
                                 onClick={() => setOpenDropdownId(null)}
                               />
                               
                               {/* Dropdown */}
-                              <div className="absolute right-0 top-full mt-1 w-48 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg shadow-xl z-50 py-1">
+                              <div 
+                                className="absolute right-0 top-full mt-1 w-48 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg shadow-xl z-50 py-1"
+                                style={{ 
+                                  position: 'fixed',
+                                  transform: `translate(-${index > customers.length - 3 ? '100%' : '0'}, 0)`
+                                }}
+                              >
                                 <button
                                   onClick={() => openViewModal(customer)}
                                   className="w-full text-left px-4 py-2.5 text-sm hover:bg-[var(--bg-primary)] flex items-center gap-2 text-[var(--text-primary)]"
@@ -545,16 +554,69 @@ export default function CustomersPage() {
         <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
           <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-bold mb-4">Edit Customer</h2>
+            <p className="text-sm text-[var(--text-secondary)] mb-6">Update customer profile information</p>
+            
+            {/* Debt Information Section */}
+            <div className="mb-6 bg-[var(--bg-primary)] rounded-lg p-4">
+              <h3 className="text-sm font-semibold mb-3">Debt Information</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <div className="text-xs text-[var(--text-secondary)] mb-1">Credit Limit</div>
+                  <div className="text-sm font-semibold">KSH 1000.00</div>
+                </div>
+                <div>
+                  <div className="text-xs text-[var(--text-secondary)] mb-1">Current Debt</div>
+                  <div className="text-sm font-semibold text-emerald-500">KSH 0.00</div>
+                </div>
+                <div>
+                  <div className="text-xs text-[var(--text-secondary)] mb-1">Available Credit</div>
+                  <div className="text-sm font-semibold">KSH 1000.00</div>
+                </div>
+                <div>
+                  <div className="text-xs text-[var(--text-secondary)] mb-1">Credit Utilization</div>
+                  <div className="text-sm font-semibold">0.0%</div>
+                </div>
+              </div>
+            </div>
             
             <form onSubmit={handleEditCustomer} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-2">Name *</label>
+                <label className="block text-sm font-medium mb-2">First Name *</label>
                 <input
                   type="text"
                   required
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  value={formData.name.split(' ')[0] || ''}
+                  onChange={(e) => {
+                    const lastName = formData.name.split(' ').slice(1).join(' ');
+                    setFormData({ ...formData, name: `${e.target.value} ${lastName}`.trim() });
+                  }}
                   className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-sm"
+                  placeholder="John"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Last Name</label>
+                <input
+                  type="text"
+                  value={formData.name.split(' ').slice(1).join(' ') || ''}
+                  onChange={(e) => {
+                    const firstName = formData.name.split(' ')[0];
+                    setFormData({ ...formData, name: `${firstName} ${e.target.value}`.trim() });
+                  }}
+                  className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-sm"
+                  placeholder="Doe"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Phone Number</label>
+                <input
+                  type="tel"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-sm"
+                  placeholder="0712345678"
                 />
               </div>
 
@@ -565,71 +627,22 @@ export default function CustomersPage() {
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-sm"
+                  placeholder="john.doe@example.com"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">Phone</label>
+                <label className="block text-sm font-medium mb-2">Credit Limit (Admin Only)</label>
                 <input
-                  type="tel"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={formData.debtLimit}
+                  onChange={(e) => setFormData({ ...formData, debtLimit: e.target.value })}
                   className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-sm"
+                  placeholder="1000"
                 />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">Address</label>
-                <textarea
-                  value={formData.address}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-sm"
-                  rows={2}
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-sm font-medium mb-2">City</label>
-                  <input
-                    type="text"
-                    value={formData.city}
-                    onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                    className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-sm"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2">Country</label>
-                  <input
-                    type="text"
-                    value={formData.country}
-                    onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                    className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-sm"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">Customer Type</label>
-                <select
-                  value={formData.customerType}
-                  onChange={(e) => setFormData({ ...formData, customerType: e.target.value })}
-                  className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-sm"
-                >
-                  <option value="retail">Retail</option>
-                  <option value="wholesale">Wholesale</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">Notes</label>
-                <textarea
-                  value={formData.notes}
-                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-sm"
-                  rows={3}
-                />
+                <p className="text-xs text-[var(--text-secondary)] mt-1.5">Maximum credit limit for this customer</p>
               </div>
 
               <div className="flex gap-3 pt-4">
@@ -641,18 +654,11 @@ export default function CustomersPage() {
                   Cancel
                 </button>
                 <button
-                  type="button"
-                  onClick={() => handleDeleteCustomer(selectedCustomer.id)}
-                  className="px-4 bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg"
-                >
-                  Delete
-                </button>
-                <button
                   type="submit"
                   disabled={loading}
                   className="flex-1 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-600 text-white py-2 rounded-lg font-semibold"
                 >
-                  {loading ? 'Updating...' : 'Update'}
+                  {loading ? 'Updating...' : 'Save Changes'}
                 </button>
               </div>
             </form>
