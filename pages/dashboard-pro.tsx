@@ -54,8 +54,6 @@ export default function Dashboard() {
   const [priceType, setPriceType] = useState('retail'); // retail or wholesale only
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
-  const [pricingAudit, setPricingAudit] = useState<any>(null);
-  const [showPricingIssues, setShowPricingIssues] = useState(false);
 
   // Track the current date to detect changes
   const [currentDate, setCurrentDate] = useState(new Date().toDateString());
@@ -712,8 +710,9 @@ export default function Dashboard() {
                 <span className="text-yellow-500">⚠️</span>
               </div>
               <button
-                onClick={() => setShowPricingIssues(!showPricingIssues)}
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                onClick={() => router.push('/inventory')}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                title="View products with issues"
               >
                 👁
               </button>
@@ -740,7 +739,7 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {showPricingIssues && stats?.pricingAudit?.issueDetails && (
+            {stats?.pricingAudit?.issueDetails && (
               <div className="mt-4 bg-[#FFF8E7] dark:bg-amber-900/20 border border-yellow-600/40 rounded-lg p-4">
                 <p className="text-base font-bold text-[#B8733E] dark:text-orange-400 mb-3">Issues Found:</p>
                 <ul className="space-y-2 text-sm text-[#B8733E] dark:text-orange-400">
