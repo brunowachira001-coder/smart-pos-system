@@ -30,7 +30,7 @@ WHERE NOT EXISTS (
 -- ============================================
 -- 2. PRODUCTS (100 products)
 -- ============================================
-INSERT INTO products (name, sku, category, cost_price, retail_price, wholesale_price, stock_quantity, minimum_stock_level, status, description, image_url)
+INSERT INTO products (name, sku, category, price, stock, cost_price, retail_price, wholesale_price, stock_quantity, minimum_stock_level, status, description, image_url)
 SELECT 
   'Product ' || i,
   'SKU-' || LPAD(i::text, 5, '0'),
@@ -44,6 +44,8 @@ SELECT
     WHEN 6 THEN 'Toys'
     ELSE 'Health & Beauty'
   END,
+  (100 + (i * 15))::numeric,
+  (100 + (i * 5)),
   (50 + (i * 10))::numeric,
   (100 + (i * 15))::numeric,
   (80 + (i * 12))::numeric,
