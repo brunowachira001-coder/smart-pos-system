@@ -4,6 +4,7 @@ import DateRangeFilter from '../components/DateRangeFilter';
 import Toast from '../components/Toast';
 import { useToast } from '../hooks/useToast';
 import Pagination from '../components/Pagination';
+import ReceiptPrint from '../components/ReceiptPrint';
 
 interface Product {
   id: string;
@@ -76,6 +77,8 @@ export default function POSPage() {
   const [itemsPerPage, setItemsPerPage] = useState(50);
   const [totalPages, setTotalPages] = useState(1);
   const [totalProducts, setTotalProducts] = useState(0);
+  const [showReceipt, setShowReceipt] = useState(false);
+  const [receiptData, setReceiptData] = useState<any>(null);
 
   useEffect(() => {
     fetchProducts();
@@ -293,11 +296,37 @@ export default function POSPage() {
       const data = await response.json();
 
       if (response.ok) {
+        // Prepare receipt data
+        const receipt = {
+          transactionNumber: data.transaction?.transaction_number || 'N/A',
+          date: new Date().toLocaleString('en-KE', { 
+            timeZone: 'Africa/Nairobi',
+            dateStyle: 'medium',
+            timeStyle: 'short'
+          }),
+          customerName: selectedCustomer?.name || customerName || 'Walk-in Customer',
+          customerPhone: selectedCustomer?.phone || customerPhone,
+          items: cart,
+          subtotal: cartTotal,
+          discount: 0,
+          tax: 0,
+          total: cartTotal,
+          amountPaid: paid,
+          change: paid - cartTotal,
+          paymentMethod,
+          cashierName: 'John Doe'
+        };
+
+        // Show receipt
+        setReceiptData(receipt);
+        setShowReceipt(true);
+
         if (paymentMethod === 'debt') {
           showToast('Transaction completed on credit!', 'success');
         } else {
           showToast(`Transaction completed! Change: KSH ${(paid - cartTotal).toFixed(2)}`, 'success');
         }
+        
         setShowCheckout(false);
         setCustomerName('');
         setCustomerPhone('');
@@ -831,6 +860,14 @@ export default function POSPage() {
             )}
           </div>
         </div>
+      )}
+
+      {/* Receipt Print Modal */}
+      {showReceipt && receiptData && (
+        <ReceiptPrint
+          data={receiptData}
+          onClose={() => setShowReceipt(false)}
+        />
       )}
     </div>
   );
