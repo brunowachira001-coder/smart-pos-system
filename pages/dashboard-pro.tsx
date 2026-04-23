@@ -167,9 +167,22 @@ export default function Dashboard() {
   const fetchPricingAudit = async () => {
     setLoadingAudit(true);
     console.log('=== FETCHING PRICING AUDIT ===');
+    
     try {
-      const response = await fetch('/api/pricing-audit');
+      // Add timeout to prevent hanging
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      
+      const response = await fetch('/api/pricing-audit', {
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+      
       console.log('Response status:', response.status);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       
       const data = await response.json();
       console.log('Full API response:', JSON.stringify(data, null, 2));
@@ -185,15 +198,27 @@ export default function Dashboard() {
         setPricingAuditDetails(data.data);
         setShowPricingIssues(true);
         
-        console.log('✓ State updated - pricingAuditDetails set to:', data.data);
-        console.log('✓ showPricingIssues set to: true');
+        console.log('✓ State updated - pricingAuditDetails set');
       } else {
         console.error('✗ API returned error:', data.error);
+        throw new Error(data.error || 'Unknown error');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('✗ Fetch error:', error);
+      
+      if (error.name === 'AbortError') {
+        console.error('Request timed out after 10 seconds');
+        alert('Request timed out. Please try again.');
+      } else {
+        console.error('Error details:', error.message);
+        alert('Failed to load pricing audit. Check console for details.');
+      }
+      
+      // Don't show dropdown on error
+      setShowPricingIssues(false);
     } finally {
       setLoadingAudit(false);
+      console.log('=== FETCH COMPLETE ===');
     }
   };
 
