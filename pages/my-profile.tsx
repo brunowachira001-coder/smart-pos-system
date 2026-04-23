@@ -588,9 +588,6 @@ export default function MyProfilePage() {
                     required
                     className="w-full bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-lg px-4 py-2.5 text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   />
-                  <p className="text-xs text-[var(--text-secondary)] mt-1">
-                    Make sure this is a valid email address you have access to
-                  </p>
                 </div>
 
                 <div>
