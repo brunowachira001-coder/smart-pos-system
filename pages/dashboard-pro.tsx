@@ -229,8 +229,8 @@ export default function Dashboard() {
   };
 
   const renderChart = () => {
-    // Reverse the data so most recent dates appear first (on the right, visible immediately)
-    const chartData = [...(stats?.chartData || [])].reverse();
+    // Keep data in original order - most recent on left, scroll right for older data
+    const chartData = stats?.chartData || [];
 
     if (chartData.length === 0) {
       return (
