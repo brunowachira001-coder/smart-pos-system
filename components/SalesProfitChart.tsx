@@ -18,10 +18,14 @@ export default function SalesProfitChart({ data }: SalesProfitChartProps) {
 
   // Scroll to show today's data (rightmost) when component loads
   useEffect(() => {
-    if (scrollContainerRef.current) {
-      // Set scroll to maximum (far right)
-      scrollContainerRef.current.scrollLeft = scrollContainerRef.current.scrollWidth;
-    }
+    // Use requestAnimationFrame to ensure DOM is fully rendered
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (scrollContainerRef.current) {
+          scrollContainerRef.current.scrollLeft = scrollContainerRef.current.scrollWidth;
+        }
+      });
+    });
   }, [data]);
 
   if (!data || data.length === 0) {
