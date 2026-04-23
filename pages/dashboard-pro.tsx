@@ -57,6 +57,8 @@ export default function Dashboard() {
   const [showPricingProducts, setShowPricingProducts] = useState(false);
   const [pricingProducts, setPricingProducts] = useState<any[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const productsPerPage = 5;
 
   // Track the current date to detect changes
   const [currentDate, setCurrentDate] = useState(new Date().toDateString());
@@ -737,8 +739,8 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Additional Metrics Row */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {/* Additional Metrics Row - 3 columns only */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Product Categories */}
           <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-6">
             <div className="flex items-center justify-between mb-2">
@@ -780,18 +782,54 @@ export default function Dashboard() {
               Items below minimum stock
             </p>
           </div>
+        </div>
 
-          {/* Pricing Data Audit */}
+        {/* Sales & Profit Trend Chart + Pricing Data Audit - Side by Side */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* Sales & Profit Trend Chart */}
+          <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-6">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-lg font-semibold text-[var(--text-primary)]">Sales & Profit Trend</h2>
+            </div>
+
+            {/* Chart Area */}
+            <div className="relative bg-[var(--bg-secondary)] rounded border border-[var(--border-color)] p-4" style={{ height: '300px' }}>
+              {renderChart()}
+            </div>
+
+            {/* Legend */}
+            <div className="flex items-center justify-center gap-6 mt-4 text-xs">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-emerald-500"></div>
+                <span className="text-[var(--text-secondary)]">Gross Sales</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-green-400"></div>
+                <span className="text-[var(--text-secondary)]">Net Sales</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-0.5 bg-red-500"></div>
+                <span className="text-[var(--text-secondary)]">Expenses</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-0.5 bg-blue-400"></div>
+                <span className="text-[var(--text-secondary)]">Verified Profit</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Pricing Data Audit - Larger Card */}
           <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <p className="text-base font-medium text-[var(--text-primary)]">Pricing Data Audit</p>
+                <p className="text-lg font-semibold text-[var(--text-primary)]">Pricing Data Audit</p>
                 <span className="text-yellow-500">⚠️</span>
               </div>
               <button
                 onClick={() => {
                   if (!showPricingProducts) {
                     fetchPricingProducts();
+                    setCurrentPage(1);
                   }
                   setShowPricingProducts(!showPricingProducts);
                 }}
@@ -863,99 +901,92 @@ export default function Dashboard() {
                 ) : pricingProducts.length === 0 ? (
                   <div className="text-center py-4 text-[var(--text-secondary)]">No products with issues found</div>
                 ) : (
-                  <div className="overflow-x-auto bg-[#0a1628] rounded-lg border border-[var(--border-color)]">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="border-b border-gray-700">
-                          <th className="text-left py-3 px-4 text-gray-400 font-normal">Product</th>
-                          <th className="text-left py-3 px-4 text-gray-400 font-normal">Cost</th>
-                          <th className="text-left py-3 px-4 text-gray-400 font-normal">Retail</th>
-                          <th className="text-left py-3 px-4 text-gray-400 font-normal">Wholesale</th>
-                          <th className="text-left py-3 px-4 text-gray-400 font-normal">Issues</th>
-                          <th className="text-right py-3 px-4 text-gray-400 font-normal">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {pricingProducts.slice(0, 5).map((product: any, index: number) => (
-                          <tr key={product.id} className="border-b border-gray-800 hover:bg-gray-900/50">
-                            <td className="py-4 px-4 text-gray-200">{product.name}</td>
-                            <td className="py-4 px-4 text-gray-200">
-                              KSH {parseFloat(product.cost_price || 0).toFixed(2)}
-                            </td>
-                            <td className="py-4 px-4 text-gray-200">
-                              KSH {parseFloat(product.retail_price || 0).toFixed(2)}
-                            </td>
-                            <td className="py-4 px-4 text-gray-200">
-                              KSH {parseFloat(product.wholesale_price || 0).toFixed(2)}
-                            </td>
-                            <td className="py-4 px-4">
-                              <div className="flex flex-wrap gap-1">
-                                {product.issues?.map((issue: string, idx: number) => (
-                                  <span key={idx} className="px-2 py-1 bg-red-600 text-white text-xs rounded">
-                                    {issue}
-                                  </span>
-                                ))}
-                              </div>
-                            </td>
-                            <td className="py-4 px-4">
-                              <div className="flex justify-end gap-2">
-                                <button className="p-2 hover:bg-gray-800 rounded" title="Edit">
-                                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                  </svg>
-                                </button>
-                                <button className="p-2 hover:bg-gray-800 rounded" title="Delete">
-                                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                  </svg>
-                                </button>
-                              </div>
-                            </td>
+                  <>
+                    <div className="overflow-x-auto bg-[#0a1628] rounded-lg border border-[var(--border-color)]">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="border-b border-gray-700">
+                            <th className="text-left py-3 px-4 text-gray-400 font-normal">Product</th>
+                            <th className="text-left py-3 px-4 text-gray-400 font-normal">Cost</th>
+                            <th className="text-left py-3 px-4 text-gray-400 font-normal">Retail</th>
+                            <th className="text-left py-3 px-4 text-gray-400 font-normal">Wholesale</th>
+                            <th className="text-left py-3 px-4 text-gray-400 font-normal">Issues</th>
+                            <th className="text-right py-3 px-4 text-gray-400 font-normal">Actions</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                    {pricingProducts.length > 5 && (
-                      <div className="text-center py-3 text-xs text-gray-400 border-t border-gray-800">
-                        Showing 1 to 5 of {pricingProducts.length} products
+                        </thead>
+                        <tbody>
+                          {pricingProducts.slice((currentPage - 1) * productsPerPage, currentPage * productsPerPage).map((product: any, index: number) => (
+                            <tr key={product.id} className="border-b border-gray-800 hover:bg-gray-900/50">
+                              <td className="py-4 px-4 text-gray-200">{product.name}</td>
+                              <td className="py-4 px-4 text-gray-200">
+                                KSH {parseFloat(product.cost_price || 0).toFixed(2)}
+                              </td>
+                              <td className="py-4 px-4 text-gray-200">
+                                KSH {parseFloat(product.retail_price || 0).toFixed(2)}
+                              </td>
+                              <td className="py-4 px-4 text-gray-200">
+                                KSH {parseFloat(product.wholesale_price || 0).toFixed(2)}
+                              </td>
+                              <td className="py-4 px-4">
+                                <div className="flex flex-wrap gap-1">
+                                  {product.issues?.map((issue: string, idx: number) => (
+                                    <span key={idx} className="px-2 py-1 bg-red-600 text-white text-xs rounded">
+                                      {issue}
+                                    </span>
+                                  ))}
+                                </div>
+                              </td>
+                              <td className="py-4 px-4">
+                                <div className="flex justify-end gap-2">
+                                  <button className="p-2 hover:bg-gray-800 rounded" title="Edit">
+                                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                    </svg>
+                                  </button>
+                                  <button className="p-2 hover:bg-gray-800 rounded" title="Delete">
+                                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    
+                    {/* Pagination Controls */}
+                    {pricingProducts.length > productsPerPage && (
+                      <div className="flex items-center justify-between mt-3 text-sm">
+                        <div className="text-gray-400">
+                          Showing {((currentPage - 1) * productsPerPage) + 1} to {Math.min(currentPage * productsPerPage, pricingProducts.length)} of {pricingProducts.length} products
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                            disabled={currentPage === 1}
+                            className="px-3 py-1 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)] disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            Previous
+                          </button>
+                          <span className="px-3 py-1 text-[var(--text-secondary)]">
+                            Page {currentPage} of {Math.ceil(pricingProducts.length / productsPerPage)}
+                          </span>
+                          <button
+                            onClick={() => setCurrentPage(prev => Math.min(Math.ceil(pricingProducts.length / productsPerPage), prev + 1))}
+                            disabled={currentPage >= Math.ceil(pricingProducts.length / productsPerPage)}
+                            className="px-3 py-1 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)] disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            Next
+                          </button>
+                        </div>
                       </div>
                     )}
-                  </div>
+                  </>
                 )}
               </div>
             )}
-          </div>
-        </div>
-
-        {/* Sales & Profit Trend Chart - Candlestick Style */}
-        <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-6">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-semibold text-[var(--text-primary)]">Sales & Profit Trend</h2>
-          </div>
-
-          {/* Chart Area */}
-          <div className="relative bg-[var(--bg-secondary)] rounded border border-[var(--border-color)] p-4" style={{ height: '300px' }}>
-            {renderChart()}
-          </div>
-
-          {/* Legend */}
-          <div className="flex items-center justify-center gap-6 mt-4 text-xs">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-emerald-500"></div>
-              <span className="text-[var(--text-secondary)]">Gross Sales</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-green-400"></div>
-              <span className="text-[var(--text-secondary)]">Net Sales</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-0.5 bg-red-500"></div>
-              <span className="text-[var(--text-secondary)]">Expenses</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-0.5 bg-blue-400"></div>
-              <span className="text-[var(--text-secondary)]">Verified Profit</span>
-            </div>
           </div>
         </div>
       </div>
