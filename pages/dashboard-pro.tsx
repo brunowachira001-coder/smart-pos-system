@@ -27,6 +27,12 @@ interface DashboardStats {
     total: number;
     valid: number;
     issues: number;
+    issueDetails?: {
+      missingCost: number;
+      zeroSellingPrice: number;
+      sellingBelowCost: number;
+      unrealisticMarkup: number;
+    };
   };
   chartData?: Array<{
     date: string;
