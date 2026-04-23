@@ -277,8 +277,8 @@ export default function Dashboard() {
           </div>
 
           {/* Chart SVG */}
-          <div className="flex-1 relative">
-            <svg width={svgWidth} height={svgHeight} style={{ width: '100%' }}>
+          <div className="flex-1 overflow-x-auto relative">
+            <svg width={svgWidth} height={svgHeight} style={{ minWidth: '100%' }}>
               {/* Dotted grid lines */}
               {yLabels.map((label, i) => (
                 <line
