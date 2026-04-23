@@ -63,6 +63,20 @@ async function updateUser(req: NextApiRequest, res: NextApiResponse) {
     return res.status(400).json({ error: 'User ID is required' });
   }
 
+  // If email is being changed, check for duplicates
+  if (email !== undefined) {
+    const { data: existingUser } = await supabase
+      .from('users')
+      .select('id, email')
+      .eq('email', email)
+      .single();
+
+    // If email exists and belongs to a different user, reject
+    if (existingUser && existingUser.id !== id) {
+      return res.status(400).json({ error: 'Email already in use by another account' });
+    }
+  }
+
   const updates: any = {};
   if (full_name !== undefined) updates.full_name = full_name;
   if (email !== undefined) updates.email = email;

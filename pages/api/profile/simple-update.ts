@@ -12,27 +12,47 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const { identifier_email, full_name, phone } = req.body;
+    const { identifier_email, email, full_name, phone } = req.body;
 
     if (!identifier_email) {
       return res.status(400).json({ error: 'Email identifier is required' });
     }
 
-    // Try to update first - ONLY update full_name and phone, NOT email
-    const { data: updateData, error: updateError } = await supabase
+    // Check if new email is different and already exists
+    if (email && email !== identifier_email) {
+      const { data: existingUser } = await supabase
+        .from('users')
+        .select('id')
+        .eq('email', email)
+        .single();
+
+      if (existingUser) {
+        return res.status(400).json({ error: 'Email already in use by another account' });
+      }
+    }
+
+    // Try to update - update email if provided, otherwise keep existing
+    const updateData: any = {
+      full_name: full_name || 'Admin User',
+      phone: phone || '',
+      updated_at: new Date().toISOString()
+    };
+
+    // Only update email if a new one is provided
+    if (email && email !== identifier_email) {
+      updateData.email = email;
+    }
+
+    const { data: updateResult, error: updateError } = await supabase
       .from('users')
-      .update({
-        full_name: full_name || 'Admin User',
-        phone: phone || '',
-        updated_at: new Date().toISOString()
-      })
+      .update(updateData)
       .eq('email', identifier_email)
       .select()
       .single();
 
     // If update worked, return the data
-    if (updateData && !updateError) {
-      return res.status(200).json({ success: true, profile: updateData });
+    if (updateResult && !updateError) {
+      return res.status(200).json({ success: true, profile: updateResult });
     }
 
     // If user doesn't exist (PGRST116 error), create them
@@ -40,7 +60,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const { data: insertData, error: insertError } = await supabase
         .from('users')
         .insert([{
-          email: identifier_email,
+          email: email || identifier_email,
           full_name: full_name || 'Admin User',
           phone: phone || '',
           role: 'Admin',

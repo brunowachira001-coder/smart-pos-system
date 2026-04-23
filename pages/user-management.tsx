@@ -361,12 +361,12 @@ export default function UserManagementPage() {
                   <input
                     type="email"
                     required
-                    disabled
                     value={formData.email}
-                    className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-sm opacity-60 cursor-not-allowed"
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   <p className="text-xs text-[var(--text-secondary)] mt-1">
-                    Email cannot be changed
+                    Changing email will update the user's login identifier
                   </p>
                 </div>
                 <div>

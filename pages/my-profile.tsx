@@ -21,7 +21,7 @@ export default function MyProfilePage() {
   const [loading, setLoading] = useState(true);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [editForm, setEditForm] = useState({ full_name: '', phone: '' });
+  const [editForm, setEditForm] = useState({ full_name: '', email: '', phone: '' });
   const [saving, setSaving] = useState(false);
   const [currentTheme, setCurrentTheme] = useState('dark');
   
@@ -147,6 +147,7 @@ export default function MyProfilePage() {
     if (profile) {
       setEditForm({
         full_name: profile.full_name,
+        email: profile.email,
         phone: profile.phone || ''
       });
       setShowEditModal(true);
@@ -162,14 +163,15 @@ export default function MyProfilePage() {
 
     setSaving(true);
     try {
-      console.log('Updating profile for email:', profile.email);
+      console.log('Updating profile - old email:', profile.email, 'new email:', editForm.email);
 
       const response = await fetch('/api/profile/simple-update', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          identifier_email: profile.email, // Use as identifier only, not for update
+          identifier_email: profile.email, // Use old email as identifier
           full_name: editForm.full_name,
+          email: editForm.email, // New email to update to
           phone: editForm.phone
         })
       });
@@ -183,7 +185,7 @@ export default function MyProfilePage() {
         // Update profile state
         setProfile(data.profile);
         
-        // Update localStorage
+        // Update localStorage with new email
         const newUserData = {
           id: data.profile.id,
           username: data.profile.full_name,
@@ -581,12 +583,13 @@ export default function MyProfilePage() {
                   </label>
                   <input
                     type="email"
-                    value={profile?.email || ''}
-                    disabled
-                    className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-4 py-2.5 text-sm text-[var(--text-secondary)] cursor-not-allowed opacity-60"
+                    value={editForm.email}
+                    onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                    required
+                    className="w-full bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-lg px-4 py-2.5 text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   />
                   <p className="text-xs text-[var(--text-secondary)] mt-1">
-                    Email cannot be changed as it's used to identify your account
+                    Make sure this is a valid email address you have access to
                   </p>
                 </div>
 
