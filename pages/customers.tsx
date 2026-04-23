@@ -291,7 +291,7 @@ export default function CustomersPage() {
         </div>
 
         {/* Customers Table */}
-        <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg">
+        <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full relative">
               <thead className="bg-[var(--bg-primary)] border-b border-[var(--border-color)]">
@@ -336,63 +336,15 @@ export default function CustomersPage() {
                         {formatDate(customer.last_purchase_date)}
                       </td>
                       <td className="px-6 py-4">
-                        <div className="relative">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setOpenDropdownId(openDropdownId === customer.id ? null : customer.id);
-                            }}
-                            className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-lg font-bold p-2 hover:bg-[var(--bg-primary)] rounded"
-                          >
-                            •••
-                          </button>
-                          
-                          {/* Dropdown Menu */}
-                          {openDropdownId === customer.id && (
-                            <div className="relative">
-                              {/* Backdrop to close dropdown */}
-                              <div 
-                                className="fixed inset-0 z-40" 
-                                onClick={() => setOpenDropdownId(null)}
-                              />
-                              
-                              {/* Dropdown */}
-                              <div className="absolute right-0 top-0 w-48 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg shadow-xl z-50 py-1">
-                                <button
-                                  onClick={() => openViewModal(customer)}
-                                  className="w-full text-left px-4 py-2.5 text-sm hover:bg-[var(--bg-primary)] flex items-center gap-2 text-[var(--text-primary)]"
-                                >
-                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                  </svg>
-                                  View Details
-                                </button>
-                                <button
-                                  onClick={() => openEditModal(customer)}
-                                  className="w-full text-left px-4 py-2.5 text-sm hover:bg-[var(--bg-primary)] flex items-center gap-2 text-[var(--text-primary)]"
-                                >
-                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                  </svg>
-                                  Edit
-                                </button>
-                                <button
-                                  onClick={() => {
-                                    setOpenDropdownId(null);
-                                    handleDeleteCustomer(customer.id);
-                                  }}
-                                  className="w-full text-left px-4 py-2.5 text-sm hover:bg-red-500/10 flex items-center gap-2 text-red-500"
-                                >
-                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                  </svg>
-                                  Delete
-                                </button>
-                              </div>
-                            </div>
-                          )}
-                        </div>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setOpenDropdownId(openDropdownId === customer.id ? null : customer.id);
+                          }}
+                          className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-lg font-bold p-2 hover:bg-[var(--bg-primary)] rounded"
+                        >
+                          •••
+                        </button>
                       </td>
                     </tr>
                   ))
@@ -429,6 +381,59 @@ export default function CustomersPage() {
             </div>
           )}
         </div>
+
+        {/* Dropdown Menu - Rendered outside table to avoid overflow issues */}
+        {openDropdownId && customers.find(c => c.id === openDropdownId) && (
+          <>
+            {/* Backdrop to close dropdown */}
+            <div 
+              className="fixed inset-0 z-40" 
+              onClick={() => setOpenDropdownId(null)}
+            />
+            
+            {/* Dropdown */}
+            <div 
+              className="fixed w-48 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg shadow-xl z-50 py-1"
+              style={{
+                top: `${(customers.findIndex(c => c.id === openDropdownId) * 60) + 280}px`,
+                right: '80px'
+              }}
+            >
+              <button
+                onClick={() => openViewModal(customers.find(c => c.id === openDropdownId)!)}
+                className="w-full text-left px-4 py-2.5 text-sm hover:bg-[var(--bg-primary)] flex items-center gap-2 text-[var(--text-primary)]"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                View Details
+              </button>
+              <button
+                onClick={() => openEditModal(customers.find(c => c.id === openDropdownId)!)}
+                className="w-full text-left px-4 py-2.5 text-sm hover:bg-[var(--bg-primary)] flex items-center gap-2 text-[var(--text-primary)]"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                Edit
+              </button>
+              <button
+                onClick={() => {
+                  const customer = customers.find(c => c.id === openDropdownId);
+                  setOpenDropdownId(null);
+                  if (customer) handleDeleteCustomer(customer.id);
+                }}
+                className="w-full text-left px-4 py-2.5 text-sm hover:bg-red-500/10 flex items-center gap-2 text-red-500"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                Delete
+              </button>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Add Customer Modal */}
