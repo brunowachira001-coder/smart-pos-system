@@ -249,8 +249,8 @@ export default function Dashboard() {
 
     // Very tight spacing like screenshot - approximately 6-8px per data point
     const pointSpacing = 7;
-    const svgWidth = Math.max(800, chartData.length * pointSpacing);
-    const svgHeight = 260;
+    const svgWidth = Math.max(1200, chartData.length * pointSpacing);
+    const svgHeight = 360;
     const padding = { top: 10, right: 20, bottom: 35, left: 70 }; // More bottom space for x-axis
     const plotHeight = svgHeight - padding.top - padding.bottom;
     const plotWidth = svgWidth - padding.left - padding.right;
@@ -785,15 +785,15 @@ export default function Dashboard() {
         </div>
 
         {/* Sales & Profit Trend Chart + Pricing Data Audit - Side by Side */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* Sales & Profit Trend Chart */}
-          <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          {/* Sales & Profit Trend Chart - Takes 2 columns (66%) */}
+          <div className="lg:col-span-2 bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-6">
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-lg font-semibold text-[var(--text-primary)]">Sales & Profit Trend</h2>
             </div>
 
             {/* Chart Area */}
-            <div className="relative bg-[var(--bg-secondary)] rounded border border-[var(--border-color)] p-4" style={{ height: '300px' }}>
+            <div className="relative bg-[var(--bg-secondary)] rounded border border-[var(--border-color)] p-4" style={{ height: '400px' }}>
               {renderChart()}
             </div>
 
@@ -818,11 +818,11 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Pricing Data Audit - Larger Card */}
+          {/* Pricing Data Audit - Takes 1 column (33%) */}
           <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <p className="text-lg font-semibold text-[var(--text-primary)]">Pricing Data Audit</p>
+                <p className="text-base font-semibold text-[var(--text-primary)]">Pricing Data Audit</p>
                 <span className="text-yellow-500">⚠️</span>
               </div>
               <button
@@ -842,29 +842,29 @@ export default function Dashboard() {
             
             <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <span className="text-sm text-[var(--text-secondary)]">Total Products:</span>
-                <span className="px-4 py-1.5 bg-gray-700 rounded-full text-base font-semibold text-white">
+                <span className="text-xs text-[var(--text-secondary)]">Total Products:</span>
+                <span className="px-3 py-1 bg-gray-700 rounded-full text-sm font-semibold text-white">
                   {stats?.pricingAudit?.total || 0}
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-[var(--text-secondary)]">Valid Pricing:</span>
-                <span className="px-4 py-1.5 bg-white dark:bg-gray-700 rounded-full text-base font-semibold text-[var(--text-primary)]">
+                <span className="text-xs text-[var(--text-secondary)]">Valid Pricing:</span>
+                <span className="px-3 py-1 bg-white dark:bg-gray-700 rounded-full text-sm font-semibold text-[var(--text-primary)]">
                   {stats?.pricingAudit?.valid || 0}
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-[var(--text-secondary)]">Issues Found:</span>
-                <span className="px-4 py-1.5 bg-red-600 rounded-full text-base font-semibold text-white">
+                <span className="text-xs text-[var(--text-secondary)]">Issues Found:</span>
+                <span className="px-3 py-1 bg-red-600 rounded-full text-sm font-semibold text-white">
                   {stats?.pricingAudit?.issues || 0}
                 </span>
               </div>
             </div>
 
             {stats?.pricingAudit?.issueDetails && (
-              <div className="mt-4 bg-[#FFF8E7] dark:bg-amber-900/20 border border-yellow-600/40 rounded-lg p-4">
-                <p className="text-base font-bold text-[#B8733E] dark:text-orange-400 mb-3">Issues Found:</p>
-                <ul className="space-y-2 text-sm text-[#B8733E] dark:text-orange-400">
+              <div className="mt-4 bg-[#FFF8E7] dark:bg-amber-900/20 border border-yellow-600/40 rounded-lg p-3">
+                <p className="text-sm font-bold text-[#B8733E] dark:text-orange-400 mb-2">Issues Found:</p>
+                <ul className="space-y-1.5 text-xs text-[#B8733E] dark:text-orange-400">
                   {stats.pricingAudit.issueDetails.missingCost > 0 && (
                     <li className="flex items-start gap-2">
                       <span>•</span>
@@ -895,56 +895,56 @@ export default function Dashboard() {
 
             {showPricingProducts && (
               <div className="mt-4">
-                <h3 className="text-base font-semibold text-[var(--text-primary)] mb-3">Products with Issues</h3>
+                <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">Products with Issues</h3>
                 {loadingProducts ? (
-                  <div className="text-center py-4 text-[var(--text-secondary)]">Loading products...</div>
+                  <div className="text-center py-4 text-[var(--text-secondary)] text-sm">Loading products...</div>
                 ) : pricingProducts.length === 0 ? (
-                  <div className="text-center py-4 text-[var(--text-secondary)]">No products with issues found</div>
+                  <div className="text-center py-4 text-[var(--text-secondary)] text-sm">No products with issues found</div>
                 ) : (
                   <>
                     <div className="overflow-x-auto bg-[#0a1628] rounded-lg border border-[var(--border-color)]">
-                      <table className="w-full text-sm">
+                      <table className="w-full text-xs">
                         <thead>
                           <tr className="border-b border-gray-700">
-                            <th className="text-left py-3 px-4 text-gray-400 font-normal">Product</th>
-                            <th className="text-left py-3 px-4 text-gray-400 font-normal">Cost</th>
-                            <th className="text-left py-3 px-4 text-gray-400 font-normal">Retail</th>
-                            <th className="text-left py-3 px-4 text-gray-400 font-normal">Wholesale</th>
-                            <th className="text-left py-3 px-4 text-gray-400 font-normal">Issues</th>
-                            <th className="text-right py-3 px-4 text-gray-400 font-normal">Actions</th>
+                            <th className="text-left py-2 px-3 text-gray-400 font-normal">Product</th>
+                            <th className="text-left py-2 px-3 text-gray-400 font-normal">Cost</th>
+                            <th className="text-left py-2 px-3 text-gray-400 font-normal">Retail</th>
+                            <th className="text-left py-2 px-3 text-gray-400 font-normal">Wholesale</th>
+                            <th className="text-left py-2 px-3 text-gray-400 font-normal">Issues</th>
+                            <th className="text-right py-2 px-3 text-gray-400 font-normal">Actions</th>
                           </tr>
                         </thead>
                         <tbody>
                           {pricingProducts.slice((currentPage - 1) * productsPerPage, currentPage * productsPerPage).map((product: any, index: number) => (
                             <tr key={product.id} className="border-b border-gray-800 hover:bg-gray-900/50">
-                              <td className="py-4 px-4 text-gray-200">{product.name}</td>
-                              <td className="py-4 px-4 text-gray-200">
-                                KSH {parseFloat(product.cost_price || 0).toFixed(2)}
+                              <td className="py-3 px-3 text-gray-200">{product.name}</td>
+                              <td className="py-3 px-3 text-gray-200">
+                                {parseFloat(product.cost_price || 0).toFixed(0)}
                               </td>
-                              <td className="py-4 px-4 text-gray-200">
-                                KSH {parseFloat(product.retail_price || 0).toFixed(2)}
+                              <td className="py-3 px-3 text-gray-200">
+                                {parseFloat(product.retail_price || 0).toFixed(0)}
                               </td>
-                              <td className="py-4 px-4 text-gray-200">
-                                KSH {parseFloat(product.wholesale_price || 0).toFixed(2)}
+                              <td className="py-3 px-3 text-gray-200">
+                                {parseFloat(product.wholesale_price || 0).toFixed(0)}
                               </td>
-                              <td className="py-4 px-4">
+                              <td className="py-3 px-3">
                                 <div className="flex flex-wrap gap-1">
                                   {product.issues?.map((issue: string, idx: number) => (
-                                    <span key={idx} className="px-2 py-1 bg-red-600 text-white text-xs rounded">
+                                    <span key={idx} className="px-1.5 py-0.5 bg-red-600 text-white text-xs rounded">
                                       {issue}
                                     </span>
                                   ))}
                                 </div>
                               </td>
-                              <td className="py-4 px-4">
-                                <div className="flex justify-end gap-2">
-                                  <button className="p-2 hover:bg-gray-800 rounded" title="Edit">
-                                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <td className="py-3 px-3">
+                                <div className="flex justify-end gap-1">
+                                  <button className="p-1.5 hover:bg-gray-800 rounded" title="Edit">
+                                    <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                     </svg>
                                   </button>
-                                  <button className="p-2 hover:bg-gray-800 rounded" title="Delete">
-                                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <button className="p-1.5 hover:bg-gray-800 rounded" title="Delete">
+                                    <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                     </svg>
                                   </button>
@@ -958,25 +958,25 @@ export default function Dashboard() {
                     
                     {/* Pagination Controls */}
                     {pricingProducts.length > productsPerPage && (
-                      <div className="flex items-center justify-between mt-3 text-sm">
+                      <div className="flex items-center justify-between mt-3 text-xs">
                         <div className="text-gray-400">
-                          Showing {((currentPage - 1) * productsPerPage) + 1} to {Math.min(currentPage * productsPerPage, pricingProducts.length)} of {pricingProducts.length} products
+                          {((currentPage - 1) * productsPerPage) + 1}-{Math.min(currentPage * productsPerPage, pricingProducts.length)} of {pricingProducts.length}
                         </div>
                         <div className="flex gap-2">
                           <button
                             onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                             disabled={currentPage === 1}
-                            className="px-3 py-1 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)] disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="px-2 py-1 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded text-xs text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)] disabled:opacity-50 disabled:cursor-not-allowed"
                           >
-                            Previous
+                            Prev
                           </button>
-                          <span className="px-3 py-1 text-[var(--text-secondary)]">
-                            Page {currentPage} of {Math.ceil(pricingProducts.length / productsPerPage)}
+                          <span className="px-2 py-1 text-[var(--text-secondary)]">
+                            {currentPage}/{Math.ceil(pricingProducts.length / productsPerPage)}
                           </span>
                           <button
                             onClick={() => setCurrentPage(prev => Math.min(Math.ceil(pricingProducts.length / productsPerPage), prev + 1))}
                             disabled={currentPage >= Math.ceil(pricingProducts.length / productsPerPage)}
-                            className="px-3 py-1 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)] disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="px-2 py-1 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded text-xs text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)] disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             Next
                           </button>
