@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import DateRangeFilter, { getDateRange, formatDateLocal } from '../components/DateRangeFilter';
+import { useToast } from '../hooks/useToast';
+import Toast from '../components/Toast';
 
 interface DashboardStats {
   allTimeProfit: number;
@@ -60,6 +62,7 @@ interface PricingAuditDetails {
 
 export default function Dashboard() {
   const router = useRouter();
+  const { toast, showToast, hideToast } = useToast();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [dateRange, setDateRange] = useState('all');
@@ -208,10 +211,10 @@ export default function Dashboard() {
       
       if (error.name === 'AbortError') {
         console.error('Request timed out after 10 seconds');
-        alert('Request timed out. Please try again.');
+        showToast('Request timed out. Please try again.', 'error');
       } else {
         console.error('Error details:', error.message);
-        alert('Failed to load pricing audit. Check console for details.');
+        showToast('Failed to load pricing audit', 'error');
       }
       
       // Don't show dropdown on error
@@ -451,6 +454,7 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-[var(--bg-primary)] p-6">
+      {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} />}
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex justify-between items-center">
