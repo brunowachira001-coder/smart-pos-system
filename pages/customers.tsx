@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useToast } from '../hooks/useToast';
 import Toast from '../components/Toast';
+import Pagination from '../components/Pagination';
 
 interface Customer {
   id: string;
@@ -25,6 +26,7 @@ export default function CustomersPage() {
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCustomers, setTotalCustomers] = useState(0);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -51,14 +53,14 @@ export default function CustomersPage() {
 
   useEffect(() => {
     fetchCustomers();
-  }, [searchQuery, currentPage]);
+  }, [searchQuery, currentPage, itemsPerPage]);
 
   const fetchCustomers = async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams({
         page: currentPage.toString(),
-        limit: '20',
+        limit: itemsPerPage.toString(),
         search: searchQuery,
         sortBy: 'created_at',
         sortOrder: 'desc'
@@ -369,28 +371,19 @@ export default function CustomersPage() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="px-6 py-4 border-t border-[var(--border-color)] flex items-center justify-between">
-              <div className="text-sm text-[var(--text-secondary)]">
-                Showing {((currentPage - 1) * 20) + 1} to {Math.min(currentPage * 20, totalCustomers)} of {totalCustomers} customers
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                  disabled={currentPage === 1}
-                  className="px-3 py-1 text-sm bg-[var(--bg-primary)] border border-[var(--border-color)] rounded hover:bg-[var(--bg-secondary)] disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Previous
-                </button>
-                <span className="px-3 py-1 text-sm">
-                  Page {currentPage} of {totalPages}
-                </span>
-                <button
-                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                  disabled={currentPage === totalPages}
-                  className="px-3 py-1 text-sm bg-[var(--bg-primary)] border border-[var(--border-color)] rounded hover:bg-[var(--bg-secondary)] disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Next
-                </button>
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={totalCustomers}
+              itemsPerPage={itemsPerPage}
+              onPageChange={setCurrentPage}
+              onItemsPerPageChange={(newItemsPerPage) => {
+                setItemsPerPage(newItemsPerPage);
+                setCurrentPage(1);
+              }}
+              itemName="customers"
+            />
+          )}
               </div>
             </div>
           )}
