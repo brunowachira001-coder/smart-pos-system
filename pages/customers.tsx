@@ -370,7 +370,7 @@ export default function CustomersPage() {
           </div>
 
           {/* Pagination */}
-          {totalPages > 1 && (
+          {totalCustomers > 0 && (
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}

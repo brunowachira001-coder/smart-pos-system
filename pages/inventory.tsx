@@ -567,7 +567,7 @@ export default function InventoryPage() {
           </div>
 
           {/* Pagination */}
-          {totalPages > 1 && (
+          {totalProducts > 0 && (
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}
