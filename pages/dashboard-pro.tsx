@@ -249,10 +249,9 @@ export default function Dashboard() {
 
     // Calculate width to fit exactly in container without scrolling
     // Chart container is 2/3 of the page width, minus padding
-    // For 30 days to fit without scrolling, we need tight spacing
-    const containerWidth = 800; // Approximate available width for the chart
-    const pointSpacing = containerWidth / Math.max(30, chartData.length); // Divide by 30 or data length
-    const svgWidth = containerWidth;
+    // Normal spacing with horizontal scrolling enabled
+    const pointSpacing = 7;
+    const svgWidth = Math.max(800, chartData.length * pointSpacing);
     const svgHeight = 240;
     const padding = { top: 10, right: 20, bottom: 30, left: 70 }; // Reduced bottom padding
     const plotHeight = svgHeight - padding.top - padding.bottom;
