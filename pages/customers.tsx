@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { useToast } from '../hooks/useToast';
+import Toast from '../components/Toast';
 
 interface Customer {
   id: string;
@@ -18,6 +20,7 @@ interface Customer {
 }
 
 export default function CustomersPage() {
+  const { toast, showToast, hideToast } = useToast();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -87,16 +90,16 @@ export default function CustomersPage() {
       const data = await response.json();
 
       if (response.ok) {
-        alert('Customer added successfully!');
+        showToast('Customer added successfully!', 'success');
         setShowAddModal(false);
         resetForm();
         fetchCustomers();
       } else {
-        alert(`Error: ${data.error}`);
+        showToast(`Error: ${data.error}`, 'error');
       }
     } catch (error) {
       console.error('Error adding customer:', error);
-      alert('Failed to add customer');
+      showToast('Failed to add customer', 'error');
     } finally {
       setLoading(false);
     }
@@ -121,17 +124,17 @@ export default function CustomersPage() {
       const data = await response.json();
 
       if (response.ok) {
-        alert('Customer updated successfully!');
+        showToast('Customer updated successfully!', 'success');
         setShowEditModal(false);
         setSelectedCustomer(null);
         resetForm();
         fetchCustomers();
       } else {
-        alert(`Error: ${data.error}`);
+        showToast(`Error: ${data.error}`, 'error');
       }
     } catch (error) {
       console.error('Error updating customer:', error);
-      alert('Failed to update customer');
+      showToast('Failed to update customer', 'error');
     } finally {
       setLoading(false);
     }
@@ -150,14 +153,14 @@ export default function CustomersPage() {
       const data = await response.json();
 
       if (response.ok) {
-        alert('Customer deleted successfully!');
+        showToast('Customer deleted successfully!', 'success');
         fetchCustomers();
       } else {
-        alert(`Error: ${data.error}`);
+        showToast(`Error: ${data.error}`, 'error');
       }
     } catch (error) {
       console.error('Error deleting customer:', error);
-      alert('Failed to delete customer');
+      showToast('Failed to delete customer', 'error');
     } finally {
       setLoading(false);
     }
@@ -232,6 +235,7 @@ export default function CustomersPage() {
 
   return (
     <div className="min-h-screen bg-[var(--bg-secondary)]">
+      {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} />}
       <div className="p-6">
         {/* Header */}
         <div className="flex justify-between items-start mb-6">
