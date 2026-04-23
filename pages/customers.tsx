@@ -32,6 +32,7 @@ export default function CustomersPage() {
   const [showViewModal, setShowViewModal] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
+  const [customerCreditInfo, setCustomerCreditInfo] = useState<any>(null);
   
   // Form state
   const [formData, setFormData] = useState({
@@ -168,7 +169,7 @@ export default function CustomersPage() {
     }
   };
 
-  const openEditModal = (customer: Customer) => {
+  const openEditModal = async (customer: Customer) => {
     setSelectedCustomer(customer);
     setFormData({
       firstName: '',
@@ -183,6 +184,19 @@ export default function CustomersPage() {
       customerType: customer.customer_type,
       debtLimit: ''
     });
+    
+    // Fetch customer credit info
+    try {
+      const response = await fetch(`/api/customers/credit?customerId=${customer.id}`);
+      if (response.ok) {
+        const creditData = await response.json();
+        setCustomerCreditInfo(creditData);
+        setFormData(prev => ({ ...prev, debtLimit: creditData.debtLimit?.toString() || '' }));
+      }
+    } catch (error) {
+      console.error('Error fetching customer credit:', error);
+    }
+    
     setShowEditModal(true);
     setOpenDropdownId(null);
   };
@@ -556,27 +570,39 @@ export default function CustomersPage() {
             <p className="text-sm text-[var(--text-secondary)] mb-6">Update customer profile information</p>
             
             {/* Debt Information Section */}
-            <div className="mb-6 bg-[var(--bg-primary)] rounded-lg p-4">
-              <h3 className="text-sm font-semibold mb-3">Debt Information</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <div className="text-xs text-[var(--text-secondary)] mb-1">Credit Limit</div>
-                  <div className="text-sm font-semibold">KSH 1000.00</div>
-                </div>
-                <div>
-                  <div className="text-xs text-[var(--text-secondary)] mb-1">Current Debt</div>
-                  <div className="text-sm font-semibold text-emerald-500">KSH 0.00</div>
-                </div>
-                <div>
-                  <div className="text-xs text-[var(--text-secondary)] mb-1">Available Credit</div>
-                  <div className="text-sm font-semibold">KSH 1000.00</div>
-                </div>
-                <div>
-                  <div className="text-xs text-[var(--text-secondary)] mb-1">Credit Utilization</div>
-                  <div className="text-sm font-semibold">0.0%</div>
+            {customerCreditInfo && (
+              <div className="mb-6 bg-[var(--bg-primary)] rounded-lg p-4">
+                <h3 className="text-sm font-semibold mb-3">Debt Information</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <div className="text-xs text-[var(--text-secondary)] mb-1">Credit Limit</div>
+                    <div className="text-sm font-semibold">
+                      KSH {customerCreditInfo.debtLimit?.toFixed(2) || '0.00'}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-[var(--text-secondary)] mb-1">Current Debt</div>
+                    <div className="text-sm font-semibold text-emerald-500">
+                      KSH {customerCreditInfo.currentDebt?.toFixed(2) || '0.00'}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-[var(--text-secondary)] mb-1">Available Credit</div>
+                    <div className="text-sm font-semibold">
+                      KSH {customerCreditInfo.availableCredit?.toFixed(2) || '0.00'}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-[var(--text-secondary)] mb-1">Credit Utilization</div>
+                    <div className="text-sm font-semibold">
+                      {customerCreditInfo.debtLimit > 0 
+                        ? ((customerCreditInfo.currentDebt / customerCreditInfo.debtLimit) * 100).toFixed(1)
+                        : '0.0'}%
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
             
             <form onSubmit={handleEditCustomer} className="space-y-4">
               <div>
