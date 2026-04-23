@@ -356,14 +356,51 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       outstandingDebt = 0;
     }
 
-    // Pricing audit
+    // Pricing audit - use same logic as pricing-audit API
     const totalProducts = products?.length || 0;
-    const validPricing = products?.filter(p => {
-      const cost = parseFloat(p.cost_price) || 0;
-      const retail = parseFloat(p.retail_price) || 0;
-      return cost > 0 && retail > cost;
-    }).length || 0;
-    const pricingIssues = totalProducts - validPricing;
+    let pricingIssues = 0;
+    
+    products?.forEach(product => {
+      const costPrice = parseFloat(product.cost_price) || 0;
+      const retailPrice = parseFloat(product.retail_price) || 0;
+      const wholesalePrice = parseFloat(product.wholesale_price) || 0;
+      
+      let hasIssue = false;
+
+      // Check 1: Missing cost price
+      if (costPrice === 0 || !product.cost_price) {
+        hasIssue = true;
+      }
+
+      // Check 2: Zero selling price (both retail and wholesale)
+      if (!hasIssue && (retailPrice === 0 || !product.retail_price) && (wholesalePrice === 0 || !product.wholesale_price)) {
+        hasIssue = true;
+      }
+
+      // Check 3: Selling below cost (retail)
+      if (!hasIssue && costPrice > 0 && retailPrice > 0 && retailPrice < costPrice) {
+        hasIssue = true;
+      }
+
+      // Check 4: Selling below cost (wholesale)
+      if (!hasIssue && costPrice > 0 && wholesalePrice > 0 && wholesalePrice < costPrice) {
+        hasIssue = true;
+      }
+
+      // Check 5: Unrealistic markup (>500%)
+      if (!hasIssue && costPrice > 0 && retailPrice > 0) {
+        const markup = ((retailPrice - costPrice) / costPrice) * 100;
+        if (markup > 500) {
+          hasIssue = true;
+        }
+      }
+
+      if (hasIssue) {
+        pricingIssues++;
+      }
+    });
+
+    const validPricing = totalProducts - pricingIssues;
 
     // Get sales trend data (based on date range or all time)
     let trendStartDate: Date;
