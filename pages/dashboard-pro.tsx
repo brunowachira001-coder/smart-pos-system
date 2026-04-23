@@ -845,6 +845,8 @@ export default function Dashboard() {
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="border-b border-gray-700">
+                          <th className="text-left py-3 px-4 text-gray-400 font-normal">Product</th>
+                          <th className="text-left py-3 px-4 text-gray-400 font-normal">Cost</th>
                           <th className="text-left py-3 px-4 text-gray-400 font-normal">Retail</th>
                           <th className="text-left py-3 px-4 text-gray-400 font-normal">Wholesale</th>
                           <th className="text-left py-3 px-4 text-gray-400 font-normal">Issues</th>
@@ -854,6 +856,10 @@ export default function Dashboard() {
                       <tbody>
                         {pricingProducts.slice(0, 5).map((product: any, index: number) => (
                           <tr key={product.id} className="border-b border-gray-800 hover:bg-gray-900/50">
+                            <td className="py-4 px-4 text-gray-200">{product.name}</td>
+                            <td className="py-4 px-4 text-gray-200">
+                              KSH {parseFloat(product.cost_price || 0).toFixed(2)}
+                            </td>
                             <td className="py-4 px-4 text-gray-200">
                               KSH {parseFloat(product.retail_price || 0).toFixed(2)}
                             </td>
