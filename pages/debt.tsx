@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import DateRangeFilter, { getDateRange } from '../components/DateRangeFilter';
-import Pagination from '../components/Pagination';
 
 interface Debt {
   id: string;
@@ -37,10 +36,6 @@ export default function DebtManagement() {
   const [displayStartDate, setDisplayStartDate] = useState('');
   const [displayEndDate, setDisplayEndDate] = useState('');
   const [currentDate, setCurrentDate] = useState(new Date().toDateString());
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(20);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalDebts, setTotalDebts] = useState(0);
   
   const [stats, setStats] = useState({
     totalOutstanding: 0,
@@ -87,11 +82,11 @@ export default function DebtManagement() {
     updateDates();
   }, [dateRange]);
 
-  // Fetch data when dates or pagination change
+  // Fetch data when dates change
   useEffect(() => {
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [startDate, endDate, currentPage, itemsPerPage]);
+  }, [startDate, endDate]);
 
   // Check for date change every 10 seconds and refresh data
   useEffect(() => {
@@ -125,8 +120,6 @@ export default function DebtManagement() {
         params.append('startDate', startDate);
         params.append('endDate', endDate);
       }
-      params.append('page', currentPage.toString());
-      params.append('limit', itemsPerPage.toString());
 
       const [statsRes, debtsRes] = await Promise.all([
         fetch(`/api/debts/stats?${params.toString()}`),
@@ -144,9 +137,7 @@ export default function DebtManagement() {
         recentPayments: statsData.recentPayments || 0,
       });
 
-      setDebts(debtsData.debts || []);
-      setTotalPages(debtsData.pagination?.totalPages || 1);
-      setTotalDebts(debtsData.pagination?.total || 0);
+      setDebts(debtsData || []);
       setPayments(statsData.payments || []);
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -332,24 +323,6 @@ export default function DebtManagement() {
             </div>
           )))}
         </div>
-        
-        {/* Pagination */}
-        {totalDebts > 0 && (
-          <div className="mt-4">
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              totalItems={totalDebts}
-              itemsPerPage={itemsPerPage}
-              onPageChange={setCurrentPage}
-              onItemsPerPageChange={(newItemsPerPage) => {
-                setItemsPerPage(newItemsPerPage);
-                setCurrentPage(1);
-              }}
-              itemName="debts"
-            />
-          </div>
-        )}
       </div>
 
       {/* Payment Modal */}
