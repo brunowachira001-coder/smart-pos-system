@@ -820,19 +820,20 @@ export default function Dashboard() {
             </div>
             
             {/* Collapsible Issues Dropdown */}
-            {pricingAuditDetails && (
-              <div className="mt-3">
-                <button
-                  onClick={() => {
-                    if (showPricingIssues) {
-                      setShowPricingIssues(false);
-                    } else {
-                      setShowPricingIssues(true);
-                    }
-                  }}
-                  className="w-full px-4 py-2.5 bg-yellow-600/90 hover:bg-yellow-600 border border-yellow-700 rounded-lg text-sm font-medium text-white transition-colors flex items-center justify-center gap-2"
-                >
-                  {showPricingIssues ? 'Hide Issues' : 'Show Issues'}
+            <div className="mt-3">
+              <button
+                onClick={() => {
+                  if (showPricingIssues) {
+                    setShowPricingIssues(false);
+                  } else {
+                    fetchPricingAudit(); // Always fetch fresh data when showing
+                  }
+                }}
+                disabled={loadingAudit}
+                className="w-full px-4 py-2.5 bg-yellow-600/90 hover:bg-yellow-600 border border-yellow-700 rounded-lg text-sm font-medium text-white transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                {loadingAudit ? 'Loading...' : showPricingIssues ? 'Hide Issues' : 'Show Issues'}
+                {!loadingAudit && (
                   <svg 
                     className={`w-4 h-4 transition-transform ${showPricingIssues ? 'rotate-180' : ''}`} 
                     fill="none" 
@@ -841,60 +842,50 @@ export default function Dashboard() {
                   >
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
-                </button>
-                
-                {showPricingIssues && (
-                  <div className="mt-2 bg-[#FFF8E7] dark:bg-amber-900/10 border-2 border-yellow-600/40 dark:border-amber-700 rounded-lg p-4 animate-slideDown">
-                    <p className="text-base font-bold text-yellow-700 dark:text-yellow-400 mb-3">Issues Found:</p>
-                    <ul className="space-y-2 text-sm">
-                      {pricingAuditDetails.issuesFound === 0 ? (
-                        <li className="flex items-start gap-2 text-green-600 dark:text-green-400">
-                          <span className="text-lg">✓</span>
-                          <span>No pricing issues found. All products have valid pricing data.</span>
-                        </li>
-                      ) : (
-                        <>
-                          {pricingAuditDetails.issuesSummary.missingCost > 0 && (
-                            <li className="flex items-start gap-2 text-orange-700 dark:text-orange-400">
-                              <span>•</span>
-                              <span>{pricingAuditDetails.issuesSummary.missingCost} products missing cost price</span>
-                            </li>
-                          )}
-                          {pricingAuditDetails.issuesSummary.zeroSellingPrice > 0 && (
-                            <li className="flex items-start gap-2 text-orange-700 dark:text-orange-400">
-                              <span>•</span>
-                              <span>{pricingAuditDetails.issuesSummary.zeroSellingPrice} products with zero selling price</span>
-                            </li>
-                          )}
-                          {pricingAuditDetails.issuesSummary.sellingBelowCost > 0 && (
-                            <li className="flex items-start gap-2 text-orange-700 dark:text-orange-400">
-                              <span>•</span>
-                              <span>{pricingAuditDetails.issuesSummary.sellingBelowCost} products selling below cost</span>
-                            </li>
-                          )}
-                          {pricingAuditDetails.issuesSummary.unrealisticMarkup > 0 && (
-                            <li className="flex items-start gap-2 text-orange-700 dark:text-orange-400">
-                              <span>•</span>
-                              <span>{pricingAuditDetails.issuesSummary.unrealisticMarkup} products with unrealistic markup</span>
-                            </li>
-                          )}
-                        </>
-                      )}
-                    </ul>
-                  </div>
                 )}
-              </div>
-            )}
-            
-            {!pricingAuditDetails && (
-              <button
-                onClick={fetchPricingAudit}
-                disabled={loadingAudit}
-                className="w-full mt-3 px-4 py-2.5 bg-yellow-600/90 hover:bg-yellow-600 border border-yellow-700 rounded-lg text-sm font-medium text-white transition-colors disabled:opacity-50"
-              >
-                {loadingAudit ? 'Loading...' : 'View Issues'}
               </button>
-            )}
+              
+              {showPricingIssues && pricingAuditDetails && (
+                <div className="mt-2 bg-[#FFF8E7] dark:bg-amber-900/10 border-2 border-yellow-600/40 dark:border-amber-700 rounded-lg p-4 animate-slideDown">
+                  <p className="text-base font-bold text-yellow-700 dark:text-yellow-400 mb-3">Issues Found:</p>
+                  <ul className="space-y-2 text-sm">
+                    {pricingAuditDetails.issuesFound === 0 ? (
+                      <li className="flex items-start gap-2 text-green-600 dark:text-green-400">
+                        <span className="text-lg">✓</span>
+                        <span>No pricing issues found. All products have valid pricing data.</span>
+                      </li>
+                    ) : (
+                      <>
+                        {pricingAuditDetails.issuesSummary.missingCost > 0 && (
+                          <li className="flex items-start gap-2 text-orange-700 dark:text-orange-400">
+                            <span>•</span>
+                            <span>{pricingAuditDetails.issuesSummary.missingCost} products missing cost price</span>
+                          </li>
+                        )}
+                        {pricingAuditDetails.issuesSummary.zeroSellingPrice > 0 && (
+                          <li className="flex items-start gap-2 text-orange-700 dark:text-orange-400">
+                            <span>•</span>
+                            <span>{pricingAuditDetails.issuesSummary.zeroSellingPrice} products with zero selling price</span>
+                          </li>
+                        )}
+                        {pricingAuditDetails.issuesSummary.sellingBelowCost > 0 && (
+                          <li className="flex items-start gap-2 text-orange-700 dark:text-orange-400">
+                            <span>•</span>
+                            <span>{pricingAuditDetails.issuesSummary.sellingBelowCost} products selling below cost</span>
+                          </li>
+                        )}
+                        {pricingAuditDetails.issuesSummary.unrealisticMarkup > 0 && (
+                          <li className="flex items-start gap-2 text-orange-700 dark:text-orange-400">
+                            <span>•</span>
+                            <span>{pricingAuditDetails.issuesSummary.unrealisticMarkup} products with unrealistic markup</span>
+                          </li>
+                        )}
+                      </>
+                    )}
+                  </ul>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
