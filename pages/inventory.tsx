@@ -710,6 +710,18 @@ export default function InventoryPage() {
                 />
               </div>
 
+              <div>
+                <label className="block text-sm font-medium mb-2">Image URL</label>
+                <input
+                  type="url"
+                  value={formData.imageUrl || ''}
+                  onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+                  placeholder="https://example.com/image.jpg"
+                  className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-sm"
+                />
+                <p className="text-xs text-gray-500 mt-1">Upload image to Imgur or image hosting service, then paste URL here</p>
+              </div>
+
               <div className="flex gap-3 pt-4">
                 <button
                   type="button"
@@ -850,6 +862,18 @@ export default function InventoryPage() {
                   className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-sm"
                   rows={3}
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Image URL</label>
+                <input
+                  type="url"
+                  value={formData.imageUrl || ''}
+                  onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+                  placeholder="https://example.com/image.jpg"
+                  className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-sm"
+                />
+                <p className="text-xs text-gray-500 mt-1">Upload image to Imgur or image hosting service, then paste URL here</p>
               </div>
 
               <div className="flex gap-3 pt-4">
