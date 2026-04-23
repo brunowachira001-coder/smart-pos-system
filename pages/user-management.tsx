@@ -361,10 +361,13 @@ export default function UserManagementPage() {
                   <input
                     type="email"
                     required
+                    disabled
                     value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-sm opacity-60 cursor-not-allowed"
                   />
+                  <p className="text-xs text-[var(--text-secondary)] mt-1">
+                    Email cannot be changed
+                  </p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">Role</label>

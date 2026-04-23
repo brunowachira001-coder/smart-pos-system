@@ -577,6 +577,21 @@ export default function MyProfilePage() {
 
                 <div>
                   <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
+                    Email Address
+                  </label>
+                  <input
+                    type="email"
+                    value={profile?.email || ''}
+                    disabled
+                    className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-4 py-2.5 text-sm text-[var(--text-secondary)] cursor-not-allowed opacity-60"
+                  />
+                  <p className="text-xs text-[var(--text-secondary)] mt-1">
+                    Email cannot be changed as it's used to identify your account
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
                     Phone Number
                   </label>
                   <input
@@ -586,12 +601,6 @@ export default function MyProfilePage() {
                     placeholder="Enter phone number"
                     className="w-full bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-lg px-4 py-2.5 text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   />
-                </div>
-
-                <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
-                  <p className="text-xs text-blue-400">
-                    <strong>Note:</strong> Email address cannot be changed as it's used to identify your account.
-                  </p>
                 </div>
               </div>
 
