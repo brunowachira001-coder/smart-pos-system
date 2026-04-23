@@ -180,50 +180,20 @@ export default function Dashboard() {
         console.log('Valid Pricing:', data.data.validPricing);
         console.log('Issues Found:', data.data.issuesFound);
         console.log('Issues Summary:', JSON.stringify(data.data.issuesSummary, null, 2));
-        console.log('Issues Array:', data.data.issues);
         
+        // Set the data
         setPricingAuditDetails(data.data);
         setShowPricingIssues(true);
         
-        console.log('✓ State updated successfully');
+        console.log('✓ State updated - pricingAuditDetails set to:', data.data);
+        console.log('✓ showPricingIssues set to: true');
       } else {
         console.error('✗ API returned error:', data.error);
-        // Show error state with empty data
-        setPricingAuditDetails({
-          totalProducts: 0,
-          validPricing: 0,
-          issuesFound: 0,
-          issuesSummary: {
-            missingCost: 0,
-            zeroSellingPrice: 0,
-            sellingBelowCost: 0,
-            unrealisticMarkup: 0,
-          },
-          issues: []
-        });
-        setShowPricingIssues(true);
       }
     } catch (error) {
       console.error('✗ Fetch error:', error);
-      // Show error state
-      setPricingAuditDetails({
-        totalProducts: 0,
-        validPricing: 0,
-        issuesFound: 0,
-        issuesSummary: {
-          missingCost: 0,
-          zeroSellingPrice: 0,
-          sellingBelowCost: 0,
-          unrealisticMarkup: 0,
-        },
-        issues: []
-      });
-      setShowPricingIssues(true);
     } finally {
       setLoadingAudit(false);
-      console.log('=== FETCH COMPLETE ===');
-      console.log('showPricingIssues:', true);
-      console.log('pricingAuditDetails will be:', pricingAuditDetails);
     }
   };
 
@@ -847,7 +817,13 @@ export default function Dashboard() {
               
               {showPricingIssues && pricingAuditDetails && (
                 <div className="mt-2 bg-[#FFF8E7] dark:bg-amber-900/10 border-2 border-yellow-600/40 dark:border-amber-700 rounded-lg p-4 animate-slideDown">
-                  <p className="text-base font-bold text-yellow-700 dark:text-yellow-400 mb-3">Issues Found:</p>
+                  <p className="text-base font-bold text-[#B8733E] dark:text-yellow-400 mb-3">Issues Found:</p>
+                  {(() => {
+                    console.log('RENDERING DROPDOWN - pricingAuditDetails:', pricingAuditDetails);
+                    console.log('issuesFound:', pricingAuditDetails.issuesFound);
+                    console.log('issuesSummary:', pricingAuditDetails.issuesSummary);
+                    return null;
+                  })()}
                   <ul className="space-y-2 text-sm">
                     {pricingAuditDetails.issuesFound === 0 ? (
                       <li className="flex items-start gap-2 text-green-600 dark:text-green-400">
@@ -856,26 +832,26 @@ export default function Dashboard() {
                       </li>
                     ) : (
                       <>
-                        {pricingAuditDetails.issuesSummary.missingCost > 0 && (
-                          <li className="flex items-start gap-2 text-orange-700 dark:text-orange-400">
+                        {pricingAuditDetails.issuesSummary?.missingCost > 0 && (
+                          <li className="flex items-start gap-2 text-[#B8733E] dark:text-orange-400">
                             <span>•</span>
                             <span>{pricingAuditDetails.issuesSummary.missingCost} products missing cost price</span>
                           </li>
                         )}
-                        {pricingAuditDetails.issuesSummary.zeroSellingPrice > 0 && (
-                          <li className="flex items-start gap-2 text-orange-700 dark:text-orange-400">
+                        {pricingAuditDetails.issuesSummary?.zeroSellingPrice > 0 && (
+                          <li className="flex items-start gap-2 text-[#B8733E] dark:text-orange-400">
                             <span>•</span>
                             <span>{pricingAuditDetails.issuesSummary.zeroSellingPrice} products with zero selling price</span>
                           </li>
                         )}
-                        {pricingAuditDetails.issuesSummary.sellingBelowCost > 0 && (
-                          <li className="flex items-start gap-2 text-orange-700 dark:text-orange-400">
+                        {pricingAuditDetails.issuesSummary?.sellingBelowCost > 0 && (
+                          <li className="flex items-start gap-2 text-[#B8733E] dark:text-orange-400">
                             <span>•</span>
                             <span>{pricingAuditDetails.issuesSummary.sellingBelowCost} products selling below cost</span>
                           </li>
                         )}
-                        {pricingAuditDetails.issuesSummary.unrealisticMarkup > 0 && (
-                          <li className="flex items-start gap-2 text-orange-700 dark:text-orange-400">
+                        {pricingAuditDetails.issuesSummary?.unrealisticMarkup > 0 && (
+                          <li className="flex items-start gap-2 text-[#B8733E] dark:text-orange-400">
                             <span>•</span>
                             <span>{pricingAuditDetails.issuesSummary.unrealisticMarkup} products with unrealistic markup</span>
                           </li>
