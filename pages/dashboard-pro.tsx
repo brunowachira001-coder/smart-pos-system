@@ -247,9 +247,9 @@ export default function Dashboard() {
       return `KSH ${(val / 1000).toFixed(0)}k`;
     };
 
-    // Tighter spacing to fit 30 days in view - approximately 4-5px per data point
-    const pointSpacing = 4.5;
-    const svgWidth = Math.max(1000, chartData.length * pointSpacing);
+    // Very tight spacing to match screenshot - approximately 3px per data point
+    const pointSpacing = 3;
+    const svgWidth = Math.max(900, chartData.length * pointSpacing);
     const svgHeight = 240;
     const padding = { top: 10, right: 20, bottom: 30, left: 70 }; // Reduced bottom padding
     const plotHeight = svgHeight - padding.top - padding.bottom;
@@ -371,7 +371,7 @@ export default function Dashboard() {
               {/* X-axis dates positioned below chart */}
               <g>
                 {chartData.map((item, i) => {
-                  const showEvery = Math.max(1, Math.floor(chartData.length / 12));
+                  const showEvery = Math.max(1, Math.floor(chartData.length / 15));
                   if (i % showEvery === 0 || i === chartData.length - 1) {
                     return (
                       <text
@@ -379,7 +379,7 @@ export default function Dashboard() {
                         x={getX(i)}
                         y={svgHeight - 5}
                         textAnchor="middle"
-                        fontSize="10"
+                        fontSize="9"
                         fill="var(--text-secondary)"
                         opacity="0.8"
                       >
