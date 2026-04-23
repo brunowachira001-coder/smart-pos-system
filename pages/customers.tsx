@@ -291,9 +291,9 @@ export default function CustomersPage() {
         </div>
 
         {/* Customers Table */}
-        <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg overflow-hidden">
+        <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg">
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full relative">
               <thead className="bg-[var(--bg-primary)] border-b border-[var(--border-color)]">
                 <tr>
                   <th className="px-6 py-3 text-left text-sm font-medium text-[var(--text-secondary)]">Name</th>
@@ -336,20 +336,20 @@ export default function CustomersPage() {
                         {formatDate(customer.last_purchase_date)}
                       </td>
                       <td className="px-6 py-4">
-                        <div className="relative inline-block">
+                        <div className="relative">
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               setOpenDropdownId(openDropdownId === customer.id ? null : customer.id);
                             }}
-                            className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-lg font-bold p-2"
+                            className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-lg font-bold p-2 hover:bg-[var(--bg-primary)] rounded"
                           >
                             •••
                           </button>
                           
                           {/* Dropdown Menu */}
                           {openDropdownId === customer.id && (
-                            <>
+                            <div className="relative">
                               {/* Backdrop to close dropdown */}
                               <div 
                                 className="fixed inset-0 z-40" 
@@ -357,13 +357,7 @@ export default function CustomersPage() {
                               />
                               
                               {/* Dropdown */}
-                              <div 
-                                className="absolute right-0 top-full mt-1 w-48 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg shadow-xl z-50 py-1"
-                                style={{ 
-                                  position: 'fixed',
-                                  transform: `translate(-${index > customers.length - 3 ? '100%' : '0'}, 0)`
-                                }}
-                              >
+                              <div className="absolute right-0 top-0 w-48 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg shadow-xl z-50 py-1">
                                 <button
                                   onClick={() => openViewModal(customer)}
                                   className="w-full text-left px-4 py-2.5 text-sm hover:bg-[var(--bg-primary)] flex items-center gap-2 text-[var(--text-primary)]"
@@ -396,7 +390,7 @@ export default function CustomersPage() {
                                   Delete
                                 </button>
                               </div>
-                            </>
+                            </div>
                           )}
                         </div>
                       </td>
