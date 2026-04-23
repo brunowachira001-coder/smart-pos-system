@@ -359,6 +359,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Pricing audit - use same logic as pricing-audit API
     const totalProducts = products?.length || 0;
     let pricingIssues = 0;
+    let missingCost = 0;
+    let zeroSellingPrice = 0;
+    let sellingBelowCost = 0;
+    let unrealisticMarkup = 0;
     
     products?.forEach(product => {
       const costPrice = parseFloat(product.cost_price) || 0;
@@ -370,21 +374,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // Check 1: Missing cost price
       if (costPrice === 0 || !product.cost_price) {
         hasIssue = true;
+        missingCost++;
       }
 
       // Check 2: Zero selling price (both retail and wholesale)
       if (!hasIssue && (retailPrice === 0 || !product.retail_price) && (wholesalePrice === 0 || !product.wholesale_price)) {
         hasIssue = true;
+        zeroSellingPrice++;
       }
 
       // Check 3: Selling below cost (retail)
       if (!hasIssue && costPrice > 0 && retailPrice > 0 && retailPrice < costPrice) {
         hasIssue = true;
+        sellingBelowCost++;
       }
 
       // Check 4: Selling below cost (wholesale)
       if (!hasIssue && costPrice > 0 && wholesalePrice > 0 && wholesalePrice < costPrice) {
         hasIssue = true;
+        sellingBelowCost++;
       }
 
       // Check 5: Unrealistic markup (>500%)
@@ -392,6 +400,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const markup = ((retailPrice - costPrice) / costPrice) * 100;
         if (markup > 500) {
           hasIssue = true;
+          unrealisticMarkup++;
         }
       }
 
@@ -550,7 +559,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         pricingAudit: {
           total: totalProducts,
           valid: validPricing,
-          issues: pricingIssues
+          issues: pricingIssues,
+          issueDetails: {
+            missingCost,
+            zeroSellingPrice,
+            sellingBelowCost,
+            unrealisticMarkup
+          }
         },
         chartData
       }
@@ -580,7 +595,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         pricingAudit: {
           total: 0,
           valid: 0,
-          issues: 0
+          issues: 0,
+          issueDetails: {
+            missingCost: 0,
+            zeroSellingPrice: 0,
+            sellingBelowCost: 0,
+            unrealisticMarkup: 0
+          }
         },
         chartData: []
       }

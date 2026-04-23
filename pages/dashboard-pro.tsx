@@ -48,6 +48,8 @@ export default function Dashboard() {
   const [priceType, setPriceType] = useState('retail'); // retail or wholesale only
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [pricingAudit, setPricingAudit] = useState<any>(null);
+  const [showPricingIssues, setShowPricingIssues] = useState(false);
 
   // Track the current date to detect changes
   const [currentDate, setCurrentDate] = useState(new Date().toDateString());
@@ -694,6 +696,75 @@ export default function Dashboard() {
             <p className="text-xs text-[var(--text-secondary)] mt-2">
               Items below minimum stock
             </p>
+          </div>
+
+          {/* Pricing Data Audit */}
+          <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <p className="text-base font-medium text-[var(--text-primary)]">Pricing Data Audit</p>
+                <span className="text-yellow-500">⚠️</span>
+              </div>
+              <button
+                onClick={() => setShowPricingIssues(!showPricingIssues)}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              >
+                👁
+              </button>
+            </div>
+            
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-[var(--text-secondary)]">Total Products:</span>
+                <span className="px-4 py-1.5 bg-gray-700 rounded-full text-base font-semibold text-white">
+                  {stats?.pricingAudit?.total || 0}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-[var(--text-secondary)]">Valid Pricing:</span>
+                <span className="px-4 py-1.5 bg-white dark:bg-gray-700 rounded-full text-base font-semibold text-[var(--text-primary)]">
+                  {stats?.pricingAudit?.valid || 0}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-[var(--text-secondary)]">Issues Found:</span>
+                <span className="px-4 py-1.5 bg-red-600 rounded-full text-base font-semibold text-white">
+                  {stats?.pricingAudit?.issues || 0}
+                </span>
+              </div>
+            </div>
+
+            {showPricingIssues && stats?.pricingAudit?.issueDetails && (
+              <div className="mt-4 bg-[#FFF8E7] dark:bg-amber-900/20 border border-yellow-600/40 rounded-lg p-4">
+                <p className="text-base font-bold text-[#B8733E] dark:text-orange-400 mb-3">Issues Found:</p>
+                <ul className="space-y-2 text-sm text-[#B8733E] dark:text-orange-400">
+                  {stats.pricingAudit.issueDetails.missingCost > 0 && (
+                    <li className="flex items-start gap-2">
+                      <span>•</span>
+                      <span>{stats.pricingAudit.issueDetails.missingCost} products missing cost price</span>
+                    </li>
+                  )}
+                  {stats.pricingAudit.issueDetails.zeroSellingPrice > 0 && (
+                    <li className="flex items-start gap-2">
+                      <span>•</span>
+                      <span>{stats.pricingAudit.issueDetails.zeroSellingPrice} products with zero selling price</span>
+                    </li>
+                  )}
+                  {stats.pricingAudit.issueDetails.sellingBelowCost > 0 && (
+                    <li className="flex items-start gap-2">
+                      <span>•</span>
+                      <span>{stats.pricingAudit.issueDetails.sellingBelowCost} products selling below cost</span>
+                    </li>
+                  )}
+                  {stats.pricingAudit.issueDetails.unrealisticMarkup > 0 && (
+                    <li className="flex items-start gap-2">
+                      <span>•</span>
+                      <span>{stats.pricingAudit.issueDetails.unrealisticMarkup} products with unrealistic markup</span>
+                    </li>
+                  )}
+                </ul>
+              </div>
+            )}
           </div>
         </div>
 
