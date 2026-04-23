@@ -79,11 +79,15 @@ export default function POSPage() {
   const [totalProducts, setTotalProducts] = useState(0);
   const [showReceipt, setShowReceipt] = useState(false);
   const [receiptData, setReceiptData] = useState<any>(null);
+  const [shopSettings, setShopSettings] = useState<any>(null);
+  const [currentUser, setCurrentUser] = useState<any>(null);
 
   useEffect(() => {
     fetchProducts();
     fetchCart();
     fetchCustomers();
+    fetchShopSettings();
+    fetchCurrentUser();
   }, [currentPage, itemsPerPage]);
 
   useEffect(() => {
@@ -120,6 +124,30 @@ export default function POSPage() {
       setCustomersList(data.customers || []);
     } catch (error) {
       console.error('Error fetching customers:', error);
+    }
+  };
+
+  const fetchShopSettings = async () => {
+    try {
+      const response = await fetch('/api/shop-settings');
+      const data = await response.json();
+      if (response.ok && data.settings) {
+        setShopSettings(data.settings);
+      }
+    } catch (error) {
+      console.error('Error fetching shop settings:', error);
+    }
+  };
+
+  const fetchCurrentUser = async () => {
+    try {
+      const user = localStorage.getItem('user');
+      if (user) {
+        const userData = JSON.parse(user);
+        setCurrentUser(userData);
+      }
+    } catch (error) {
+      console.error('Error fetching current user:', error);
     }
   };
 
@@ -289,14 +317,14 @@ export default function POSPage() {
           total: cartTotal,
           amountPaid: paid,
           paymentMethod,
-          cashierName: 'John Doe'
+          cashierName: currentUser?.full_name || currentUser?.name || currentUser?.username || 'Cashier'
         })
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        // Prepare receipt data
+        // Prepare receipt data with real shop settings
         const receipt = {
           transactionNumber: data.transaction?.transaction_number || 'N/A',
           date: new Date().toLocaleString('en-KE', { 
@@ -314,7 +342,12 @@ export default function POSPage() {
           amountPaid: paid,
           change: paid - cartTotal,
           paymentMethod,
-          cashierName: 'John Doe'
+          cashierName: currentUser?.full_name || currentUser?.name || currentUser?.username || 'Cashier',
+          // Shop settings from database
+          shopName: shopSettings?.shop_name || 'Smart POS',
+          shopAddress: shopSettings?.address || '',
+          shopPhone: shopSettings?.phone || '',
+          shopEmail: shopSettings?.email || ''
         };
 
         // Show receipt
