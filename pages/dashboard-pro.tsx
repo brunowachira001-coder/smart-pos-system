@@ -229,7 +229,8 @@ export default function Dashboard() {
   };
 
   const renderChart = () => {
-    const chartData = stats?.chartData || [];
+    // Reverse the data so most recent dates appear first (on the right, visible immediately)
+    const chartData = [...(stats?.chartData || [])].reverse();
 
     if (chartData.length === 0) {
       return (
