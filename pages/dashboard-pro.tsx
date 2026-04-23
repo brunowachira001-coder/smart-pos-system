@@ -159,22 +159,38 @@ export default function Dashboard() {
       const data = await response.json();
       
       if (data.products) {
-        // Filter products with pricing issues
+        // Filter products with pricing issues and add issue type
         const productsWithIssues = data.products.filter((product: any) => {
           const costPrice = parseFloat(product.cost_price) || 0;
           const retailPrice = parseFloat(product.retail_price) || 0;
           const wholesalePrice = parseFloat(product.wholesale_price) || 0;
           
-          // Check for any pricing issue
-          if (costPrice === 0 || !product.cost_price) return true;
-          if ((retailPrice === 0 || !product.retail_price) && (wholesalePrice === 0 || !product.wholesale_price)) return true;
-          if (costPrice > 0 && retailPrice > 0 && retailPrice < costPrice) return true;
-          if (costPrice > 0 && wholesalePrice > 0 && wholesalePrice < costPrice) return true;
+          // Determine issue types
+          const issues: string[] = [];
+          
+          if (costPrice === 0 || !product.cost_price) {
+            issues.push('No Cost');
+          }
+          if ((retailPrice === 0 || !product.retail_price) && (wholesalePrice === 0 || !product.wholesale_price)) {
+            issues.push('Zero Price');
+          }
+          if (costPrice > 0 && retailPrice > 0 && retailPrice < costPrice) {
+            issues.push('Below Cost');
+          }
+          if (costPrice > 0 && wholesalePrice > 0 && wholesalePrice < costPrice) {
+            issues.push('Below Cost');
+          }
           if (costPrice > 0 && retailPrice > 0) {
             const markup = ((retailPrice - costPrice) / costPrice) * 100;
-            if (markup > 500) return true;
+            if (markup > 500) {
+              issues.push('High Markup');
+            }
           }
           
+          if (issues.length > 0) {
+            product.issues = issues;
+            return true;
+          }
           return false;
         });
         
@@ -829,24 +845,43 @@ export default function Dashboard() {
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="border-b border-gray-700">
-                          <th className="text-left py-3 px-4 text-gray-400 font-normal">Product</th>
-                          <th className="text-left py-3 px-4 text-gray-400 font-normal">Cost</th>
                           <th className="text-left py-3 px-4 text-gray-400 font-normal">Retail</th>
                           <th className="text-left py-3 px-4 text-gray-400 font-normal">Wholesale</th>
+                          <th className="text-left py-3 px-4 text-gray-400 font-normal">Issues</th>
+                          <th className="text-right py-3 px-4 text-gray-400 font-normal">Actions</th>
                         </tr>
                       </thead>
                       <tbody>
                         {pricingProducts.slice(0, 5).map((product: any, index: number) => (
                           <tr key={product.id} className="border-b border-gray-800 hover:bg-gray-900/50">
-                            <td className="py-4 px-4 text-gray-200">{product.name}</td>
-                            <td className="py-4 px-4 text-gray-200">
-                              KSH {parseFloat(product.cost_price || 0).toFixed(2)}
-                            </td>
                             <td className="py-4 px-4 text-gray-200">
                               KSH {parseFloat(product.retail_price || 0).toFixed(2)}
                             </td>
                             <td className="py-4 px-4 text-gray-200">
                               KSH {parseFloat(product.wholesale_price || 0).toFixed(2)}
+                            </td>
+                            <td className="py-4 px-4">
+                              <div className="flex flex-wrap gap-1">
+                                {product.issues?.map((issue: string, idx: number) => (
+                                  <span key={idx} className="px-2 py-1 bg-red-600 text-white text-xs rounded">
+                                    {issue}
+                                  </span>
+                                ))}
+                              </div>
+                            </td>
+                            <td className="py-4 px-4">
+                              <div className="flex justify-end gap-2">
+                                <button className="p-2 hover:bg-gray-800 rounded" title="Edit">
+                                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                  </svg>
+                                </button>
+                                <button className="p-2 hover:bg-gray-800 rounded" title="Delete">
+                                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                  </svg>
+                                </button>
+                              </div>
                             </td>
                           </tr>
                         ))}
