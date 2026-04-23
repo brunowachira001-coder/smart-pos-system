@@ -12,6 +12,13 @@ export default function Sidebar() {
 
   const fetchShopSettings = async () => {
     try {
+      // First, try to load from localStorage cache
+      const cachedSettings = localStorage.getItem('shopSettings');
+      if (cachedSettings) {
+        setShopSettings(JSON.parse(cachedSettings));
+      }
+
+      // Then fetch fresh data from API
       const userData = localStorage.getItem('user');
       if (userData) {
         const user = JSON.parse(userData);
@@ -19,6 +26,8 @@ export default function Sidebar() {
         const data = await response.json();
         if (response.ok && data.settings) {
           setShopSettings(data.settings);
+          // Cache the settings for next time
+          localStorage.setItem('shopSettings', JSON.stringify(data.settings));
         }
       }
     } catch (error) {
@@ -102,6 +111,7 @@ export default function Sidebar() {
               const theme = localStorage.getItem('theme');
               localStorage.clear();
               if (theme) localStorage.setItem('theme', theme);
+              localStorage.removeItem('shopSettings');
               window.location.href = '/login';
             }}
             className="flex-shrink-0 p-3 text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] rounded-lg transition-colors border border-[var(--border-color)]"

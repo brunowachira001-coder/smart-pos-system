@@ -66,6 +66,8 @@ export default function ShopSettingsPage() {
       const data = await response.json();
 
       if (response.ok) {
+        // Update localStorage cache so sidebar shows new settings immediately
+        localStorage.setItem('shopSettings', JSON.stringify(settings));
         showToast('Settings saved successfully! Refresh to see changes.', 'success');
       } else {
         showToast(data.error || 'Failed to save settings', 'error');
