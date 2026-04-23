@@ -36,6 +36,33 @@ CREATE TABLE IF NOT EXISTS shop_settings (
   UNIQUE(user_id)
 );
 
+-- Enable Row Level Security
+ALTER TABLE shop_settings ENABLE ROW LEVEL SECURITY;
+
+-- Policy: Users can view their own shop settings
+CREATE POLICY "Users can view own shop settings"
+  ON shop_settings
+  FOR SELECT
+  USING (auth.uid() = user_id);
+
+-- Policy: Users can insert their own shop settings
+CREATE POLICY "Users can insert own shop settings"
+  ON shop_settings
+  FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+-- Policy: Users can update their own shop settings
+CREATE POLICY "Users can update own shop settings"
+  ON shop_settings
+  FOR UPDATE
+  USING (auth.uid() = user_id);
+
+-- Policy: Users can delete their own shop settings
+CREATE POLICY "Users can delete own shop settings"
+  ON shop_settings
+  FOR DELETE
+  USING (auth.uid() = user_id);
+
 -- Create index for faster lookups
 CREATE INDEX IF NOT EXISTS idx_shop_settings_user_id ON shop_settings(user_id);
 

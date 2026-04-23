@@ -6,9 +6,11 @@ export default function ShopSettingsPage() {
   const [settings, setSettings] = useState({
     business_name: '',
     business_tagline: '',
+    business_type: '',
     business_email: '',
     business_phone: '',
     business_address: '',
+    logo_url: '',
     primary_color: '#10b981',
     currency: 'KES',
     currency_symbol: 'KSh'
@@ -129,6 +131,60 @@ export default function ShopSettingsPage() {
                   className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-4 py-2 text-[var(--text-primary)] focus:ring-2 focus:ring-emerald-500"
                   placeholder="e.g., Inventory System"
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
+                  Business Type
+                </label>
+                <select
+                  value={settings.business_type}
+                  onChange={(e) => setSettings({ ...settings, business_type: e.target.value })}
+                  className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-4 py-2 text-[var(--text-primary)] focus:ring-2 focus:ring-emerald-500"
+                >
+                  <option value="">Select Type</option>
+                  <option value="Retail Store">Retail Store</option>
+                  <option value="Supermarket">Supermarket</option>
+                  <option value="Restaurant">Restaurant</option>
+                  <option value="Pharmacy">Pharmacy</option>
+                  <option value="Electronics Shop">Electronics Shop</option>
+                  <option value="Clothing Store">Clothing Store</option>
+                  <option value="Hardware Store">Hardware Store</option>
+                  <option value="Bookstore">Bookstore</option>
+                  <option value="Convenience Store">Convenience Store</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
+                  Logo URL
+                </label>
+                <input
+                  type="url"
+                  value={settings.logo_url}
+                  onChange={(e) => setSettings({ ...settings, logo_url: e.target.value })}
+                  className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-4 py-2 text-[var(--text-primary)] focus:ring-2 focus:ring-emerald-500"
+                  placeholder="https://example.com/logo.png"
+                />
+                <p className="text-xs text-[var(--text-secondary)] mt-1">
+                  Enter a direct link to your logo image (PNG, JPG, or SVG)
+                </p>
+                {settings.logo_url && (
+                  <div className="mt-3 p-3 bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg">
+                    <p className="text-xs text-[var(--text-secondary)] mb-2">Logo Preview:</p>
+                    <img 
+                      src={settings.logo_url} 
+                      alt="Logo preview" 
+                      className="h-12 w-auto object-contain"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                        e.currentTarget.nextElementSibling!.classList.remove('hidden');
+                      }}
+                    />
+                    <p className="text-xs text-red-500 hidden">Failed to load image</p>
+                  </div>
+                )}
               </div>
 
               <div>

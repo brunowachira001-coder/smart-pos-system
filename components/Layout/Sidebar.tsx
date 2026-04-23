@@ -54,12 +54,26 @@ export default function Sidebar() {
   return (
     <aside className="w-64 bg-[var(--bg-primary)] border-r border-[var(--border-color)] overflow-y-auto flex flex-col h-screen">
       <div className="p-6 border-b border-[var(--border-color)]">
-        <h1 className="text-2xl font-bold text-emerald-500">
-          {shopSettings?.business_name || 'Smart Traders'}
-        </h1>
-        <p className="text-sm text-[var(--text-secondary)] mt-1">
-          {shopSettings?.business_tagline || 'Inventory System'}
-        </p>
+        <div className="flex items-center gap-3">
+          {shopSettings?.logo_url && (
+            <img 
+              src={shopSettings.logo_url} 
+              alt="Logo" 
+              className="h-12 w-12 object-contain rounded"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+              }}
+            />
+          )}
+          <div className="flex-1">
+            <h1 className="text-2xl font-bold text-emerald-500">
+              {shopSettings?.business_name || 'Smart Traders'}
+            </h1>
+            <p className="text-sm text-[var(--text-secondary)] mt-1">
+              {shopSettings?.business_tagline || 'Inventory System'}
+            </p>
+          </div>
+        </div>
       </div>
 
       <nav className="px-3 py-4 space-y-1 flex-1">

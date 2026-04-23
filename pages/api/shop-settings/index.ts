@@ -44,6 +44,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           settings: {
             business_name: 'Smart Traders',
             business_tagline: 'Inventory System',
+            business_type: 'Retail Store',
+            logo_url: '',
             primary_color: '#10b981',
             secondary_color: '#059669',
             currency: 'KES',
