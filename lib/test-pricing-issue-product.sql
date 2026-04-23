@@ -4,10 +4,12 @@
 -- Add a product with missing cost price
 INSERT INTO products (
   name, 
-  sku, 
+  sku,
+  price,
   retail_price, 
   wholesale_price, 
   cost_price, 
+  stock,
   stock_quantity, 
   minimum_stock_level, 
   category, 
@@ -16,19 +18,24 @@ INSERT INTO products (
   created_at
 )
 VALUES 
-  ('Test Product - No Cost', 'TEST001', 100.00, 90.00, 0, 10, 5, 'Test', 'Product with no cost price', '9999999999001', NOW())
+  ('Test Product - No Cost', 'TEST001', 100.00, 100.00, 90.00, 0, 10, 10, 5, 'Test', 'Product with no cost price', '9999999999001', NOW())
 ON CONFLICT (sku) DO UPDATE SET
+  price = 100.00,
   cost_price = 0,
   retail_price = 100.00,
-  wholesale_price = 90.00;
+  wholesale_price = 90.00,
+  stock = 10,
+  stock_quantity = 10;
 
 -- Add a product with zero selling prices
 INSERT INTO products (
   name, 
-  sku, 
+  sku,
+  price,
   retail_price, 
   wholesale_price, 
-  cost_price, 
+  cost_price,
+  stock,
   stock_quantity, 
   minimum_stock_level, 
   category, 
@@ -37,19 +44,24 @@ INSERT INTO products (
   created_at
 )
 VALUES 
-  ('Test Product - Zero Price', 'TEST002', 0, 0, 50.00, 10, 5, 'Test', 'Product with zero selling prices', '9999999999002', NOW())
+  ('Test Product - Zero Price', 'TEST002', 0.01, 0, 0, 50.00, 10, 10, 5, 'Test', 'Product with zero selling prices', '9999999999002', NOW())
 ON CONFLICT (sku) DO UPDATE SET
+  price = 0.01,
   cost_price = 50.00,
   retail_price = 0,
-  wholesale_price = 0;
+  wholesale_price = 0,
+  stock = 10,
+  stock_quantity = 10;
 
 -- Add a product selling below cost
 INSERT INTO products (
   name, 
-  sku, 
+  sku,
+  price,
   retail_price, 
   wholesale_price, 
-  cost_price, 
+  cost_price,
+  stock,
   stock_quantity, 
   minimum_stock_level, 
   category, 
@@ -58,19 +70,24 @@ INSERT INTO products (
   created_at
 )
 VALUES 
-  ('Test Product - Below Cost', 'TEST003', 40.00, 35.00, 100.00, 10, 5, 'Test', 'Product selling below cost', '9999999999003', NOW())
+  ('Test Product - Below Cost', 'TEST003', 40.00, 40.00, 35.00, 100.00, 10, 10, 5, 'Test', 'Product selling below cost', '9999999999003', NOW())
 ON CONFLICT (sku) DO UPDATE SET
+  price = 40.00,
   cost_price = 100.00,
   retail_price = 40.00,
-  wholesale_price = 35.00;
+  wholesale_price = 35.00,
+  stock = 10,
+  stock_quantity = 10;
 
 -- Add a product with unrealistic markup (>500%)
 INSERT INTO products (
   name, 
-  sku, 
+  sku,
+  price,
   retail_price, 
   wholesale_price, 
-  cost_price, 
+  cost_price,
+  stock,
   stock_quantity, 
   minimum_stock_level, 
   category, 
@@ -79,11 +96,14 @@ INSERT INTO products (
   created_at
 )
 VALUES 
-  ('Test Product - High Markup', 'TEST004', 1000.00, 900.00, 10.00, 10, 5, 'Test', 'Product with unrealistic markup', '9999999999004', NOW())
+  ('Test Product - High Markup', 'TEST004', 1000.00, 1000.00, 900.00, 10.00, 10, 10, 5, 'Test', 'Product with unrealistic markup', '9999999999004', NOW())
 ON CONFLICT (sku) DO UPDATE SET
+  price = 1000.00,
   cost_price = 10.00,
   retail_price = 1000.00,
-  wholesale_price = 900.00;
+  wholesale_price = 900.00,
+  stock = 10,
+  stock_quantity = 10;
 
 -- Verify the test products were added
 SELECT 
