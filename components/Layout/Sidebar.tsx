@@ -62,30 +62,34 @@ export default function Sidebar() {
 
   return (
     <aside className="w-64 bg-[var(--bg-primary)] border-r border-[var(--border-color)] overflow-y-auto flex flex-col h-screen">
-      <div className="p-6 border-b border-[var(--border-color)]">
-        <div className="flex items-center gap-3">
-          {shopSettings?.logo_url && (
-            <div className="flex-shrink-0">
-              <img 
-                src={shopSettings.logo_url} 
-                alt="Logo" 
-                className="w-14 h-14 object-cover rounded-full border-2 border-emerald-500/20"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                }}
-              />
+      {shopSettings && (
+        <div className="p-6 border-b border-[var(--border-color)]">
+          <div className="flex items-center gap-3">
+            {shopSettings.logo_url && (
+              <div className="flex-shrink-0">
+                <img 
+                  src={shopSettings.logo_url} 
+                  alt="Logo" 
+                  className="w-14 h-14 object-cover rounded-full border-2 border-emerald-500/20"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+              </div>
+            )}
+            <div className="flex-1 min-w-0">
+              <h1 className="text-2xl font-bold text-emerald-500 truncate">
+                {shopSettings.business_name}
+              </h1>
+              {shopSettings.business_tagline && (
+                <p className="text-sm text-[var(--text-secondary)] mt-1 truncate">
+                  {shopSettings.business_tagline}
+                </p>
+              )}
             </div>
-          )}
-          <div className="flex-1 min-w-0">
-            <h1 className="text-2xl font-bold text-emerald-500 truncate">
-              {shopSettings?.business_name || 'Smart Traders'}
-            </h1>
-            <p className="text-sm text-[var(--text-secondary)] mt-1 truncate">
-              {shopSettings?.business_tagline || 'Inventory System'}
-            </p>
           </div>
         </div>
-      </div>
+      )}
 
       <nav className="px-3 py-4 space-y-1 flex-1">
         {menuItems.map((item) => (

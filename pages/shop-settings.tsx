@@ -118,7 +118,7 @@ export default function ShopSettingsPage() {
                   value={settings.business_name}
                   onChange={(e) => setSettings({ ...settings, business_name: e.target.value })}
                   className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-4 py-2 text-[var(--text-primary)] focus:ring-2 focus:ring-emerald-500"
-                  placeholder="e.g., Smart Traders"
+                  placeholder="Enter your business name"
                 />
               </div>
 
@@ -131,7 +131,7 @@ export default function ShopSettingsPage() {
                   value={settings.business_tagline}
                   onChange={(e) => setSettings({ ...settings, business_tagline: e.target.value })}
                   className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-4 py-2 text-[var(--text-primary)] focus:ring-2 focus:ring-emerald-500"
-                  placeholder="e.g., Inventory System"
+                  placeholder="Enter your tagline"
                 />
               </div>
 

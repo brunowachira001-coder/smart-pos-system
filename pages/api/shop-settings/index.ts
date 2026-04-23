@@ -38,20 +38,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(500).json({ error: error.message });
       }
 
-      // Return default settings if none exist
+      // Return null if no settings exist - user must configure them
       if (!settings) {
-        return res.status(200).json({
-          settings: {
-            business_name: 'Smart Traders',
-            business_tagline: 'Inventory System',
-            business_type: 'Retail Store',
-            logo_url: '',
-            primary_color: '#10b981',
-            secondary_color: '#059669',
-            currency: 'KES',
-            currency_symbol: 'KSh'
-          }
-        });
+        return res.status(200).json({ settings: null });
       }
 
       res.status(200).json({ settings });
