@@ -384,9 +384,6 @@ export default function CustomersPage() {
               itemName="customers"
             />
           )}
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Dropdown Menu - Rendered outside table to avoid overflow issues */}
