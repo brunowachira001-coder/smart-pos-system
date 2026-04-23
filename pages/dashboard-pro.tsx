@@ -37,29 +37,6 @@ interface DashboardStats {
   }>;
 }
 
-interface PricingAuditDetails {
-  totalProducts: number;
-  validPricing: number;
-  issuesFound: number;
-  issuesSummary: {
-    missingCost: number;
-    zeroSellingPrice: number;
-    sellingBelowCost: number;
-    unrealisticMarkup: number;
-  };
-  issues: Array<{
-    productId: string;
-    productName: string;
-    sku: string;
-    category: string;
-    issueType: string;
-    costPrice: number;
-    retailPrice: number;
-    wholesalePrice: number;
-    description: string;
-  }>;
-}
-
 export default function Dashboard() {
   const router = useRouter();
   const { toast, showToast, hideToast } = useToast();
@@ -71,9 +48,6 @@ export default function Dashboard() {
   const [priceType, setPriceType] = useState('retail'); // retail or wholesale only
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
-  const [showPricingIssues, setShowPricingIssues] = useState(false);
-  const [pricingAuditDetails, setPricingAuditDetails] = useState<PricingAuditDetails | null>(null);
-  const [loadingAudit, setLoadingAudit] = useState(false);
 
   // Track the current date to detect changes
   const [currentDate, setCurrentDate] = useState(new Date().toDateString());
@@ -164,64 +138,6 @@ export default function Dashboard() {
       if (showLoading) {
         setLoading(false);
       }
-    }
-  };
-
-  const fetchPricingAudit = async () => {
-    setLoadingAudit(true);
-    console.log('=== FETCHING PRICING AUDIT ===');
-    
-    try {
-      // Add timeout to prevent hanging
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
-      
-      const response = await fetch('/api/pricing-audit', {
-        signal: controller.signal
-      });
-      clearTimeout(timeoutId);
-      
-      console.log('Response status:', response.status);
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      console.log('Full API response:', JSON.stringify(data, null, 2));
-      
-      if (data.success && data.data) {
-        console.log('✓ API Success');
-        console.log('Total Products:', data.data.totalProducts);
-        console.log('Valid Pricing:', data.data.validPricing);
-        console.log('Issues Found:', data.data.issuesFound);
-        console.log('Issues Summary:', JSON.stringify(data.data.issuesSummary, null, 2));
-        
-        // Set the data
-        setPricingAuditDetails(data.data);
-        setShowPricingIssues(true);
-        
-        console.log('✓ State updated - pricingAuditDetails set');
-      } else {
-        console.error('✗ API returned error:', data.error);
-        throw new Error(data.error || 'Unknown error');
-      }
-    } catch (error: any) {
-      console.error('✗ Fetch error:', error);
-      
-      if (error.name === 'AbortError') {
-        console.error('Request timed out after 10 seconds');
-        showToast('Request timed out. Please try again.', 'error');
-      } else {
-        console.error('Error details:', error.message);
-        showToast('Failed to load pricing audit', 'error');
-      }
-      
-      // Don't show dropdown on error
-      setShowPricingIssues(false);
-    } finally {
-      setLoadingAudit(false);
-      console.log('=== FETCH COMPLETE ===');
     }
   };
 
@@ -778,119 +694,6 @@ export default function Dashboard() {
             <p className="text-xs text-[var(--text-secondary)] mt-2">
               Items below minimum stock
             </p>
-          </div>
-
-          {/* Pricing Data Audit - Redesigned */}
-          <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-6">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <p className="text-sm text-[var(--text-secondary)]">Pricing Data Audit</p>
-                <span className="text-yellow-500">⚠️</span>
-              </div>
-              <button
-                onClick={fetchPricingAudit}
-                disabled={loadingAudit}
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-              >
-                👁
-              </button>
-            </div>
-            
-            {/* Stats with badges */}
-            <div className="space-y-2 mb-3">
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-[var(--text-secondary)]">Total Products:</span>
-                <span className="px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded-full text-base font-semibold text-[var(--text-primary)]">
-                  {pricingAuditDetails?.totalProducts || stats?.pricingAudit?.total || 0}
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-[var(--text-secondary)]">Valid Pricing:</span>
-                <span className="px-3 py-1 bg-white dark:bg-gray-700 rounded-full text-base font-semibold text-[var(--text-primary)]">
-                  {pricingAuditDetails?.validPricing || stats?.pricingAudit?.valid || 0}
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-[var(--text-secondary)]">Issues Found:</span>
-                <span className="px-3 py-1 bg-red-500 rounded-full text-base font-semibold text-white">
-                  {pricingAuditDetails?.issuesFound || stats?.pricingAudit?.issues || 0}
-                </span>
-              </div>
-            </div>
-            
-            {/* Collapsible Issues Dropdown */}
-            <div className="mt-3">
-              <button
-                onClick={() => {
-                  if (showPricingIssues) {
-                    setShowPricingIssues(false);
-                  } else {
-                    fetchPricingAudit(); // Always fetch fresh data when showing
-                  }
-                }}
-                disabled={loadingAudit}
-                className="w-full px-4 py-2.5 bg-yellow-600/90 hover:bg-yellow-600 border border-yellow-700 rounded-lg text-sm font-medium text-white transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
-              >
-                {loadingAudit ? 'Loading...' : showPricingIssues ? 'Hide Issues' : 'Show Issues'}
-                {!loadingAudit && (
-                  <svg 
-                    className={`w-4 h-4 transition-transform ${showPricingIssues ? 'rotate-180' : ''}`} 
-                    fill="none" 
-                    stroke="currentColor" 
-                    viewBox="0 0 24 24"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                )}
-              </button>
-              
-              {showPricingIssues && pricingAuditDetails && (
-                <div className="mt-2 bg-[#FFF8E7] dark:bg-amber-900/10 border-2 border-yellow-600/40 dark:border-amber-700 rounded-lg p-4 animate-slideDown">
-                  <p className="text-base font-bold text-[#B8733E] dark:text-yellow-400 mb-3">Issues Found:</p>
-                  {(() => {
-                    console.log('RENDERING DROPDOWN - pricingAuditDetails:', pricingAuditDetails);
-                    console.log('issuesFound:', pricingAuditDetails.issuesFound);
-                    console.log('issuesSummary:', pricingAuditDetails.issuesSummary);
-                    return null;
-                  })()}
-                  <ul className="space-y-2 text-sm">
-                    {pricingAuditDetails.issuesFound === 0 ? (
-                      <li className="flex items-start gap-2 text-green-600 dark:text-green-400">
-                        <span className="text-lg">✓</span>
-                        <span>No pricing issues found. All products have valid pricing data.</span>
-                      </li>
-                    ) : (
-                      <>
-                        {pricingAuditDetails.issuesSummary?.missingCost > 0 && (
-                          <li className="flex items-start gap-2 text-[#B8733E] dark:text-orange-400">
-                            <span>•</span>
-                            <span>{pricingAuditDetails.issuesSummary.missingCost} products missing cost price</span>
-                          </li>
-                        )}
-                        {pricingAuditDetails.issuesSummary?.zeroSellingPrice > 0 && (
-                          <li className="flex items-start gap-2 text-[#B8733E] dark:text-orange-400">
-                            <span>•</span>
-                            <span>{pricingAuditDetails.issuesSummary.zeroSellingPrice} products with zero selling price</span>
-                          </li>
-                        )}
-                        {pricingAuditDetails.issuesSummary?.sellingBelowCost > 0 && (
-                          <li className="flex items-start gap-2 text-[#B8733E] dark:text-orange-400">
-                            <span>•</span>
-                            <span>{pricingAuditDetails.issuesSummary.sellingBelowCost} products selling below cost</span>
-                          </li>
-                        )}
-                        {pricingAuditDetails.issuesSummary?.unrealisticMarkup > 0 && (
-                          <li className="flex items-start gap-2 text-[#B8733E] dark:text-orange-400">
-                            <span>•</span>
-                            <span>{pricingAuditDetails.issuesSummary.unrealisticMarkup} products with unrealistic markup</span>
-                          </li>
-                        )}
-                      </>
-                    )}
-                  </ul>
-                </div>
-              )}
-            </div>
           </div>
         </div>
 
