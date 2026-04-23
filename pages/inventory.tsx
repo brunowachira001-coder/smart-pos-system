@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Toast from '../components/Toast';
+import Pagination from '../components/Pagination';
 
 interface Product {
   id: string;
@@ -27,6 +28,7 @@ export default function InventoryPage() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [filterTab, setFilterTab] = useState<'all' | 'parent' | 'archived'>('all');
   const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
   const [totalPages, setTotalPages] = useState(1);
   const [totalProducts, setTotalProducts] = useState(0);
   
@@ -61,14 +63,14 @@ export default function InventoryPage() {
 
   useEffect(() => {
     fetchProducts();
-  }, [searchQuery, selectedCategory, filterTab, currentPage]);
+  }, [searchQuery, selectedCategory, filterTab, currentPage, itemsPerPage]);
 
   const fetchProducts = async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams({
         page: currentPage.toString(),
-        limit: '20',
+        limit: itemsPerPage.toString(),
         search: searchQuery,
         category: selectedCategory,
         filter: filterTab,
@@ -566,31 +568,20 @@ export default function InventoryPage() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="px-6 py-4 border-t border-[var(--border-color)] flex items-center justify-between">
-              <div className="text-sm text-[var(--text-secondary)]">
-                Showing {((currentPage - 1) * 20) + 1} to {Math.min(currentPage * 20, totalProducts)} of {totalProducts} products
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                  disabled={currentPage === 1}
-                  className="px-3 py-1 text-sm bg-[var(--bg-primary)] border border-[var(--border-color)] rounded hover:bg-[var(--bg-secondary)] disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Previous
-                </button>
-                <span className="px-3 py-1 text-sm">
-                  Page {currentPage} of {totalPages}
-                </span>
-                <button
-                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                  disabled={currentPage === totalPages}
-                  className="px-3 py-1 text-sm bg-[var(--bg-primary)] border border-[var(--border-color)] rounded hover:bg-[var(--bg-secondary)] disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Next
-                </button>
-              </div>
-            </div>
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={totalProducts}
+              itemsPerPage={itemsPerPage}
+              onPageChange={setCurrentPage}
+              onItemsPerPageChange={(newItemsPerPage) => {
+                setItemsPerPage(newItemsPerPage);
+                setCurrentPage(1); // Reset to first page when changing items per page
+              }}
+              itemName="products"
+            />
           )}
+
         </div>
       </div>
 
