@@ -23,7 +23,9 @@ SELECT
   'Demo customer ' || i,
   CASE WHEN i % 3 = 0 THEN 50000 ELSE 10000 END
 FROM generate_series(1, 50) AS i
-ON CONFLICT (email) DO NOTHING;
+WHERE NOT EXISTS (
+  SELECT 1 FROM customers WHERE email = 'customer' || i || '@example.com'
+);
 
 -- ============================================
 -- 2. PRODUCTS (100 products)
@@ -57,7 +59,9 @@ SELECT
   'Demo product description for item ' || i,
   CASE WHEN i % 10 = 0 THEN 'https://i.imgur.com/placeholder.jpg' ELSE NULL END
 FROM generate_series(1, 100) AS i
-ON CONFLICT (sku) DO NOTHING;
+WHERE NOT EXISTS (
+  SELECT 1 FROM products WHERE sku = 'SKU-' || LPAD(i::text, 5, '0')
+);
 
 -- ============================================
 -- 3. TRANSACTIONS (150 transactions)
@@ -108,7 +112,9 @@ BEGIN
       NOW() - (i || ' days')::interval
     FROM customers c
     WHERE c.id = cust_id
-    ON CONFLICT (transaction_number) DO NOTHING;
+    AND NOT EXISTS (
+      SELECT 1 FROM transactions WHERE transaction_number = trans_id
+    );
     
     -- Add 2-5 items per transaction
     FOR j IN 1..(2 + (i % 4)) LOOP
@@ -130,8 +136,7 @@ BEGIN
         p.selling_price,
         p.selling_price * (1 + (j % 5))
       FROM products p
-      WHERE p.id = prod_id
-      ON CONFLICT DO NOTHING;
+      WHERE p.id = prod_id;
     END LOOP;
   END LOOP;
 END $$;
@@ -328,7 +333,9 @@ SELECT
   '+254' || LPAD((700000000 + i)::text, 9, '0'),
   NOW() - (i || ' days')::interval
 FROM generate_series(1, 25) AS i
-ON CONFLICT (username) DO NOTHING;
+WHERE NOT EXISTS (
+  SELECT 1 FROM users WHERE username = 'user' || i
+);
 
 -- ============================================
 -- SUMMARY
