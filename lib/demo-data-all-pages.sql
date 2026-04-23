@@ -30,7 +30,7 @@ WHERE NOT EXISTS (
 -- ============================================
 -- 2. PRODUCTS (100 products)
 -- ============================================
-INSERT INTO products (name, sku, category, buying_price, selling_price, wholesale_price, stock_quantity, reorder_level, unit, status, description, image_url)
+INSERT INTO products (name, sku, category, cost_price, retail_price, wholesale_price, stock_quantity, minimum_stock_level, status, description, image_url)
 SELECT 
   'Product ' || i,
   'SKU-' || LPAD(i::text, 5, '0'),
@@ -49,12 +49,6 @@ SELECT
   (80 + (i * 12))::numeric,
   (100 + (i * 5)),
   20,
-  CASE (i % 4)
-    WHEN 0 THEN 'piece'
-    WHEN 1 THEN 'box'
-    WHEN 2 THEN 'kg'
-    ELSE 'liter'
-  END,
   CASE WHEN i % 20 = 0 THEN 'archived' ELSE 'active' END,
   'Demo product description for item ' || i,
   CASE WHEN i % 10 = 0 THEN 'https://i.imgur.com/placeholder.jpg' ELSE NULL END
@@ -133,8 +127,8 @@ BEGIN
         prod_id,
         p.name,
         (1 + (j % 5)),
-        p.selling_price,
-        p.selling_price * (1 + (j % 5))
+        p.retail_price,
+        p.retail_price * (1 + (j % 5))
       FROM products p
       WHERE p.id = prod_id;
     END LOOP;
@@ -237,7 +231,7 @@ BEGIN
       prod_id,
       p.name,
       (1 + (i % 5)),
-      p.selling_price * (1 + (i % 5)),
+      p.retail_price * (1 + (i % 5)),
       CASE (i % 5)
         WHEN 0 THEN 'Defective'
         WHEN 1 THEN 'Wrong Item'
