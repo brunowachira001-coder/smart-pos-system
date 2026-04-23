@@ -32,6 +32,44 @@ The following pages have been successfully updated with pagination dropdown (10,
   - Filter by payment method, status, price type
   - Date range filtering
 
+### 4. POS Page (`pages/pos.tsx`)
+- **API Endpoint**: `/api/products/list`
+- **Pagination Support**: ✅ Yes
+- **Features**:
+  - Dropdown to select items per page (default: 50)
+  - Page navigation
+  - Search by product name, SKU, description
+  - Product grid display
+
+### 5. Debt Management (`pages/debt.tsx`)
+- **API Endpoint**: `/api/debts/index.ts`
+- **Pagination Support**: ✅ Yes
+- **Features**:
+  - Dropdown to select items per page
+  - Page navigation
+  - Date range filtering
+  - Status filtering
+
+### 6. Returns (`pages/returns.tsx`)
+- **API Endpoint**: `/api/returns/index.ts`
+- **Pagination Support**: ✅ Yes
+- **Features**:
+  - Dropdown to select items per page
+  - Page navigation
+  - Search by return ID, transaction ID, customer, product
+  - Status filtering
+  - Date range filtering
+
+### 7. Expenses (`pages/expenses.tsx`)
+- **API Endpoint**: `/api/expenses/index.ts`
+- **Pagination Support**: ✅ Yes
+- **Features**:
+  - Dropdown to select items per page
+  - Page navigation
+  - Search by expense ID, description, vendor
+  - Category and payment method filtering
+  - Date range filtering
+
 ## ❌ NO PAGINATION - Pages Without Lists
 
 These pages don't have data lists and don't need pagination:
@@ -41,27 +79,12 @@ These pages don't have data lists and don't need pagination:
 3. **Shop Settings** (`pages/shop-settings.tsx`) - Settings form
 4. **My Profile** (`pages/my-profile.tsx`) - Profile form
 
-## 🔄 REVERTED - Pages Where Pagination Was Removed
+## 📊 ANALYTICS PAGES - No Pagination Needed
 
-These pages had pagination added but it was reverted because the APIs return simple arrays:
+These pages show analytics data and don't need pagination:
 
-### 1. Debt Management (`pages/debt.tsx`)
-- **API Endpoint**: `/api/debts/index.ts`
-- **Pagination Support**: ❌ No - Returns simple array
-- **Status**: Pagination code removed to match API format
-- **Reason**: API was reverted from paginated format to simple array
-
-### 2. Returns (`pages/returns.tsx`)
-- **API Endpoint**: `/api/returns/index.ts`
-- **Pagination Support**: ❌ No - Returns simple array
-- **Status**: Never had pagination added
-- **Reason**: API returns simple array, not paginated object
-
-### 3. Expenses (`pages/expenses.tsx`)
-- **API Endpoint**: `/api/expenses/index.ts`
-- **Pagination Support**: ❌ No - Returns simple array
-- **Status**: Never had pagination added
-- **Reason**: API returns simple array, not paginated object
+1. **Product Performance** (`pages/product-performance.tsx`) - Shows all products with performance metrics
+2. **Inventory Analytics** (`pages/inventory-analytics.tsx`) - Shows low stock items (usually small list)
 
 ## 📝 How to Add Pagination to Other Pages
 
@@ -112,19 +135,16 @@ To test pagination on the deployed site:
    - Creates 50 customers
    - Creates 100 products
 
-2. **Test Inventory Page**:
-   - Should show 100 products
-   - Default: 20 per page = 5 pages
-   - Change dropdown to 10, 50, or 100 to see different page counts
+2. **Test Pages**:
+   - **Inventory**: 100 products, default 20/page = 5 pages
+   - **Customers**: 50 customers, default 20/page = 3 pages
+   - **POS**: 100 products, default 50/page = 2 pages
+   - **Transactions**: Depends on actual data
+   - **Debt**: Depends on actual data
+   - **Returns**: Depends on actual data
+   - **Expenses**: Depends on actual data
 
-3. **Test Customers Page**:
-   - Should show 50 customers
-   - Default: 20 per page = 3 pages
-   - Change dropdown to test different page sizes
-
-4. **Test Transactions Page**:
-   - Depends on actual transaction data
-   - Pagination works the same way
+3. **Test Dropdown**: Change items per page to 10, 20, 50, or 100 to see different page counts
 
 ## 📦 Reusable Component
 
@@ -142,4 +162,4 @@ The `Pagination.tsx` component is located at `components/Pagination.tsx` and can
 ---
 
 **Last Updated**: April 23, 2026
-**Status**: Pagination working on Inventory, Customers, and Transactions pages
+**Status**: Pagination working on 7 pages: Inventory, Customers, Transactions, POS, Debt, Returns, and Expenses
