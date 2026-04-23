@@ -247,11 +247,11 @@ export default function Dashboard() {
       return `KSH ${(val / 1000).toFixed(0)}k`;
     };
 
-    // Very tight spacing like screenshot - approximately 6-8px per data point
-    const pointSpacing = 7;
-    const svgWidth = Math.max(1200, chartData.length * pointSpacing);
-    const svgHeight = 360;
-    const padding = { top: 10, right: 20, bottom: 35, left: 70 }; // More bottom space for x-axis
+    // Tighter spacing to fit 30 days in view - approximately 4-5px per data point
+    const pointSpacing = 4.5;
+    const svgWidth = Math.max(1000, chartData.length * pointSpacing);
+    const svgHeight = 240;
+    const padding = { top: 10, right: 20, bottom: 30, left: 70 }; // Reduced bottom padding
     const plotHeight = svgHeight - padding.top - padding.bottom;
     const plotWidth = svgWidth - padding.left - padding.right;
 
@@ -371,7 +371,7 @@ export default function Dashboard() {
               {/* X-axis dates positioned below chart */}
               <g>
                 {chartData.map((item, i) => {
-                  const showEvery = Math.max(1, Math.floor(chartData.length / 9));
+                  const showEvery = Math.max(1, Math.floor(chartData.length / 12));
                   if (i % showEvery === 0 || i === chartData.length - 1) {
                     return (
                       <text
@@ -379,7 +379,7 @@ export default function Dashboard() {
                         x={getX(i)}
                         y={svgHeight - 5}
                         textAnchor="middle"
-                        fontSize="11"
+                        fontSize="10"
                         fill="var(--text-secondary)"
                         opacity="0.8"
                       >
@@ -793,7 +793,7 @@ export default function Dashboard() {
             </div>
 
             {/* Chart Area */}
-            <div className="relative bg-[var(--bg-secondary)] rounded border border-[var(--border-color)] p-4" style={{ height: '400px' }}>
+            <div className="relative bg-[var(--bg-secondary)] rounded border border-[var(--border-color)] p-4" style={{ height: '280px' }}>
               {renderChart()}
             </div>
 
