@@ -56,20 +56,22 @@ export default function Sidebar() {
       <div className="p-6 border-b border-[var(--border-color)]">
         <div className="flex items-center gap-3">
           {shopSettings?.logo_url && (
-            <img 
-              src={shopSettings.logo_url} 
-              alt="Logo" 
-              className="h-12 w-12 object-contain rounded"
-              onError={(e) => {
-                e.currentTarget.style.display = 'none';
-              }}
-            />
+            <div className="flex-shrink-0">
+              <img 
+                src={shopSettings.logo_url} 
+                alt="Logo" 
+                className="w-14 h-14 object-cover rounded-full border-2 border-emerald-500/20"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                }}
+              />
+            </div>
           )}
-          <div className="flex-1">
-            <h1 className="text-2xl font-bold text-emerald-500">
+          <div className="flex-1 min-w-0">
+            <h1 className="text-2xl font-bold text-emerald-500 truncate">
               {shopSettings?.business_name || 'Smart Traders'}
             </h1>
-            <p className="text-sm text-[var(--text-secondary)] mt-1">
+            <p className="text-sm text-[var(--text-secondary)] mt-1 truncate">
               {shopSettings?.business_tagline || 'Inventory System'}
             </p>
           </div>

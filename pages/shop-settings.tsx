@@ -172,11 +172,11 @@ export default function ShopSettingsPage() {
                 </p>
                 {settings.logo_url && (
                   <div className="mt-3 p-3 bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg">
-                    <p className="text-xs text-[var(--text-secondary)] mb-2">Logo Preview:</p>
+                    <p className="text-xs text-[var(--text-secondary)] mb-2">Logo Preview (will appear circular in sidebar):</p>
                     <img 
                       src={settings.logo_url} 
                       alt="Logo preview" 
-                      className="h-12 w-auto object-contain"
+                      className="w-14 h-14 object-cover rounded-full border-2 border-emerald-500/20"
                       onError={(e) => {
                         e.currentTarget.style.display = 'none';
                         e.currentTarget.nextElementSibling!.classList.remove('hidden');
