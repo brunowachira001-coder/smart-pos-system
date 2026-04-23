@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 
 interface ChartDataPoint {
   date: string;
@@ -14,17 +14,6 @@ interface SalesProfitChartProps {
 
 export default function SalesProfitChart({ data }: SalesProfitChartProps) {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-
-  // Auto-scroll to the end (today's data) when component mounts or data changes
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (scrollContainerRef.current) {
-        scrollContainerRef.current.scrollLeft = scrollContainerRef.current.scrollWidth;
-      }
-    }, 100);
-    return () => clearTimeout(timer);
-  }, [data]);
 
   if (!data || data.length === 0) {
     return (
@@ -67,9 +56,10 @@ export default function SalesProfitChart({ data }: SalesProfitChartProps) {
         ))}
       </div>
 
-      {/* Chart SVG */}
-      <div ref={scrollContainerRef} className="flex-1 overflow-x-auto relative">
-        <svg width={svgWidth} height={svgHeight} style={{ minWidth: '100%' }}>
+      {/* Chart SVG - RTL direction makes scroll start from right (today) */}
+      <div className="flex-1 overflow-x-auto relative" style={{ direction: 'rtl' }}>
+        <div style={{ direction: 'ltr' }}>
+          <svg width={svgWidth} height={svgHeight} style={{ minWidth: '100%' }}>
           {/* Dotted grid lines */}
           {yLabels.map((label, i) => (
             <line
@@ -173,6 +163,7 @@ export default function SalesProfitChart({ data }: SalesProfitChartProps) {
             />
           ))}
         </svg>
+        </div>
 
         {/* Tooltip */}
         {hoveredIndex !== null && (
