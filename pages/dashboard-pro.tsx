@@ -247,9 +247,12 @@ export default function Dashboard() {
       return `KSH ${(val / 1000).toFixed(0)}k`;
     };
 
-    // Very tight spacing to match screenshot - approximately 3px per data point
-    const pointSpacing = 3;
-    const svgWidth = Math.max(900, chartData.length * pointSpacing);
+    // Calculate width to fit exactly in container without scrolling
+    // Chart container is 2/3 of the page width, minus padding
+    // For 30 days to fit without scrolling, we need tight spacing
+    const containerWidth = 800; // Approximate available width for the chart
+    const pointSpacing = containerWidth / Math.max(30, chartData.length); // Divide by 30 or data length
+    const svgWidth = containerWidth;
     const svgHeight = 240;
     const padding = { top: 10, right: 20, bottom: 30, left: 70 }; // Reduced bottom padding
     const plotHeight = svgHeight - padding.top - padding.bottom;
@@ -275,8 +278,8 @@ export default function Dashboard() {
           </div>
 
           {/* Chart SVG */}
-          <div className="flex-1 overflow-x-auto relative">
-            <svg width={svgWidth} height={svgHeight} style={{ minWidth: '100%' }}>
+          <div className="flex-1 relative">
+            <svg width={svgWidth} height={svgHeight} style={{ width: '100%' }}>
               {/* Dotted grid lines */}
               {yLabels.map((label, i) => (
                 <line
