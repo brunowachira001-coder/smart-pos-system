@@ -29,7 +29,9 @@ export default function CustomersPage() {
   const [totalCustomers, setTotalCustomers] = useState(0);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showViewModal, setShowViewModal] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
   
   // Form state
   const [formData, setFormData] = useState({
@@ -182,6 +184,13 @@ export default function CustomersPage() {
       debtLimit: ''
     });
     setShowEditModal(true);
+    setOpenDropdownId(null);
+  };
+
+  const openViewModal = (customer: Customer) => {
+    setSelectedCustomer(customer);
+    setShowViewModal(true);
+    setOpenDropdownId(null);
   };
 
   const resetForm = () => {
@@ -327,13 +336,59 @@ export default function CustomersPage() {
                         {formatDate(customer.last_purchase_date)}
                       </td>
                       <td className="px-6 py-4">
-                        <div className="flex gap-2">
+                        <div className="relative">
                           <button
-                            onClick={() => openEditModal(customer)}
-                            className="text-blue-500 hover:text-blue-400 text-sm font-medium"
+                            onClick={() => setOpenDropdownId(openDropdownId === customer.id ? null : customer.id)}
+                            className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-lg font-bold"
                           >
                             •••
                           </button>
+                          
+                          {/* Dropdown Menu */}
+                          {openDropdownId === customer.id && (
+                            <>
+                              {/* Backdrop to close dropdown */}
+                              <div 
+                                className="fixed inset-0 z-10" 
+                                onClick={() => setOpenDropdownId(null)}
+                              />
+                              
+                              {/* Dropdown */}
+                              <div className="absolute right-0 mt-2 w-48 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg shadow-lg z-20 py-1">
+                                <button
+                                  onClick={() => openViewModal(customer)}
+                                  className="w-full text-left px-4 py-2 text-sm hover:bg-[var(--bg-primary)] flex items-center gap-2"
+                                >
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                  </svg>
+                                  View Details
+                                </button>
+                                <button
+                                  onClick={() => openEditModal(customer)}
+                                  className="w-full text-left px-4 py-2 text-sm hover:bg-[var(--bg-primary)] flex items-center gap-2"
+                                >
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                  </svg>
+                                  Edit
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setOpenDropdownId(null);
+                                    handleDeleteCustomer(customer.id);
+                                  }}
+                                  className="w-full text-left px-4 py-2 text-sm hover:bg-[var(--bg-primary)] flex items-center gap-2 text-red-500"
+                                >
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                  </svg>
+                                  Delete
+                                </button>
+                              </div>
+                            </>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -601,6 +656,144 @@ export default function CustomersPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* View Customer Details Modal */}
+      {showViewModal && selectedCustomer && (
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+          <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            {/* Header */}
+            <div className="flex justify-between items-start mb-6">
+              <div>
+                <h2 className="text-2xl font-bold mb-1">{selectedCustomer.name}</h2>
+                <p className="text-sm text-[var(--text-secondary)]">
+                  Customer since {formatDate(selectedCustomer.created_at)}
+                </p>
+              </div>
+              <button
+                onClick={() => { setShowViewModal(false); setSelectedCustomer(null); }}
+                className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-2xl leading-none"
+              >
+                ×
+              </button>
+            </div>
+
+            {/* Customer Info Grid */}
+            <div className="grid grid-cols-2 gap-6 mb-6">
+              {/* Contact Information */}
+              <div className="space-y-4">
+                <h3 className="text-sm font-semibold text-[var(--text-secondary)] uppercase tracking-wide">Contact Information</h3>
+                
+                <div>
+                  <div className="flex items-center gap-2 text-[var(--text-secondary)] mb-1">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                    <span className="text-xs font-medium">Email</span>
+                  </div>
+                  <p className="text-sm">{selectedCustomer.email || 'No email'}</p>
+                </div>
+
+                <div>
+                  <div className="flex items-center gap-2 text-[var(--text-secondary)] mb-1">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                    </svg>
+                    <span className="text-xs font-medium">Phone</span>
+                  </div>
+                  <p className="text-sm">{selectedCustomer.phone || 'No phone'}</p>
+                </div>
+
+                <div>
+                  <div className="flex items-center gap-2 text-[var(--text-secondary)] mb-1">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <span className="text-xs font-medium">Address</span>
+                  </div>
+                  <p className="text-sm">{selectedCustomer.address || 'No address'}</p>
+                  {selectedCustomer.city && (
+                    <p className="text-sm text-[var(--text-secondary)]">{selectedCustomer.city}, {selectedCustomer.country}</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Purchase Statistics */}
+              <div className="space-y-4">
+                <h3 className="text-sm font-semibold text-[var(--text-secondary)] uppercase tracking-wide">Purchase Statistics</h3>
+                
+                <div className="bg-[var(--bg-primary)] rounded-lg p-4">
+                  <div className="text-xs text-[var(--text-secondary)] mb-1">Total Purchases</div>
+                  <div className="text-2xl font-bold text-emerald-500">
+                    KSH {selectedCustomer.total_purchases.toFixed(2)}
+                  </div>
+                </div>
+
+                <div className="bg-[var(--bg-primary)] rounded-lg p-4">
+                  <div className="text-xs text-[var(--text-secondary)] mb-1">Total Transactions</div>
+                  <div className="text-2xl font-bold">{selectedCustomer.total_transactions}</div>
+                </div>
+
+                <div className="bg-[var(--bg-primary)] rounded-lg p-4">
+                  <div className="text-xs text-[var(--text-secondary)] mb-1">Last Purchase</div>
+                  <div className="text-sm font-medium">
+                    {formatDate(selectedCustomer.last_purchase_date)}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Customer Type & Status */}
+            <div className="grid grid-cols-2 gap-4 mb-6">
+              <div>
+                <div className="text-xs text-[var(--text-secondary)] mb-2">Customer Type</div>
+                <span className="inline-block px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-xs font-medium capitalize">
+                  {selectedCustomer.customer_type}
+                </span>
+              </div>
+              <div>
+                <div className="text-xs text-[var(--text-secondary)] mb-2">Status</div>
+                <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium capitalize ${
+                  selectedCustomer.status === 'active' 
+                    ? 'bg-emerald-500/20 text-emerald-400' 
+                    : 'bg-red-500/20 text-red-400'
+                }`}>
+                  {selectedCustomer.status}
+                </span>
+              </div>
+            </div>
+
+            {/* Notes */}
+            {selectedCustomer.notes && (
+              <div className="mb-6">
+                <h3 className="text-sm font-semibold text-[var(--text-secondary)] uppercase tracking-wide mb-2">Notes</h3>
+                <div className="bg-[var(--bg-primary)] rounded-lg p-4">
+                  <p className="text-sm">{selectedCustomer.notes}</p>
+                </div>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex gap-3 pt-4 border-t border-[var(--border-color)]">
+              <button
+                onClick={() => { setShowViewModal(false); setSelectedCustomer(null); }}
+                className="flex-1 bg-[var(--bg-primary)] border border-[var(--border-color)] py-2 rounded-lg hover:bg-[var(--bg-secondary)]"
+              >
+                Close
+              </button>
+              <button
+                onClick={() => {
+                  setShowViewModal(false);
+                  openEditModal(selectedCustomer);
+                }}
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-semibold"
+              >
+                Edit Customer
+              </button>
+            </div>
           </div>
         </div>
       )}
