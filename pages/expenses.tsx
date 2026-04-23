@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import DateRangeFilter, { getDateRange, formatDateLocal } from '../components/DateRangeFilter';
+import Pagination from '../components/Pagination';
 
 interface Expense {
   id: string;
@@ -28,6 +29,10 @@ export default function Expenses() {
   const [categories, setCategories] = useState<any[]>([]);
   const [currentDate, setCurrentDate] = useState(new Date().toDateString());
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalExpenses, setTotalExpenses] = useState(0);
 
   const [newExpense, setNewExpense] = useState({
     category: '',
@@ -50,7 +55,7 @@ export default function Expenses() {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [currentPage, itemsPerPage]);
 
   useEffect(() => {
     // Convert selected range to actual dates
@@ -107,9 +112,13 @@ export default function Expenses() {
 
   const fetchData = async () => {
     try {
+      const params = new URLSearchParams();
+      params.append('page', currentPage.toString());
+      params.append('limit', itemsPerPage.toString());
+      
       const [statsRes, expensesRes, categoriesRes, dashboardRes] = await Promise.all([
         fetch('/api/expenses/stats'),
-        fetch('/api/expenses'),
+        fetch(`/api/expenses?${params}`),
         fetch('/api/expenses/categories'),
         fetch('/api/dashboard/comprehensive-stats?range=today'),
       ]);
@@ -129,7 +138,9 @@ export default function Expenses() {
         todayNetRevenue: (dashboardData.data?.grossRevenue || 0) - (statsData.todayTotal || 0),
       });
 
-      setExpenses(expensesData);
+      setExpenses(expensesData.expenses || []);
+      setTotalPages(expensesData.pagination?.totalPages || 1);
+      setTotalExpenses(expensesData.pagination?.total || 0);
       setCategories(categoriesData);
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -473,6 +484,24 @@ export default function Expenses() {
             </tbody>
           </table>
         </div>
+        
+        {/* Pagination */}
+        {totalExpenses > 0 && (
+          <div className="mt-4">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={totalExpenses}
+              itemsPerPage={itemsPerPage}
+              onPageChange={setCurrentPage}
+              onItemsPerPageChange={(newItemsPerPage) => {
+                setItemsPerPage(newItemsPerPage);
+                setCurrentPage(1);
+              }}
+              itemName="expenses"
+            />
+          </div>
+        )}
       </div>
 
       {/* Add Expense Modal */}

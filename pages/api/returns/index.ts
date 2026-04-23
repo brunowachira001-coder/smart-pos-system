@@ -4,11 +4,22 @@ import { supabase } from '../../../lib/supabase';
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
     try {
-      const { status, search, startDate, endDate } = req.query;
+      const { 
+        status, 
+        search, 
+        startDate, 
+        endDate,
+        page = '1',
+        limit = '20'
+      } = req.query;
+
+      const pageNum = parseInt(page as string);
+      const limitNum = parseInt(limit as string);
+      const offset = (pageNum - 1) * limitNum;
 
       let query = supabase
         .from('returns')
-        .select('*');
+        .select('*', { count: 'exact' });
 
       if (status && status !== 'all') {
         query = query.eq('status', status);
@@ -26,12 +37,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         query = query.lte('return_date', endDate);
       }
 
-      const { data: returns, error } = await query
-        .order('return_date', { ascending: false });
+      query = query
+        .order('return_date', { ascending: false })
+        .range(offset, offset + limitNum - 1);
+
+      const { data: returns, error, count } = await query;
 
       if (error) throw error;
 
-      return res.status(200).json(returns || []);
+      return res.status(200).json({
+        returns: returns || [],
+        pagination: {
+          page: pageNum,
+          limit: limitNum,
+          total: count || 0,
+          totalPages: Math.ceil((count || 0) / limitNum)
+        }
+      });
     } catch (error: any) {
       return res.status(500).json({ error: error.message });
     }

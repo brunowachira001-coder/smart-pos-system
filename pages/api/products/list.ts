@@ -13,15 +13,42 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const { data, error } = await supabase
+    const { 
+      page = '1',
+      limit = '100',
+      search = ''
+    } = req.query;
+
+    const pageNum = parseInt(page as string);
+    const limitNum = parseInt(limit as string);
+    const offset = (pageNum - 1) * limitNum;
+
+    let query = supabase
       .from('products')
-      .select('*')
-      .order('name', { ascending: true })
-      .limit(100);
+      .select('*', { count: 'exact' })
+      .order('name', { ascending: true });
+
+    // Search filter
+    if (search) {
+      query = query.or(`name.ilike.%${search}%,sku.ilike.%${search}%,description.ilike.%${search}%`);
+    }
+
+    // Pagination
+    query = query.range(offset, offset + limitNum - 1);
+
+    const { data, error, count } = await query;
 
     if (error) throw error;
 
-    res.status(200).json({ products: data || [] });
+    res.status(200).json({ 
+      products: data || [],
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        total: count || 0,
+        totalPages: Math.ceil((count || 0) / limitNum)
+      }
+    });
   } catch (error: any) {
     console.error('Product list error:', error);
     res.status(500).json({ error: 'Failed to fetch products', products: [] });

@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import DateRangeFilter from '../components/DateRangeFilter';
 import Toast from '../components/Toast';
 import { useToast } from '../hooks/useToast';
+import Pagination from '../components/Pagination';
 
 interface Product {
   id: string;
@@ -71,12 +72,16 @@ export default function POSPage() {
   const [customersList, setCustomersList] = useState<Customer[]>([]);
   const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
   const [customerCredit, setCustomerCredit] = useState<CustomerCredit | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(50);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalProducts, setTotalProducts] = useState(0);
 
   useEffect(() => {
     fetchProducts();
     fetchCart();
     fetchCustomers();
-  }, []);
+  }, [currentPage, itemsPerPage]);
 
   useEffect(() => {
     if (searchQuery) {
@@ -88,9 +93,18 @@ export default function POSPage() {
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch('/api/products/list');
+      const params = new URLSearchParams();
+      params.append('page', currentPage.toString());
+      params.append('limit', itemsPerPage.toString());
+      if (searchQuery) {
+        params.append('search', searchQuery);
+      }
+      
+      const response = await fetch(`/api/products/list?${params}`);
       const data = await response.json();
       setProducts(data.products || []);
+      setTotalPages(data.pagination?.totalPages || 1);
+      setTotalProducts(data.pagination?.total || 0);
     } catch (error) {
       console.error('Error fetching products:', error);
     }
@@ -445,6 +459,24 @@ export default function POSPage() {
                 </div>
               ))}
         </div>
+        
+        {/* Pagination */}
+        {totalProducts > 0 && (
+          <div className="mt-6">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={totalProducts}
+              itemsPerPage={itemsPerPage}
+              onPageChange={setCurrentPage}
+              onItemsPerPageChange={(newItemsPerPage) => {
+                setItemsPerPage(newItemsPerPage);
+                setCurrentPage(1);
+              }}
+              itemName="products"
+            />
+          </div>
+        )}
       </div>
 
       {/* Floating Cart Button */}

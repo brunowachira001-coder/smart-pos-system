@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import DateRangeFilter, { getDateRange, formatDateLocal } from '../components/DateRangeFilter';
+import Pagination from '../components/Pagination';
 
 interface Return {
   id: string;
@@ -47,6 +48,10 @@ export default function Returns() {
   const [productSearchTerms, setProductSearchTerms] = useState<string[]>(['']);
   const [unitPrices, setUnitPrices] = useState<number[]>([0]);
   const [currentDate, setCurrentDate] = useState(new Date().toDateString());
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalReturns, setTotalReturns] = useState(0);
 
   const [stats, setStats] = useState({
     totalReturns: 0,
@@ -58,7 +63,7 @@ export default function Returns() {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [currentPage, itemsPerPage]);
 
   useEffect(() => {
     // Convert selected range to actual dates
@@ -115,9 +120,13 @@ export default function Returns() {
 
   const fetchData = async () => {
     try {
+      const params = new URLSearchParams();
+      params.append('page', currentPage.toString());
+      params.append('limit', itemsPerPage.toString());
+      
       const [statsRes, returnsRes, productsRes] = await Promise.all([
         fetch('/api/returns/stats'),
-        fetch('/api/returns'),
+        fetch(`/api/returns?${params}`),
         fetch('/api/products/list'),
       ]);
 
@@ -133,7 +142,9 @@ export default function Returns() {
         todayReturnCount: statsData.todayReturnCount || 0,
       });
 
-      setReturns(returnsData);
+      setReturns(returnsData.returns || []);
+      setTotalPages(returnsData.pagination?.totalPages || 1);
+      setTotalReturns(returnsData.pagination?.total || 0);
       
       // Set available products for the dropdown - API returns { products: [...] }
       const productsList = productsData.products || [];
@@ -497,6 +508,24 @@ export default function Returns() {
             </tbody>
           </table>
         </div>
+        
+        {/* Pagination */}
+        {totalReturns > 0 && (
+          <div className="mt-4">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={totalReturns}
+              itemsPerPage={itemsPerPage}
+              onPageChange={setCurrentPage}
+              onItemsPerPageChange={(newItemsPerPage) => {
+                setItemsPerPage(newItemsPerPage);
+                setCurrentPage(1);
+              }}
+              itemName="returns"
+            />
+          </div>
+        )}
       </div>
 
       {/* Create Return Modal */}
