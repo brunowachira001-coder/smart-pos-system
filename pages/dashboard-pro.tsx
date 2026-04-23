@@ -54,6 +54,9 @@ export default function Dashboard() {
   const [priceType, setPriceType] = useState('retail'); // retail or wholesale only
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [showPricingProducts, setShowPricingProducts] = useState(false);
+  const [pricingProducts, setPricingProducts] = useState<any[]>([]);
+  const [loadingProducts, setLoadingProducts] = useState(false);
 
   // Track the current date to detect changes
   const [currentDate, setCurrentDate] = useState(new Date().toDateString());
@@ -144,6 +147,43 @@ export default function Dashboard() {
       if (showLoading) {
         setLoading(false);
       }
+    }
+  };
+
+  const fetchPricingProducts = async () => {
+    if (loadingProducts) return;
+    
+    setLoadingProducts(true);
+    try {
+      const response = await fetch('/api/products/list');
+      const data = await response.json();
+      
+      if (data.success && data.products) {
+        // Filter products with pricing issues
+        const productsWithIssues = data.products.filter((product: any) => {
+          const costPrice = parseFloat(product.cost_price) || 0;
+          const retailPrice = parseFloat(product.retail_price) || 0;
+          const wholesalePrice = parseFloat(product.wholesale_price) || 0;
+          
+          // Check for any pricing issue
+          if (costPrice === 0 || !product.cost_price) return true;
+          if ((retailPrice === 0 || !product.retail_price) && (wholesalePrice === 0 || !product.wholesale_price)) return true;
+          if (costPrice > 0 && retailPrice > 0 && retailPrice < costPrice) return true;
+          if (costPrice > 0 && wholesalePrice > 0 && wholesalePrice < costPrice) return true;
+          if (costPrice > 0 && retailPrice > 0) {
+            const markup = ((retailPrice - costPrice) / costPrice) * 100;
+            if (markup > 500) return true;
+          }
+          
+          return false;
+        });
+        
+        setPricingProducts(productsWithIssues);
+      }
+    } catch (error) {
+      console.error('Failed to fetch pricing products:', error);
+    } finally {
+      setLoadingProducts(false);
     }
   };
 
@@ -710,11 +750,16 @@ export default function Dashboard() {
                 <span className="text-yellow-500">⚠️</span>
               </div>
               <button
-                onClick={() => router.push('/inventory')}
+                onClick={() => {
+                  if (!showPricingProducts) {
+                    fetchPricingProducts();
+                  }
+                  setShowPricingProducts(!showPricingProducts);
+                }}
                 className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-                title="View products with issues"
+                title={showPricingProducts ? "Hide products" : "View products with issues"}
               >
-                👁
+                {showPricingProducts ? '👁‍🗨' : '👁'}
               </button>
             </div>
             
@@ -768,6 +813,51 @@ export default function Dashboard() {
                     </li>
                   )}
                 </ul>
+              </div>
+            )}
+
+            {showPricingProducts && (
+              <div className="mt-4">
+                <h3 className="text-base font-semibold text-[var(--text-primary)] mb-3">Products with Issues</h3>
+                {loadingProducts ? (
+                  <div className="text-center py-4 text-[var(--text-secondary)]">Loading products...</div>
+                ) : pricingProducts.length === 0 ? (
+                  <div className="text-center py-4 text-[var(--text-secondary)]">No products with issues found</div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b border-[var(--border-color)]">
+                          <th className="text-left py-2 px-2 text-[var(--text-secondary)] font-medium">Product</th>
+                          <th className="text-left py-2 px-2 text-[var(--text-secondary)] font-medium">Cost</th>
+                          <th className="text-left py-2 px-2 text-[var(--text-secondary)] font-medium">Retail</th>
+                          <th className="text-left py-2 px-2 text-[var(--text-secondary)] font-medium">Wholesale</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {pricingProducts.slice(0, 5).map((product: any, index: number) => (
+                          <tr key={product.id} className="border-b border-[var(--border-color)]">
+                            <td className="py-3 px-2 text-[var(--text-primary)]">{product.name}</td>
+                            <td className="py-3 px-2 text-[var(--text-primary)]">
+                              KSH {parseFloat(product.cost_price || 0).toFixed(2)}
+                            </td>
+                            <td className="py-3 px-2 text-[var(--text-primary)]">
+                              KSH {parseFloat(product.retail_price || 0).toFixed(2)}
+                            </td>
+                            <td className="py-3 px-2 text-[var(--text-primary)]">
+                              KSH {parseFloat(product.wholesale_price || 0).toFixed(2)}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                    {pricingProducts.length > 5 && (
+                      <div className="text-center py-2 text-xs text-[var(--text-secondary)]">
+                        Showing 1 to 5 of {pricingProducts.length} products
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
           </div>
