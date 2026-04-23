@@ -51,16 +51,25 @@ Press `Ctrl + Shift + R` to clear cache and reload
 3. Check if products appear in the table
 
 ### Step 6: Add Test Products (If Needed)
-If no products show up, you can add test products with pricing issues:
+If no products show up, you can create pricing issues in existing products:
 
 1. Go to Supabase SQL Editor
-2. Copy and run the SQL from `lib/test-pricing-issue-product.sql`
-3. This will create 4 test products with different pricing issues:
-   - TEST001: Missing cost price
-   - TEST002: Zero selling prices
-   - TEST003: Selling below cost
-   - TEST004: Unrealistic markup (>500%)
+2. Copy and run the SQL from `lib/create-pricing-issues-simple.sql`
+3. This will update 4 existing products (PROD001-PROD004) to have pricing issues:
+   - PROD001: Missing cost price (cost_price = 0)
+   - PROD002: Zero selling prices (retail_price = 0, wholesale_price = 0)
+   - PROD003: Selling below cost (cost = 200, retail = 100)
+   - PROD004: Unrealistic markup (cost = 10, retail = 1000, >500% markup)
 4. Refresh the dashboard and click the eye icon again
+
+**To restore the original prices later:**
+```sql
+-- Restore original demo product prices
+UPDATE products SET cost_price = 80, retail_price = 150, wholesale_price = 140 WHERE sku = 'PROD001';
+UPDATE products SET cost_price = 40, retail_price = 80, wholesale_price = 75 WHERE sku = 'PROD002';
+UPDATE products SET cost_price = 120, retail_price = 200, wholesale_price = 190 WHERE sku = 'PROD003';
+UPDATE products SET cost_price = 180, retail_price = 300, wholesale_price = 280 WHERE sku = 'PROD004';
+```
 
 ## Expected Behavior
 
