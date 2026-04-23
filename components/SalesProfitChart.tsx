@@ -18,9 +18,12 @@ export default function SalesProfitChart({ data }: SalesProfitChartProps) {
 
   // Auto-scroll to the end (today's data) when component mounts or data changes
   useEffect(() => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollLeft = scrollContainerRef.current.scrollWidth;
-    }
+    const timer = setTimeout(() => {
+      if (scrollContainerRef.current) {
+        scrollContainerRef.current.scrollLeft = scrollContainerRef.current.scrollWidth;
+      }
+    }, 100);
+    return () => clearTimeout(timer);
   }, [data]);
 
   if (!data || data.length === 0) {
