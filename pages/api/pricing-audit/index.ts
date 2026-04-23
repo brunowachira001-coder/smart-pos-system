@@ -24,17 +24,32 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
+    console.log('Starting pricing audit...');
+    
     // Fetch all products
     const { data: products, error: productsError } = await supabase
       .from('products')
       .select('*')
       .eq('is_archived', false);
 
-    if (productsError) throw productsError;
+    if (productsError) {
+      console.error('Products fetch error:', productsError);
+      throw productsError;
+    }
+
+    console.log(`Fetched ${products?.length || 0} products`);
 
     const issues: PricingIssue[] = [];
     let validCount = 0;
     const totalProducts = products?.length || 0;
+
+    // Initialize summary counters
+    const issuesSummary = {
+      missingCost: 0,
+      zeroSellingPrice: 0,
+      sellingBelowCost: 0,
+      unrealisticMarkup: 0,
+    };
 
     // Audit each product
     products?.forEach(product => {
@@ -46,6 +61,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       // Check 1: Missing cost price
       if (costPrice === 0 || !product.cost_price) {
+        issuesSummary.missingCost++;
         issues.push({
           productId: product.id,
           productName: product.name,
@@ -61,7 +77,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
 
       // Check 2: Zero selling price (retail or wholesale)
-      if ((retailPrice === 0 || !product.retail_price) && (wholesalePrice === 0 || !product.wholesale_price)) {
+      if (!hasIssue && (retailPrice === 0 || !product.retail_price) && (wholesalePrice === 0 || !product.wholesale_price)) {
+        issuesSummary.zeroSellingPrice++;
         issues.push({
           productId: product.id,
           productName: product.name,
@@ -77,7 +94,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
 
       // Check 3: Selling below cost (retail)
-      if (costPrice > 0 && retailPrice > 0 && retailPrice < costPrice) {
+      if (!hasIssue && costPrice > 0 && retailPrice > 0 && retailPrice < costPrice) {
+        issuesSummary.sellingBelowCost++;
         issues.push({
           productId: product.id,
           productName: product.name,
@@ -93,7 +111,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
 
       // Check 4: Selling below cost (wholesale)
-      if (costPrice > 0 && wholesalePrice > 0 && wholesalePrice < costPrice) {
+      if (!hasIssue && costPrice > 0 && wholesalePrice > 0 && wholesalePrice < costPrice) {
+        issuesSummary.sellingBelowCost++;
         issues.push({
           productId: product.id,
           productName: product.name,
@@ -109,9 +128,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
 
       // Check 5: Unrealistic markup (>500%)
-      if (costPrice > 0 && retailPrice > 0) {
+      if (!hasIssue && costPrice > 0 && retailPrice > 0) {
         const markup = ((retailPrice - costPrice) / costPrice) * 100;
         if (markup > 500) {
+          issuesSummary.unrealisticMarkup++;
           issues.push({
             productId: product.id,
             productName: product.name,
@@ -132,13 +152,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     });
 
-    // Group issues by type for summary
-    const issuesSummary = {
-      missingCost: issues.filter(i => i.issueType === 'missing_cost').length,
-      zeroSellingPrice: issues.filter(i => i.issueType === 'zero_selling_price').length,
-      sellingBelowCost: issues.filter(i => i.issueType === 'selling_below_cost').length,
-      unrealisticMarkup: issues.filter(i => i.issueType === 'unrealistic_markup').length,
-    };
+    console.log('Audit complete:', {
+      totalProducts,
+      validCount,
+      issuesFound: issues.length,
+      issuesSummary
+    });
 
     res.status(200).json({
       success: true,
@@ -154,7 +173,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.error('Pricing audit error:', error);
     res.status(500).json({
       success: false,
-      error: error.message,
+      error: error.message || 'Internal server error',
       data: {
         totalProducts: 0,
         validPricing: 0,
