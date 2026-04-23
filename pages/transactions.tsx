@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import DateRangeFilter, { getDateRange, formatDateLocal } from '../components/DateRangeFilter';
+import Pagination from '../components/Pagination';
 
 interface Transaction {
   id: string;
@@ -26,6 +27,7 @@ export default function TransactionsPage() {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
   const [totalPages, setTotalPages] = useState(1);
   const [totalTransactions, setTotalTransactions] = useState(0);
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
@@ -80,14 +82,14 @@ export default function TransactionsPage() {
 
   useEffect(() => {
     fetchTransactions();
-  }, [searchQuery, filterType, paymentFilter, startDate, endDate, currentPage]);
+  }, [searchQuery, filterType, paymentFilter, startDate, endDate, currentPage, itemsPerPage]);
 
   const fetchTransactions = async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams({
         page: currentPage.toString(),
-        limit: '20',
+        limit: itemsPerPage.toString(),
         search: searchQuery,
         priceType: filterType,
         paymentMethod: paymentFilter,
@@ -367,31 +369,19 @@ export default function TransactionsPage() {
           </div>
 
           {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="px-6 py-4 border-t border-[var(--border-color)] flex items-center justify-between">
-              <div className="text-sm text-[var(--text-secondary)]">
-                Showing {((currentPage - 1) * 20) + 1} to {Math.min(currentPage * 20, totalTransactions)} of {totalTransactions} transactions
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                  disabled={currentPage === 1}
-                  className="px-3 py-1 text-sm bg-[var(--bg-primary)] border border-[var(--border-color)] rounded hover:bg-[var(--bg-secondary)] disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Previous
-                </button>
-                <span className="px-3 py-1 text-sm">
-                  Page {currentPage} of {totalPages}
-                </span>
-                <button
-                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                  disabled={currentPage === totalPages}
-                  className="px-3 py-1 text-sm bg-[var(--bg-primary)] border border-[var(--border-color)] rounded hover:bg-[var(--bg-secondary)] disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Next
-                </button>
-              </div>
-            </div>
+          {totalTransactions > 0 && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={totalTransactions}
+              itemsPerPage={itemsPerPage}
+              onPageChange={setCurrentPage}
+              onItemsPerPageChange={(newItemsPerPage) => {
+                setItemsPerPage(newItemsPerPage);
+                setCurrentPage(1);
+              }}
+              itemName="transactions"
+            />
           )}
         </div>
       </div>
