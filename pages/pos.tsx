@@ -25,6 +25,23 @@ interface CartItem {
   subtotal: number;
 }
 
+interface Customer {
+  id: string;
+  name: string;
+  phone: string;
+  email: string;
+  debt_limit: number;
+}
+
+interface CustomerCredit {
+  customerId: string;
+  customerName: string;
+  debtLimit: number;
+  currentDebt: number;
+  availableCredit: number;
+  hasCredit: boolean;
+}
+
 export default function POSPage() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
@@ -47,10 +64,18 @@ export default function POSPage() {
   const [customerPhone, setCustomerPhone] = useState('');
   const [amountPaid, setAmountPaid] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('cash');
+  
+  // Customer selection for debt payment
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const [customerSearch, setCustomerSearch] = useState('');
+  const [customersList, setCustomersList] = useState<Customer[]>([]);
+  const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
+  const [customerCredit, setCustomerCredit] = useState<CustomerCredit | null>(null);
 
   useEffect(() => {
     fetchProducts();
     fetchCart();
+    fetchCustomers();
   }, []);
 
   useEffect(() => {
@@ -68,6 +93,31 @@ export default function POSPage() {
       setProducts(data.products || []);
     } catch (error) {
       console.error('Error fetching products:', error);
+    }
+  };
+
+  const fetchCustomers = async () => {
+    try {
+      const response = await fetch('/api/customers/list?limit=1000');
+      const data = await response.json();
+      setCustomersList(data.customers || []);
+    } catch (error) {
+      console.error('Error fetching customers:', error);
+    }
+  };
+
+  const fetchCustomerCredit = async (customerId: string) => {
+    try {
+      const response = await fetch(`/api/customers/credit?customerId=${customerId}`);
+      const data = await response.json();
+      if (response.ok) {
+        setCustomerCredit(data);
+      } else {
+        setCustomerCredit(null);
+      }
+    } catch (error) {
+      console.error('Error fetching customer credit:', error);
+      setCustomerCredit(null);
     }
   };
 
@@ -182,21 +232,40 @@ export default function POSPage() {
       return;
     }
 
-    const paid = parseFloat(amountPaid) || 0;
-    if (paid < cartTotal) {
-      showToast('Amount paid is less than total', 'error');
-      return;
+    // Validate payment based on method
+    if (paymentMethod === 'debt') {
+      if (!selectedCustomer) {
+        showToast('Please select a customer for debt payment', 'error');
+        return;
+      }
+      if (!customerCredit || !customerCredit.hasCredit) {
+        showToast('Selected customer does not have credit limit', 'error');
+        return;
+      }
+      if (cartTotal > customerCredit.availableCredit) {
+        showToast(`Insufficient credit. Available: KSH ${customerCredit.availableCredit.toFixed(2)}`, 'error');
+        return;
+      }
+    } else {
+      const paid = parseFloat(amountPaid) || 0;
+      if (paid < cartTotal) {
+        showToast('Amount paid is less than total', 'error');
+        return;
+      }
     }
 
     setLoading(true);
     try {
+      const paid = paymentMethod === 'debt' ? 0 : parseFloat(amountPaid);
+      
       const response = await fetch('/api/pos/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           sessionId,
-          customerName: customerName || 'Walk-in Customer',
-          customerPhone,
+          customerId: selectedCustomer?.id,
+          customerName: selectedCustomer?.name || customerName || 'Walk-in Customer',
+          customerPhone: selectedCustomer?.phone || customerPhone,
           subtotal: cartTotal,
           discount: 0,
           tax: 0,
@@ -210,11 +279,19 @@ export default function POSPage() {
       const data = await response.json();
 
       if (response.ok) {
-        showToast(`Transaction completed! Change: KSH ${(paid - cartTotal).toFixed(2)}`, 'success');
+        if (paymentMethod === 'debt') {
+          showToast('Transaction completed on credit!', 'success');
+        } else {
+          showToast(`Transaction completed! Change: KSH ${(paid - cartTotal).toFixed(2)}`, 'success');
+        }
         setShowCheckout(false);
         setCustomerName('');
         setCustomerPhone('');
         setAmountPaid('');
+        setSelectedCustomer(null);
+        setCustomerSearch('');
+        setCustomerCredit(null);
+        setPaymentMethod('cash');
         await fetchCart();
       } else {
         showToast(`Error: ${data.error}`, 'error');
@@ -535,27 +612,119 @@ export default function POSPage() {
               <div className="border-t border-[var(--border-color)] pt-4">
                 <h3 className="font-semibold mb-4">Payment Details</h3>
                 <div className="space-y-4 mb-6">
+                  {/* Customer Selection */}
                   <div>
-                    <label className="block text-sm font-medium mb-2">Customer Name (Optional)</label>
-                    <input
-                      type="text"
-                      value={customerName}
-                      onChange={(e) => setCustomerName(e.target.value)}
-                      className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-sm"
-                      placeholder="Walk-in Customer"
-                    />
+                    <label className="block text-sm font-medium mb-2">Select Customer (Optional)</label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={selectedCustomer ? selectedCustomer.name : customerSearch}
+                        onChange={(e) => {
+                          setCustomerSearch(e.target.value);
+                          setShowCustomerDropdown(true);
+                          if (!e.target.value) {
+                            setSelectedCustomer(null);
+                            setCustomerCredit(null);
+                          }
+                        }}
+                        onFocus={() => setShowCustomerDropdown(true)}
+                        className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-sm"
+                        placeholder="Search customer by name or phone..."
+                      />
+                      
+                      {/* Customer Dropdown */}
+                      {showCustomerDropdown && !selectedCustomer && (
+                        <div className="absolute z-10 w-full mt-1 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                          {customersList
+                            .filter(c => 
+                              c.name.toLowerCase().includes(customerSearch.toLowerCase()) ||
+                              c.phone?.toLowerCase().includes(customerSearch.toLowerCase())
+                            )
+                            .slice(0, 10)
+                            .map(customer => (
+                              <button
+                                key={customer.id}
+                                onClick={() => {
+                                  setSelectedCustomer(customer);
+                                  setCustomerSearch('');
+                                  setShowCustomerDropdown(false);
+                                  fetchCustomerCredit(customer.id);
+                                }}
+                                className="w-full text-left px-3 py-2 hover:bg-[var(--bg-primary)] text-sm"
+                              >
+                                <div className="font-medium">{customer.name}</div>
+                                <div className="text-xs text-[var(--text-secondary)]">{customer.phone}</div>
+                              </button>
+                            ))}
+                          {customersList.filter(c => 
+                            c.name.toLowerCase().includes(customerSearch.toLowerCase()) ||
+                            c.phone?.toLowerCase().includes(customerSearch.toLowerCase())
+                          ).length === 0 && (
+                            <div className="px-3 py-2 text-sm text-[var(--text-secondary)]">No customers found</div>
+                          )}
+                        </div>
+                      )}
+                      
+                      {/* Selected Customer Info */}
+                      {selectedCustomer && (
+                        <div className="mt-2 p-2 bg-[var(--bg-primary)] rounded-lg">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <div className="text-sm font-medium">{selectedCustomer.name}</div>
+                              <div className="text-xs text-[var(--text-secondary)]">{selectedCustomer.phone}</div>
+                              {customerCredit && customerCredit.hasCredit && (
+                                <div className="text-xs text-emerald-500 mt-1">
+                                  Credit Available: KSH {customerCredit.availableCredit.toFixed(2)}
+                                </div>
+                              )}
+                            </div>
+                            <button
+                              onClick={() => {
+                                setSelectedCustomer(null);
+                                setCustomerCredit(null);
+                                setCustomerSearch('');
+                                if (paymentMethod === 'debt') {
+                                  setPaymentMethod('cash');
+                                }
+                              }}
+                              className="text-red-500 hover:text-red-400"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Phone Number (Optional)</label>
-                    <input
-                      type="tel"
-                      value={customerPhone}
-                      onChange={(e) => setCustomerPhone(e.target.value)}
-                      className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-sm"
-                      placeholder="+254..."
-                    />
-                  </div>
+                  {/* Walk-in Customer Fields (only show if no customer selected) */}
+                  {!selectedCustomer && (
+                    <>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Customer Name (Optional)</label>
+                        <input
+                          type="text"
+                          value={customerName}
+                          onChange={(e) => setCustomerName(e.target.value)}
+                          className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-sm"
+                          placeholder="Walk-in Customer"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Phone Number (Optional)</label>
+                        <input
+                          type="tel"
+                          value={customerPhone}
+                          onChange={(e) => setCustomerPhone(e.target.value)}
+                          className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-sm"
+                          placeholder="+254..."
+                        />
+                      </div>
+                    </>
+                  )}
 
                   <div>
                     <label className="block text-sm font-medium mb-2">Payment Method</label>
@@ -568,32 +737,46 @@ export default function POSPage() {
                       <option value="mpesa">M-Pesa</option>
                       <option value="card">Card</option>
                       <option value="bank">Bank Transfer</option>
+                      {selectedCustomer && customerCredit && customerCredit.hasCredit && (
+                        <option value="debt">Debt (Credit)</option>
+                      )}
                     </select>
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Amount Paid *</label>
-                    <input
-                      type="number"
-                      value={amountPaid}
-                      onChange={(e) => setAmountPaid(e.target.value)}
-                      className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-sm"
-                      placeholder="0.00"
-                      step="0.01"
-                    />
-                  </div>
+                  {/* Amount Paid - Only show for non-debt payments */}
+                  {paymentMethod !== 'debt' && (
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Amount Paid *</label>
+                      <input
+                        type="number"
+                        value={amountPaid}
+                        onChange={(e) => setAmountPaid(e.target.value)}
+                        className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-sm"
+                        placeholder="0.00"
+                        step="0.01"
+                      />
+                    </div>
+                  )}
 
+                  {/* Payment Summary */}
                   <div className="bg-[var(--bg-primary)] rounded-lg p-3">
                     <div className="flex justify-between mb-2">
                       <span className="text-sm">Total:</span>
                       <span className="text-sm font-semibold">KSH {cartTotal.toFixed(2)}</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm">Change:</span>
-                      <span className="text-sm font-semibold text-emerald-500">
-                        KSH {Math.max(0, (parseFloat(amountPaid) || 0) - cartTotal).toFixed(2)}
-                      </span>
-                    </div>
+                    {paymentMethod === 'debt' ? (
+                      <div className="flex justify-between">
+                        <span className="text-sm">Payment:</span>
+                        <span className="text-sm font-semibold text-amber-500">On Credit</span>
+                      </div>
+                    ) : (
+                      <div className="flex justify-between">
+                        <span className="text-sm">Change:</span>
+                        <span className="text-sm font-semibold text-emerald-500">
+                          KSH {Math.max(0, (parseFloat(amountPaid) || 0) - cartTotal).toFixed(2)}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -606,7 +789,7 @@ export default function POSPage() {
                   </button>
                   <button
                     onClick={handleCheckout}
-                    disabled={loading || !amountPaid || parseFloat(amountPaid) < cartTotal}
+                    disabled={loading || (paymentMethod !== 'debt' && (!amountPaid || parseFloat(amountPaid) < cartTotal))}
                     className="flex-1 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-600 text-white py-2 rounded-lg font-semibold"
                   >
                     {loading ? 'Processing...' : 'Complete Sale'}

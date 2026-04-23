@@ -30,8 +30,51 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       cashierName
     } = req.body;
 
-    if (!sessionId || !total || !amountPaid || !paymentMethod) {
+    if (!sessionId || !total || paymentMethod !== 'debt' && !amountPaid || !paymentMethod) {
       return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    // For debt payment, validate customer and credit limit
+    if (paymentMethod === 'debt') {
+      if (!customerId) {
+        return res.status(400).json({ error: 'Customer ID is required for debt payment' });
+      }
+
+      // Get customer's debt limit
+      const { data: customer, error: customerError } = await supabase
+        .from('customers')
+        .select('debt_limit')
+        .eq('id', customerId)
+        .single();
+
+      if (customerError || !customer) {
+        return res.status(404).json({ error: 'Customer not found' });
+      }
+
+      const debtLimit = parseFloat(customer.debt_limit || '0');
+      if (debtLimit <= 0) {
+        return res.status(400).json({ error: 'Customer does not have credit limit' });
+      }
+
+      // Get customer's current debt
+      const { data: debts, error: debtsError } = await supabase
+        .from('debts')
+        .select('amount_remaining')
+        .eq('customer_id', customerId)
+        .neq('status', 'Paid');
+
+      if (debtsError) {
+        return res.status(500).json({ error: debtsError.message });
+      }
+
+      const currentDebt = debts?.reduce((sum, debt) => sum + parseFloat(debt.amount_remaining || '0'), 0) || 0;
+      const availableCredit = debtLimit - currentDebt;
+
+      if (total > availableCredit) {
+        return res.status(400).json({ 
+          error: `Insufficient credit. Available: KSH ${availableCredit.toFixed(2)}` 
+        });
+      }
     }
 
     // Get cart items
@@ -47,7 +90,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Generate transaction number
     const transactionNumber = `TXN-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
 
-    const changeAmount = amountPaid - total;
+    const changeAmount = paymentMethod === 'debt' ? 0 : amountPaid - total;
 
     // Create sales transaction
     const { data: transaction, error: transactionError } = await supabase
@@ -61,7 +104,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         discount,
         tax,
         total,
-        amount_paid: amountPaid,
+        amount_paid: paymentMethod === 'debt' ? 0 : amountPaid,
         change_amount: changeAmount,
         payment_method: paymentMethod,
         payment_reference: paymentReference,
@@ -97,6 +140,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // Rollback transaction if items insert fails
       await supabase.from('sales_transactions').delete().eq('id', transaction.id);
       return res.status(500).json({ error: itemsError.message });
+    }
+
+    // If debt payment, create debt record
+    if (paymentMethod === 'debt') {
+      const { error: debtError } = await supabase
+        .from('debts')
+        .insert({
+          customer_id: customerId,
+          customer_name: customerName,
+          sale_id: transactionNumber,
+          total_amount: total,
+          amount_paid: 0,
+          amount_remaining: total,
+          status: 'Outstanding',
+          due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 30 days from now
+          notes: `Credit sale - ${transactionNumber}`
+        });
+
+      if (debtError) {
+        // Rollback transaction if debt insert fails
+        await supabase.from('sales_transaction_items').delete().eq('transaction_id', transaction.id);
+        await supabase.from('sales_transactions').delete().eq('id', transaction.id);
+        return res.status(500).json({ error: debtError.message });
+      }
     }
 
     // Update product inventory (reduce stock)
