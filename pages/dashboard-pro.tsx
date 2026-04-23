@@ -785,7 +785,7 @@ export default function Dashboard() {
         </div>
 
         {/* Sales & Profit Trend Chart + Pricing Data Audit - Side by Side */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
           {/* Sales & Profit Trend Chart - Takes 2 columns (66%) */}
           <div className="lg:col-span-2 bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-6">
             <div className="flex items-center justify-between mb-3">
