@@ -343,11 +343,13 @@ export default function POSPage() {
           change: paid - cartTotal,
           paymentMethod,
           cashierName: currentUser?.full_name || currentUser?.name || currentUser?.username || 'Cashier',
-          // Shop settings from database
-          shopName: shopSettings?.shop_name || 'Smart POS',
-          shopAddress: shopSettings?.address || '',
-          shopPhone: shopSettings?.phone || '',
-          shopEmail: shopSettings?.email || ''
+          // Shop settings from database (using correct field names)
+          shopName: shopSettings?.business_name || 'Smart POS',
+          shopTagline: shopSettings?.business_tagline || '',
+          shopLogo: shopSettings?.logo_url || '',
+          shopAddress: shopSettings?.business_address || '',
+          shopPhone: shopSettings?.business_phone || '',
+          shopEmail: shopSettings?.business_email || ''
         };
 
         // Show receipt

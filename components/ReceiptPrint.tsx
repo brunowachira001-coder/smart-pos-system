@@ -23,6 +23,8 @@ interface ReceiptData {
   paymentMethod: string;
   cashierName: string;
   shopName?: string;
+  shopTagline?: string;
+  shopLogo?: string;
   shopAddress?: string;
   shopPhone?: string;
   shopEmail?: string;
@@ -78,11 +80,19 @@ export default function ReceiptPrint({ data, onClose }: ReceiptPrintProps) {
           {/* Header with Shop Info */}
           <div className="border-4 border-blue-900 p-4 mb-4">
             <div className="flex items-start gap-4">
-              {/* Shop Logo/Icon Placeholder */}
+              {/* Shop Logo */}
               <div className="flex-shrink-0">
-                <div className="w-20 h-20 bg-blue-900 rounded flex items-center justify-center text-white text-2xl font-bold">
-                  {(data.shopName || 'SP').substring(0, 2).toUpperCase()}
-                </div>
+                {data.shopLogo ? (
+                  <img 
+                    src={data.shopLogo} 
+                    alt="Shop Logo" 
+                    className="w-20 h-20 object-contain rounded"
+                  />
+                ) : (
+                  <div className="w-20 h-20 bg-blue-900 rounded flex items-center justify-center text-white text-2xl font-bold">
+                    {(data.shopName || 'SP').substring(0, 2).toUpperCase()}
+                  </div>
+                )}
               </div>
               
               {/* Shop Details */}
@@ -90,7 +100,9 @@ export default function ReceiptPrint({ data, onClose }: ReceiptPrintProps) {
                 <h1 className="text-2xl font-bold text-blue-900 uppercase mb-1">
                   {data.shopName || 'SMART POS'}
                 </h1>
-                <p className="text-xs text-gray-600 italic mb-2">Shop More, Save More</p>
+                {data.shopTagline && (
+                  <p className="text-xs text-gray-600 italic mb-2">{data.shopTagline}</p>
+                )}
                 
                 <div className="space-y-1 text-xs">
                   {data.shopAddress && (
