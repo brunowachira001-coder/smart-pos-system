@@ -324,6 +324,37 @@ export default function POSPage() {
       const data = await response.json();
 
       if (response.ok) {
+        // Ensure shop settings and user data are loaded before showing receipt
+        let finalShopSettings = shopSettings;
+        let finalCurrentUser = currentUser;
+        
+        // If shop settings not loaded yet, fetch them now
+        if (!finalShopSettings) {
+          try {
+            const settingsResponse = await fetch('/api/shop-settings');
+            const settingsData = await settingsResponse.json();
+            if (settingsResponse.ok && settingsData.settings) {
+              finalShopSettings = settingsData.settings;
+              setShopSettings(settingsData.settings);
+            }
+          } catch (error) {
+            console.error('Error fetching shop settings for receipt:', error);
+          }
+        }
+        
+        // If user not loaded yet, fetch from localStorage
+        if (!finalCurrentUser) {
+          try {
+            const user = localStorage.getItem('user');
+            if (user) {
+              finalCurrentUser = JSON.parse(user);
+              setCurrentUser(finalCurrentUser);
+            }
+          } catch (error) {
+            console.error('Error fetching user for receipt:', error);
+          }
+        }
+        
         // Prepare receipt data with real shop settings
         const receipt = {
           transactionNumber: data.transaction?.transaction_number || 'N/A',
@@ -342,14 +373,14 @@ export default function POSPage() {
           amountPaid: paid,
           change: paid - cartTotal,
           paymentMethod,
-          cashierName: currentUser?.full_name || currentUser?.name || currentUser?.username || 'Cashier',
+          cashierName: finalCurrentUser?.full_name || finalCurrentUser?.name || finalCurrentUser?.username || 'Cashier',
           // Shop settings from database (using correct field names)
-          shopName: shopSettings?.business_name || 'Smart POS',
-          shopTagline: shopSettings?.business_tagline || '',
-          shopLogo: shopSettings?.logo_url || '',
-          shopAddress: shopSettings?.business_address || '',
-          shopPhone: shopSettings?.business_phone || '',
-          shopEmail: shopSettings?.business_email || ''
+          shopName: finalShopSettings?.business_name || 'Smart POS',
+          shopTagline: finalShopSettings?.business_tagline || '',
+          shopLogo: finalShopSettings?.logo_url || '',
+          shopAddress: finalShopSettings?.business_address || '',
+          shopPhone: finalShopSettings?.business_phone || '',
+          shopEmail: finalShopSettings?.business_email || ''
         };
 
         // Show receipt
