@@ -37,6 +37,24 @@ interface ReceiptPrintProps {
 
 export default function ReceiptPrint({ data, onClose }: ReceiptPrintProps) {
   // Cache bust v2
+  const [autoPrintEnabled, setAutoPrintEnabled] = React.useState(false);
+
+  // Check if auto-print is enabled
+  React.useEffect(() => {
+    const autoPrint = localStorage.getItem('autoPrintReceipt');
+    setAutoPrintEnabled(autoPrint === 'true');
+  }, []);
+
+  // Auto-print when receipt loads if enabled
+  React.useEffect(() => {
+    if (autoPrintEnabled && data) {
+      // Small delay to ensure receipt is fully rendered
+      setTimeout(() => {
+        window.print();
+      }, 500);
+    }
+  }, [autoPrintEnabled, data]);
+
   const handlePrint = () => {
     window.print();
   };
