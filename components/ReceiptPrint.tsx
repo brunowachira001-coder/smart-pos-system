@@ -107,9 +107,6 @@ export default function ReceiptPrint({ data, onClose }: ReceiptPrintProps) {
                 <h1 className="text-3xl font-bold uppercase mb-1" style={{ color: '#C41E3A' }}>
                   {data.shopName || 'SMART POS'}
                 </h1>
-                <h2 className="text-xl font-bold mb-2" style={{ color: '#003087' }}>
-                  SUPERMARKET
-                </h2>
                 {data.shopTagline && (
                   <p className="text-sm italic mb-3" style={{ color: '#1F2937' }}>{data.shopTagline}</p>
                 )}
