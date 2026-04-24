@@ -36,6 +36,7 @@ interface ReceiptPrintProps {
 }
 
 export default function ReceiptPrint({ data, onClose }: ReceiptPrintProps) {
+  // Cache bust v2
   const handlePrint = () => {
     window.print();
   };
