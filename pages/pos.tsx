@@ -383,9 +383,13 @@ export default function POSPage() {
           shopEmail: finalShopSettings?.business_email || ''
         };
 
-        // Show receipt
+        // Set receipt data first, then show receipt after state update
         setReceiptData(receipt);
-        setShowReceipt(true);
+        
+        // Use setTimeout to ensure state is updated before showing receipt
+        setTimeout(() => {
+          setShowReceipt(true);
+        }, 100);
 
         if (paymentMethod === 'debt') {
           showToast('Transaction completed on credit!', 'success');
