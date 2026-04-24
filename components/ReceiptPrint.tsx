@@ -36,6 +36,15 @@ interface ReceiptPrintProps {
 }
 
 export default function ReceiptPrint({ data, onClose }: ReceiptPrintProps) {
+  const [isDataReady, setIsDataReady] = React.useState(false);
+
+  // Check if all essential data is loaded
+  React.useEffect(() => {
+    if (data && data.items && data.items.length > 0 && data.transactionNumber) {
+      setIsDataReady(true);
+    }
+  }, [data]);
+
   const handlePrint = () => {
     window.print();
   };
@@ -49,6 +58,20 @@ export default function ReceiptPrint({ data, onClose }: ReceiptPrintProps) {
   };
 
   const { date: formattedDate, time: formattedTime } = formatDateTime();
+
+  // Show loading state until data is ready
+  if (!isDataReady) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-lg p-8">
+          <div className="flex flex-col items-center gap-4">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            <p className="text-gray-700">Preparing receipt...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
