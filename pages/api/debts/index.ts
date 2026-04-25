@@ -17,7 +17,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       let query = supabase
         .from('debts')
-        .select('*', { count: 'exact' });
+        .select('*, customers(name)', { count: 'exact' });
 
       // Apply date filtering if provided
       if (startDate && endDate) {
@@ -35,8 +35,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       if (error) throw error;
 
+      // Transform data to match frontend expectations
+      const transformedDebts = debts?.map((debt: any) => ({
+        id: debt.id,
+        customer_name: debt.customers?.name || 'Unknown',
+        sale_id: debt.transaction_id,
+        total_amount: debt.amount,
+        amount_paid: debt.amount_paid,
+        amount_remaining: debt.balance,
+        status: debt.status,
+        due_date: debt.due_date,
+        created_at: debt.created_at,
+      })) || [];
+
       return res.status(200).json({
-        debts: debts || [],
+        debts: transformedDebts,
         pagination: {
           page: pageNum,
           limit: limitNum,
@@ -51,19 +64,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (req.method === 'POST') {
     try {
-      const { customer_id, customer_name, sale_id, total_amount, due_date, notes } = req.body;
+      const { customer_id, transaction_id, amount, due_date, notes } = req.body;
 
       const { data: debt, error } = await supabase
         .from('debts')
         .insert([
           {
             customer_id,
-            customer_name,
-            sale_id,
-            total_amount,
+            transaction_id,
+            amount,
             amount_paid: 0,
-            amount_remaining: total_amount,
-            status: 'Outstanding',
+            balance: amount,
+            status: 'pending',
             due_date,
             notes,
           },
@@ -72,12 +84,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .single();
 
       if (error) throw error;
-
-      // Update customer credit
-      const { error: creditError } = await supabase.rpc('update_customer_debt', {
-        p_customer_id: customer_id,
-        p_amount: total_amount,
-      });
 
       return res.status(201).json(debt);
     } catch (error: any) {
