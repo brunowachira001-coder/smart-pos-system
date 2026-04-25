@@ -5,34 +5,46 @@ export default function DebtManagement() {
   const [stats, setStats] = useState<any>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    fetchData();
+    setMounted(true);
   }, []);
 
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-      const statsRes = await fetch('/api/debts/stats');
-      const debtsRes = await fetch('/api/debts');
+  useEffect(() => {
+    if (!mounted) return;
+    
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        setError('');
+        
+        const statsRes = await fetch('/api/debts/stats');
+        const debtsRes = await fetch('/api/debts');
 
-      if (!statsRes.ok || !debtsRes.ok) {
-        throw new Error('API error');
+        if (!statsRes.ok) {
+          throw new Error(`Stats API returned ${statsRes.status}`);
+        }
+        if (!debtsRes.ok) {
+          throw new Error(`Debts API returned ${debtsRes.status}`);
+        }
+
+        const statsData = await statsRes.json();
+        const debtsData = await debtsRes.json();
+
+        setStats(statsData || {});
+        setDebts(debtsData.debts || []);
+      } catch (err: any) {
+        setError(err.message || 'Unknown error');
+      } finally {
+        setLoading(false);
       }
+    };
 
-      const statsData = await statsRes.json();
-      const debtsData = await debtsRes.json();
+    fetchData();
+  }, [mounted]);
 
-      setStats(statsData);
-      setDebts(debtsData.debts || []);
-      setError('');
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  if (!mounted) return <div style={{ padding: '20px' }}>Initializing...</div>;
   if (loading) return <div style={{ padding: '20px' }}>Loading...</div>;
   if (error) return <div style={{ padding: '20px', color: 'red' }}>Error: {error}</div>;
 
