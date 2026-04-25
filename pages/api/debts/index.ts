@@ -54,14 +54,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // Transform data to match frontend expectations
       const transformedDebts = debts?.map((debt: any) => ({
         id: debt.id,
-        customer_name: customerMap[debt.customer_id] || 'Unknown',
-        sale_id: debt.transaction_id,
-        total_amount: debt.amount,
+        customer_name: debt.customer_name || customerMap[debt.customer_id] || 'Unknown',
+        sale_id: debt.sale_id,
+        total_amount: debt.total_amount,
         amount_paid: debt.amount_paid,
-        amount_remaining: debt.balance,
+        amount_remaining: debt.amount_remaining,
         status: debt.status,
         due_date: debt.due_date,
         created_at: debt.created_at,
+        updated_at: debt.updated_at,
       })) || [];
 
       return res.status(200).json({
@@ -80,18 +81,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (req.method === 'POST') {
     try {
-      const { customer_id, transaction_id, amount, due_date, notes } = req.body;
+      const { customer_id, customer_name, sale_id, total_amount, due_date, notes } = req.body;
 
       const { data: debt, error } = await supabase
         .from('debts')
         .insert([
           {
             customer_id,
-            transaction_id,
-            amount,
+            customer_name,
+            sale_id,
+            total_amount,
             amount_paid: 0,
-            balance: amount,
-            status: 'pending',
+            amount_remaining: total_amount,
+            status: 'Outstanding',
             due_date,
             notes,
           },

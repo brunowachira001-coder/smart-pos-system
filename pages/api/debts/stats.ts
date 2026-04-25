@@ -30,17 +30,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (customersError) throw customersError;
 
     // Calculate stats
-    const totalOutstanding = debts?.reduce((sum, debt) => sum + parseFloat(debt.balance || 0), 0) || 0;
+    const totalOutstanding = debts?.reduce((sum, debt) => {
+      const remaining = parseFloat(debt.amount_remaining || 0);
+      return sum + (remaining > 0 ? remaining : 0); // Only count positive balances
+    }, 0) || 0;
+    
     const todayDebts = debts?.filter(d => {
       const today = new Date().toDateString();
       const debtDate = new Date(d.created_at).toDateString();
       return today === debtDate;
     }) || [];
-    const todayDebtAmount = todayDebts.reduce((sum, debt) => sum + parseFloat(debt.balance || 0), 0);
+    
+    const todayDebtAmount = todayDebts.reduce((sum, debt) => {
+      const remaining = parseFloat(debt.amount_remaining || 0);
+      return sum + (remaining > 0 ? remaining : 0);
+    }, 0);
     
     const totalCreditLimit = customers?.reduce((sum, c) => sum + parseFloat(c.credit_limit || 0), 0) || 0;
-    const activeDebts = debts?.filter(d => d.status !== 'paid').length || 0;
-    const paidDebts = debts?.filter(d => d.status === 'paid').length || 0;
+    const activeDebts = debts?.filter(d => d.status !== 'Paid' && parseFloat(d.amount_remaining || 0) > 0).length || 0;
+    const paidDebts = debts?.filter(d => d.status === 'Paid' || parseFloat(d.amount_remaining || 0) <= 0).length || 0;
 
     return res.status(200).json({
       totalOutstanding,

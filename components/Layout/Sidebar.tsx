@@ -43,7 +43,7 @@ export default function Sidebar() {
     { label: 'Expenses', href: '/expenses', icon: '💸' },
     { label: 'Inventory', href: '/inventory', icon: '📦' },
     { label: 'Customers', href: '/customers', icon: '👥' },
-    { label: 'Debt Management', href: '/debt-management', icon: '💰' },
+    { label: 'Debts', href: '/debts', icon: '💰' },
     { label: 'Sales Analytics', href: '/sales-analytics', icon: '📈' },
     { label: 'Inventory Analytics', href: '/inventory-analytics', icon: '📊' },
     { label: 'Product Performance', href: '/product-performance', icon: '🎯' },
