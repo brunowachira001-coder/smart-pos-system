@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { supabase } from '../../../lib/supabase';
+import { getTodayStartInKenyaTime, getTodayEndInKenyaTime } from '../../../lib/timezone';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
@@ -32,10 +33,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       if (startDate) {
         query = query.gte('expense_date', startDate);
+      } else {
+        // Default to today in Kenyan timezone
+        const todayStart = getTodayStartInKenyaTime();
+        query = query.gte('expense_date', todayStart.toISOString().split('T')[0]);
       }
 
       if (endDate) {
         query = query.lte('expense_date', endDate);
+      } else if (!startDate) {
+        // Default to today in Kenyan timezone
+        const todayEnd = getTodayEndInKenyaTime();
+        query = query.lte('expense_date', todayEnd.toISOString().split('T')[0]);
       }
 
       if (search) {

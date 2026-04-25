@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { supabase } from '../../../lib/supabase';
+import { getTodayStartInKenyaTime, getTodayEndInKenyaTime } from '../../../lib/timezone';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
@@ -35,16 +36,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return sum + (remaining > 0 ? remaining : 0); // Only count positive balances
     }, 0) || 0;
     
-    // Get today's date in Kenyan time (EAT/UTC+3)
-    const now = new Date();
-    const kenyaTime = new Date(now.toLocaleString('en-US', { timeZone: 'Africa/Nairobi' }));
-    const todayStart = new Date(kenyaTime.getFullYear(), kenyaTime.getMonth(), kenyaTime.getDate());
-    const todayEnd = new Date(todayStart);
-    todayEnd.setDate(todayEnd.getDate() + 1);
+    // Get today's date range in Kenyan timezone
+    const todayStart = getTodayStartInKenyaTime();
+    const todayEnd = getTodayEndInKenyaTime();
     
     const todayDebts = debts?.filter(d => {
       const debtDate = new Date(d.created_at);
-      return debtDate >= todayStart && debtDate < todayEnd;
+      return debtDate >= todayStart && debtDate <= todayEnd;
     }) || [];
     
     const todayDebtAmount = todayDebts.reduce((sum, debt) => {

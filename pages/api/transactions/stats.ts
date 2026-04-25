@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
+import { getTodayStartInKenyaTime, getTodayEndInKenyaTime } from '../../../lib/timezone';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -21,10 +22,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (startDate) {
       query = query.gte('created_at', startDate);
+    } else {
+      // Default to today in Kenyan timezone
+      const todayStart = getTodayStartInKenyaTime();
+      query = query.gte('created_at', todayStart.toISOString());
     }
 
     if (endDate) {
       query = query.lte('created_at', endDate);
+    } else if (!startDate) {
+      // Default to today in Kenyan timezone
+      const todayEnd = getTodayEndInKenyaTime();
+      query = query.lte('created_at', todayEnd.toISOString());
     }
 
     const { data: transactions, error, count } = await query;

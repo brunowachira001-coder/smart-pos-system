@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
+import { getTodayStartInKenyaTime, getTodayEndInKenyaTime } from '../../../lib/timezone';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -18,11 +19,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    // Get today's date range
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
+    // Get today's date range in Kenyan timezone (EAT/UTC+3)
+    const today = getTodayStartInKenyaTime();
+    const tomorrow = getTodayEndInKenyaTime();
 
     // Fetch products count and low stock
     const { data: products, error: productsError } = await supabase

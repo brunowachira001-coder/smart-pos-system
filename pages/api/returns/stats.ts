@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { supabase } from '../../../lib/supabase';
+import { getTodayStartInKenyaTime, getTodayEndInKenyaTime } from '../../../lib/timezone';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
@@ -19,11 +20,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const totalRefundAmount = returns?.reduce((sum, r) => sum + parseFloat(r.refund_amount || 0), 0) || 0;
     const totalReturnValue = returns?.reduce((sum, r) => sum + parseFloat(r.amount || 0), 0) || 0;
 
-    // Today's returns
-    const today = new Date().toDateString();
+    // Today's returns in Kenyan timezone
+    const todayStart = getTodayStartInKenyaTime();
+    const todayEnd = getTodayEndInKenyaTime();
     const todayReturns = returns?.filter(r => {
-      const returnDate = new Date(r.return_date).toDateString();
-      return returnDate === today;
+      const returnDate = new Date(r.return_date);
+      return returnDate >= todayStart && returnDate <= todayEnd;
     }) || [];
     const todayReturnCount = todayReturns.length;
     const todayReturnValue = todayReturns.reduce((sum, r) => sum + parseFloat(r.amount || 0), 0);
