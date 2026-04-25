@@ -1,32 +1,32 @@
--- Fix Debt Negative Amount Issue
--- This script ensures amount_remaining never goes below 0
+-- Fix Debt Negative Balance Issue
+-- This script ensures balance never goes below 0
 
--- Add constraint to prevent negative amount_remaining
-ALTER TABLE debts
-ADD CONSTRAINT check_amount_remaining_non_negative 
-CHECK (amount_remaining >= 0);
+-- Add constraint to prevent negative balance
+ALTER TABLE public.debts
+ADD CONSTRAINT check_balance_non_negative 
+CHECK (balance >= 0);
 
 -- Update existing negative values to 0
-UPDATE debts 
-SET amount_remaining = 0 
-WHERE amount_remaining < 0;
+UPDATE public.debts 
+SET balance = 0 
+WHERE balance < 0;
 
--- Update the trigger to ensure amount_remaining never goes negative
-CREATE OR REPLACE FUNCTION update_debt_status()
+-- Create trigger to ensure balance never goes negative
+CREATE OR REPLACE FUNCTION update_debt_balance()
 RETURNS TRIGGER AS $$
 BEGIN
-  -- Ensure amount_remaining never goes below 0
-  IF NEW.amount_remaining < 0 THEN
-    NEW.amount_remaining := 0;
+  -- Ensure balance never goes below 0
+  IF NEW.balance < 0 THEN
+    NEW.balance := 0;
   END IF;
   
-  -- Update status based on amount_remaining
-  IF NEW.amount_remaining <= 0 THEN
-    NEW.status := 'Paid';
-  ELSIF NEW.amount_paid > 0 AND NEW.amount_remaining > 0 THEN
-    NEW.status := 'Partial';
+  -- Update status based on balance
+  IF NEW.balance <= 0 THEN
+    NEW.status := 'paid';
+  ELSIF NEW.amount_paid > 0 AND NEW.balance > 0 THEN
+    NEW.status := 'partial';
   ELSE
-    NEW.status := 'Outstanding';
+    NEW.status := 'pending';
   END IF;
   
   NEW.updated_at := NOW();
@@ -35,8 +35,8 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Recreate trigger
-DROP TRIGGER IF EXISTS trigger_update_debt_status ON debts;
-CREATE TRIGGER trigger_update_debt_status
-  BEFORE UPDATE ON debts
+DROP TRIGGER IF EXISTS trigger_update_debt_balance ON public.debts;
+CREATE TRIGGER trigger_update_debt_balance
+  BEFORE UPDATE ON public.debts
   FOR EACH ROW
-  EXECUTE FUNCTION update_debt_status();
+  EXECUTE FUNCTION update_debt_balance();

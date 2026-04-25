@@ -47,13 +47,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (paymentsError) throw paymentsError;
 
     // Calculate stats
-    const totalOutstanding = debts?.reduce((sum, debt) => sum + parseFloat(debt.amount_remaining || 0), 0) || 0;
+    const totalOutstanding = debts?.reduce((sum, debt) => sum + parseFloat(debt.balance || 0), 0) || 0;
     const todayDebts = debts?.filter(d => {
       const today = new Date().toDateString();
       const debtDate = new Date(d.created_at).toDateString();
       return today === debtDate;
     }) || [];
-    const todayDebtAmount = todayDebts.reduce((sum, debt) => sum + parseFloat(debt.amount_remaining || 0), 0);
+    const todayDebtAmount = todayDebts.reduce((sum, debt) => sum + parseFloat(debt.balance || 0), 0);
     
     const totalCreditLimit = credits?.reduce((sum, c) => sum + parseFloat(c.credit_limit || 0), 0) || 0;
     const activeDebts = debts?.filter(d => d.status !== 'Paid').length || 0;

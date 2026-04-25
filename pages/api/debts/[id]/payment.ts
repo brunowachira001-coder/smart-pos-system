@@ -22,15 +22,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Validate payment amount
     const paymentAmount = parseFloat(amount);
-    const currentRemaining = parseFloat(debt.amount_remaining);
+    const currentBalance = parseFloat(debt.balance);
 
     if (paymentAmount <= 0) {
       return res.status(400).json({ error: 'Payment amount must be greater than 0' });
     }
 
-    if (paymentAmount > currentRemaining) {
+    if (paymentAmount > currentBalance) {
       return res.status(400).json({ 
-        error: `Payment amount (${paymentAmount}) exceeds outstanding debt (${currentRemaining})` 
+        error: `Payment amount (${paymentAmount}) exceeds outstanding debt (${currentBalance})` 
       });
     }
 
@@ -54,13 +54,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Update debt
     const newAmountPaid = parseFloat(debt.amount_paid) + paymentAmount;
-    const newAmountRemaining = Math.max(0, currentRemaining - paymentAmount);
+    const newBalance = Math.max(0, currentBalance - paymentAmount);
 
     const { data: updatedDebt, error: updateError } = await supabase
       .from('debts')
       .update({
         amount_paid: newAmountPaid,
-        amount_remaining: newAmountRemaining,
+        balance: newBalance,
         updated_at: new Date().toISOString(),
       })
       .eq('id', id)
