@@ -23,20 +23,18 @@ interface Payment {
 
 export default function DebtManagement() {
   const [debts, setDebts] = useState<Debt[]>([]);
-  const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [selectedDebt, setSelectedDebt] = useState<Debt | null>(null);
   const [paymentAmount, setPaymentAmount] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('Cash');
   const [referenceNumber, setReferenceNumber] = useState('');
-  const [activeTab, setActiveTab] = useState('overview');
   const [dateRange, setDateRange] = useState('all');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [displayStartDate, setDisplayStartDate] = useState('');
   const [displayEndDate, setDisplayEndDate] = useState('');
-  const [currentDate, setCurrentDate] = useState(new Date().toDateString());
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
   const [totalPages, setTotalPages] = useState(1);
@@ -55,71 +53,37 @@ export default function DebtManagement() {
   }, [currentPage, itemsPerPage]);
 
   useEffect(() => {
-    // Convert selected range to actual dates
-    const updateDates = () => {
-      const { startDate: start, endDate: end } = getDateRange(dateRange);
+    const { startDate: start, endDate: end } = getDateRange(dateRange);
+    
+    if (start && end) {
+      setStartDate(start.toISOString());
+      setEndDate(end.toISOString());
       
-      if (start && end) {
-        // Format with full timestamp for API
-        setStartDate(start.toISOString());
-        setEndDate(end.toISOString());
-        
-        // Format for display in date inputs (YYYY-MM-DD)
-        const formatForDisplay = (date: Date) => {
-          const year = date.getFullYear();
-          const month = String(date.getMonth() + 1).padStart(2, '0');
-          const day = String(date.getDate()).padStart(2, '0');
-          return `${year}-${month}-${day}`;
-        };
-        
-        setDisplayStartDate(formatForDisplay(start));
-        setDisplayEndDate(formatForDisplay(end));
-      } else {
-        // For 'all', clear the date range
-        setStartDate('');
-        setEndDate('');
-        setDisplayStartDate('');
-        setDisplayEndDate('');
-      }
-    };
-
-    // Update dates immediately
-    updateDates();
+      const formatForDisplay = (date: Date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      };
+      
+      setDisplayStartDate(formatForDisplay(start));
+      setDisplayEndDate(formatForDisplay(end));
+    } else {
+      setStartDate('');
+      setEndDate('');
+      setDisplayStartDate('');
+      setDisplayEndDate('');
+    }
   }, [dateRange]);
 
-  // Fetch data when dates change
   useEffect(() => {
     fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [startDate, endDate]);
-
-  // Check for date change every 10 seconds and refresh data
-  useEffect(() => {
-    const checkDateChange = () => {
-      const now = new Date();
-      const newDate = now.toDateString();
-      
-      // If the date has changed, refresh data immediately
-      if (newDate !== currentDate) {
-        console.log('Date changed from', currentDate, 'to', newDate, '- refreshing debt management data...');
-        setCurrentDate(newDate);
-        // Recalculate date range for current selection
-        const { startDate: start, endDate: end } = getDateRange(dateRange);
-        setStartDate(start.toISOString());
-        setEndDate(end.toISOString());
-      }
-    };
-
-    // Check every 10 seconds for date changes
-    const interval = setInterval(checkDateChange, 10000);
-
-    return () => clearInterval(interval);
-  }, [currentDate, dateRange]);
 
   const fetchData = async () => {
     setLoading(true);
+    setError(null);
     try {
-      // Build query params for date filtering
       const params = new URLSearchParams();
       if (dateRange !== 'all' && startDate && endDate) {
         params.append('startDate', startDate);
@@ -134,22 +98,17 @@ export default function DebtManagement() {
       ]);
 
       if (!statsRes.ok) {
-        const error = await statsRes.text();
-        console.error('Stats API error:', statsRes.status, error);
-        throw new Error(`Stats API error: ${statsRes.status}`);
+        const errorText = await statsRes.text();
+        throw new Error(`Stats API error: ${statsRes.status} - ${errorText}`);
       }
 
       if (!debtsRes.ok) {
-        const error = await debtsRes.text();
-        console.error('Debts API error:', debtsRes.status, error);
-        throw new Error(`Debts API error: ${debtsRes.status}`);
+        const errorText = await debtsRes.text();
+        throw new Error(`Debts API error: ${debtsRes.status} - ${errorText}`);
       }
 
       const statsData = await statsRes.json();
       const debtsData = await debtsRes.json();
-
-      console.log('Stats data:', statsData);
-      console.log('Debts data:', debtsData);
 
       setStats({
         totalOutstanding: statsData.totalOutstanding || 0,
@@ -162,10 +121,9 @@ export default function DebtManagement() {
       setDebts(debtsData.debts || []);
       setTotalPages(debtsData.pagination?.totalPages || 1);
       setTotalDebts(debtsData.pagination?.total || 0);
-      setPayments(statsData.payments || []);
-    } catch (error) {
-      console.error('Error fetching data:', error);
-      alert(`Error loading debt data: ${error}`);
+    } catch (err: any) {
+      console.error('Error fetching data:', err);
+      setError(err.message || 'Failed to load debt data');
     } finally {
       setLoading(false);
     }
@@ -205,6 +163,23 @@ export default function DebtManagement() {
     );
   }
 
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-red-600 mb-4">Error Loading Debt Page</h1>
+          <p className="text-[var(--text-primary)] mb-4 max-w-md">{error}</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -225,7 +200,6 @@ export default function DebtManagement() {
             startDate={displayStartDate}
             endDate={displayEndDate}
             onDateChange={(start, end) => {
-              // Convert YYYY-MM-DD to ISO timestamp for API
               const startDate = new Date(start + 'T00:00:00');
               const endDate = new Date(end + 'T23:59:59.999');
               setStartDate(startDate.toISOString());
@@ -272,7 +246,7 @@ export default function DebtManagement() {
             <span className="text-2xl">👥</span>
           </div>
           <p className="text-3xl font-bold text-[var(--text-primary)]">{stats.activeDebts}</p>
-          <p className="text-xs text-[var(--text-secondary)] mt-2">2 total debt records</p>
+          <p className="text-xs text-[var(--text-secondary)] mt-2">{totalDebts} total debt records</p>
         </div>
 
         <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-6">
@@ -283,23 +257,6 @@ export default function DebtManagement() {
           <p className="text-3xl font-bold text-[var(--text-primary)]">{stats.recentPayments}</p>
           <p className="text-xs text-[var(--text-secondary)] mt-2">All time payment records</p>
         </div>
-      </div>
-
-      {/* Tabs */}
-      <div className="flex gap-2 border-b border-[var(--border-color)]">
-        {['overview', 'all-debts', 'payments', 'customer-summary'].map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-              activeTab === tab
-                ? 'border-emerald-500 text-emerald-500'
-                : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-            }`}
-          >
-            {tab.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
-          </button>
-        ))}
       </div>
 
       {/* Recent Outstanding Debts */}
@@ -327,7 +284,7 @@ export default function DebtManagement() {
                   <p className="text-xl font-bold text-[var(--text-primary)]">KSH {debt.amount_remaining.toFixed(2)}</p>
                   <span
                     className={`text-xs px-2 py-1 rounded-full ${
-                      debt.status === 'Partial'
+                      debt.status === 'partial'
                         ? 'bg-yellow-500/20 text-yellow-500'
                         : 'bg-red-500/20 text-red-500'
                     }`}
