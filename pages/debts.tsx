@@ -20,6 +20,8 @@ export default function Debts() {
   const [stats, setStats] = useState<any>({});
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
   const [paymentModal, setPaymentModal] = useState<{ show: boolean; debt: Debt | null }>({
     show: false,
     debt: null,
@@ -30,17 +32,18 @@ export default function Debts() {
   useEffect(() => {
     fetchDebts();
     fetchStats();
-  }, [currentPage]);
+  }, [currentPage, itemsPerPage]);
 
   const fetchDebts = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/debts?page=${currentPage}&limit=20`);
+      const response = await fetch(`/api/debts?page=${currentPage}&limit=${itemsPerPage}`);
       const data = await response.json();
       
       if (response.ok) {
         setDebts(data.debts || []);
         setTotalPages(data.pagination?.totalPages || 1);
+        setTotalItems(data.pagination?.total || 0);
       }
     } catch (error) {
       console.error('Error fetching debts:', error);
@@ -214,7 +217,11 @@ export default function Debts() {
                 <Pagination
                   currentPage={currentPage}
                   totalPages={totalPages}
+                  totalItems={totalItems}
+                  itemsPerPage={itemsPerPage}
                   onPageChange={setCurrentPage}
+                  onItemsPerPageChange={setItemsPerPage}
+                  itemName="debts"
                 />
               </div>
             </>
