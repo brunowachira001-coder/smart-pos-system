@@ -56,18 +56,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(400).json({ error: 'Customer does not have credit limit' });
       }
 
-      // Get customer's current debt
+      // Get customer's current debt (use 'balance' field, not 'amount_remaining')
       const { data: debts, error: debtsError } = await supabase
         .from('debts')
-        .select('amount_remaining')
+        .select('balance')
         .eq('customer_id', customerId)
-        .neq('status', 'Paid');
+        .neq('status', 'paid');
 
       if (debtsError) {
         return res.status(500).json({ error: debtsError.message });
       }
 
-      const currentDebt = debts?.reduce((sum, debt) => sum + parseFloat(debt.amount_remaining || '0'), 0) || 0;
+      const currentDebt = debts?.reduce((sum, debt) => sum + parseFloat(debt.balance || '0'), 0) || 0;
       const availableCredit = debtLimit - currentDebt;
 
       if (total > availableCredit) {
@@ -92,26 +92,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const changeAmount = paymentMethod === 'debt' ? 0 : amountPaid - total;
 
-    // Create sales transaction
+    // Create transaction (use 'transactions' table, not 'sales_transactions')
     const { data: transaction, error: transactionError } = await supabase
-      .from('sales_transactions')
+      .from('transactions')
       .insert({
         transaction_number: transactionNumber,
         customer_id: customerId,
-        customer_name: customerName,
-        customer_phone: customerPhone,
-        subtotal,
-        discount,
-        tax,
-        total,
-        amount_paid: paymentMethod === 'debt' ? 0 : amountPaid,
-        change_amount: changeAmount,
+        user_id: cashierId,
+        total_amount: total,
         payment_method: paymentMethod,
-        payment_reference: paymentReference,
-        status: 'completed',
-        notes,
-        cashier_id: cashierId,
-        cashier_name: cashierName
+        payment_status: 'completed',
+        notes: notes
       })
       .select()
       .single();
@@ -120,25 +111,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(500).json({ error: transactionError.message });
     }
 
-    // Create transaction items
+    // Create transaction items (use 'transaction_items' table)
     const transactionItems = cartItems.map(item => ({
       transaction_id: transaction.id,
       product_id: item.product_id,
-      product_name: item.product_name,
-      sku: item.sku,
       quantity: item.quantity,
       unit_price: item.unit_price,
-      price_type: item.price_type,
       subtotal: item.subtotal
     }));
 
     const { error: itemsError } = await supabase
-      .from('sales_transaction_items')
+      .from('transaction_items')
       .insert(transactionItems);
 
     if (itemsError) {
       // Rollback transaction if items insert fails
-      await supabase.from('sales_transactions').delete().eq('id', transaction.id);
+      await supabase.from('transactions').delete().eq('id', transaction.id);
       return res.status(500).json({ error: itemsError.message });
     }
 
@@ -148,20 +136,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .from('debts')
         .insert({
           customer_id: customerId,
-          customer_name: customerName,
-          sale_id: transactionNumber,
-          total_amount: total,
+          transaction_id: transaction.id,
+          amount: total,
           amount_paid: 0,
-          amount_remaining: total,
-          status: 'Outstanding',
-          due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 30 days from now
+          balance: total,
+          status: 'pending',
+          due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
           notes: `Credit sale - ${transactionNumber}`
         });
 
       if (debtError) {
         // Rollback transaction if debt insert fails
-        await supabase.from('sales_transaction_items').delete().eq('transaction_id', transaction.id);
-        await supabase.from('sales_transactions').delete().eq('id', transaction.id);
+        await supabase.from('transaction_items').delete().eq('transaction_id', transaction.id);
+        await supabase.from('transactions').delete().eq('id', transaction.id);
         return res.status(500).json({ error: debtError.message });
       }
     }
