@@ -1,4 +1,4 @@
-// Updated: Trigger deployment with new Supabase credentials
+// Deployment trigger - sample debts created
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
 import bcrypt from 'bcryptjs';
