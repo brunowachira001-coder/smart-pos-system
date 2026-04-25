@@ -107,7 +107,7 @@ export default function DebtManagement() {
 
   return (
     <MainLayout>
-      <div className="p-6 space-y-6">
+      <div className="space-y-6">
         {/* Header */}
         <div>
           <h1 className="text-3xl font-bold text-[var(--text-primary)]">Debt Management</h1>

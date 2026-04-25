@@ -29,16 +29,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (customersError) throw customersError;
 
-    // Calculate stats
+    // Calculate stats using Kenyan time (EAT/UTC+3)
     const totalOutstanding = debts?.reduce((sum, debt) => {
       const remaining = parseFloat(debt.amount_remaining || 0);
       return sum + (remaining > 0 ? remaining : 0); // Only count positive balances
     }, 0) || 0;
     
+    // Get today's date in Kenyan time (EAT/UTC+3)
+    const now = new Date();
+    const kenyaTime = new Date(now.toLocaleString('en-US', { timeZone: 'Africa/Nairobi' }));
+    const todayStart = new Date(kenyaTime.getFullYear(), kenyaTime.getMonth(), kenyaTime.getDate());
+    const todayEnd = new Date(todayStart);
+    todayEnd.setDate(todayEnd.getDate() + 1);
+    
     const todayDebts = debts?.filter(d => {
-      const today = new Date().toDateString();
-      const debtDate = new Date(d.created_at).toDateString();
-      return today === debtDate;
+      const debtDate = new Date(d.created_at);
+      return debtDate >= todayStart && debtDate < todayEnd;
     }) || [];
     
     const todayDebtAmount = todayDebts.reduce((sum, debt) => {
