@@ -133,8 +133,23 @@ export default function DebtManagement() {
         fetch(`/api/debts?${params.toString()}`),
       ]);
 
+      if (!statsRes.ok) {
+        const error = await statsRes.text();
+        console.error('Stats API error:', statsRes.status, error);
+        throw new Error(`Stats API error: ${statsRes.status}`);
+      }
+
+      if (!debtsRes.ok) {
+        const error = await debtsRes.text();
+        console.error('Debts API error:', debtsRes.status, error);
+        throw new Error(`Debts API error: ${debtsRes.status}`);
+      }
+
       const statsData = await statsRes.json();
       const debtsData = await debtsRes.json();
+
+      console.log('Stats data:', statsData);
+      console.log('Debts data:', debtsData);
 
       setStats({
         totalOutstanding: statsData.totalOutstanding || 0,
@@ -150,6 +165,7 @@ export default function DebtManagement() {
       setPayments(statsData.payments || []);
     } catch (error) {
       console.error('Error fetching data:', error);
+      alert(`Error loading debt data: ${error}`);
     } finally {
       setLoading(false);
     }
