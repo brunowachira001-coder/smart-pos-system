@@ -1,5 +1,7 @@
 # Smart POS System
 
+<!-- Deployment trigger -->
+
 A complete Point of Sale and Inventory Management System built with Next.js, React, and Supabase.
 
 ## 🚀 Live Demo

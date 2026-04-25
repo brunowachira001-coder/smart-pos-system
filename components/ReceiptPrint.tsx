@@ -48,10 +48,10 @@ export default function ReceiptPrint({ data, onClose }: ReceiptPrintProps) {
   // Auto-print when receipt loads if enabled
   React.useEffect(() => {
     if (autoPrintEnabled && data) {
-      // Small delay to ensure receipt is fully rendered
+      // Minimal delay to ensure receipt is fully rendered, then print immediately
       setTimeout(() => {
         window.print();
-      }, 500);
+      }, 100);
     }
   }, [autoPrintEnabled, data]);
 

@@ -98,6 +98,90 @@ export default function POSPage() {
     }
   }, [searchQuery]);
 
+  // Barcode Scanner Integration
+  useEffect(() => {
+    let barcodeBuffer = '';
+    let barcodeTimeout: NodeJS.Timeout;
+
+    const handleKeyPress = async (e: KeyboardEvent) => {
+      // Ignore if user is typing in an input field
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+        return;
+      }
+
+      // Ignore if checkout modal is open
+      if (showCheckout) {
+        return;
+      }
+
+      // Clear timeout on each keypress
+      clearTimeout(barcodeTimeout);
+
+      // Enter key means barcode scan is complete
+      if (e.key === 'Enter' && barcodeBuffer.length > 0) {
+        e.preventDefault();
+        await handleBarcodeScanned(barcodeBuffer.trim());
+        barcodeBuffer = '';
+        return;
+      }
+
+      // Add character to buffer (barcode scanners type very fast)
+      if (e.key.length === 1) {
+        barcodeBuffer += e.key;
+        
+        // Auto-clear buffer after 100ms of no input (human typing is slower)
+        barcodeTimeout = setTimeout(() => {
+          barcodeBuffer = '';
+        }, 100);
+      }
+    };
+
+    // Add event listener
+    window.addEventListener('keypress', handleKeyPress);
+
+    // Cleanup
+    return () => {
+      window.removeEventListener('keypress', handleKeyPress);
+      clearTimeout(barcodeTimeout);
+    };
+  }, [showCheckout, priceMode, products]);
+
+  const handleBarcodeScanned = async (barcode: string) => {
+    try {
+      // Search for product by SKU (barcode)
+      const response = await fetch(`/api/products/search?q=${encodeURIComponent(barcode)}`);
+      const data = await response.json();
+      
+      if (data.products && data.products.length > 0) {
+        // Find exact SKU match
+        const product = data.products.find((p: Product) => p.sku.toLowerCase() === barcode.toLowerCase());
+        
+        if (product) {
+          // Check stock
+          if (product.stock_quantity <= 0) {
+            showToast(`${product.name} is out of stock!`, 'error');
+            return;
+          }
+
+          // Add to cart with appropriate price
+          const priceType = priceMode === 'all' ? 'retail' : priceMode;
+          await addToCart(product, priceType as 'retail' | 'wholesale');
+          
+          // Show success feedback
+          showToast(`✓ ${product.name} added to cart`, 'success');
+        } else {
+          showToast(`Product not found: ${barcode}`, 'error');
+        }
+      } else {
+        showToast(`Product not found: ${barcode}`, 'error');
+      }
+    } catch (error) {
+      console.error('Error processing barcode:', error);
+      showToast('Error scanning barcode', 'error');
+    }
+  };
+
   const fetchProducts = async () => {
     try {
       const params = new URLSearchParams();
@@ -383,13 +467,12 @@ export default function POSPage() {
           shopEmail: finalShopSettings?.business_email || ''
         };
 
-        // Set receipt data first, then show receipt after state update
+        // Set receipt data and show immediately
         setReceiptData(receipt);
+        setShowReceipt(true);
         
-        // Use setTimeout to ensure state is updated before showing receipt
-        setTimeout(() => {
-          setShowReceipt(true);
-        }, 100);
+        // Clear loading state immediately
+        setLoading(false);
 
         if (paymentMethod === 'debt') {
           showToast('Transaction completed on credit!', 'success');
@@ -408,11 +491,11 @@ export default function POSPage() {
         await fetchCart();
       } else {
         showToast(`Error: ${data.error}`, 'error');
+        setLoading(false);
       }
     } catch (error) {
       console.error('Error during checkout:', error);
       showToast('Checkout failed', 'error');
-    } finally {
       setLoading(false);
     }
   };
@@ -448,6 +531,16 @@ export default function POSPage() {
               <option value="retail">Retail</option>
               <option value="wholesale">Wholesale</option>
             </select>
+            
+            {/* Barcode Scanner Indicator */}
+            {!showCheckout && (
+              <div className="flex items-center gap-2 px-3 py-2 bg-green-500/10 border border-green-500/30 rounded-lg">
+                <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                </svg>
+                <span className="text-xs font-medium text-green-500">Scanner Ready</span>
+              </div>
+            )}
           </div>
         </div>
 
