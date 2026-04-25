@@ -229,7 +229,7 @@ export default function DebtManagement() {
             <span className="text-2xl">💰</span>
           </div>
           <p className="text-3xl font-bold text-[var(--text-primary)]">KSH {stats.totalOutstanding.toFixed(2)}</p>
-          <p className="text-xs text-[var(--text-secondary)] mt-2">2 customers with outstanding debt</p>
+          <p className="text-xs text-[var(--text-secondary)] mt-2">{stats.activeDebts} customers with outstanding debt</p>
         </div>
 
         <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-6">
@@ -290,12 +290,12 @@ export default function DebtManagement() {
       <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-6">
         <h2 className="text-lg font-bold text-[var(--text-primary)] mb-4">Recent Outstanding Debts</h2>
         <div className="space-y-3">
-          {debts.filter(d => d.status !== 'Paid').length === 0 ? (
+          {debts.filter(d => d.status !== 'paid').length === 0 ? (
             <div className="text-center py-8 text-[var(--text-secondary)]">
               No outstanding debts found for the selected date range
             </div>
           ) : (
-            debts.filter(d => d.status !== 'Paid').map((debt) => (
+            debts.filter(d => d.status !== 'paid').map((debt) => (
             <div
               key={debt.id}
               className="flex justify-between items-center p-4 bg-[var(--bg-secondary)] rounded-lg border border-[var(--border-color)]"
