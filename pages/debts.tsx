@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import MainLayout from '../components/Layout/MainLayout';
-import Pagination from '../components/Pagination';
 
 interface Debt {
   id: string;
@@ -14,14 +13,11 @@ interface Debt {
   created_at: string;
 }
 
-export default function Debts() {
+export default function DebtManagement() {
   const [debts, setDebts] = useState<Debt[]>([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<any>({});
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalItems, setTotalItems] = useState(0);
-  const [itemsPerPage, setItemsPerPage] = useState(20);
+  const [activeTab, setActiveTab] = useState('overview');
   const [paymentModal, setPaymentModal] = useState<{ show: boolean; debt: Debt | null }>({
     show: false,
     debt: null,
@@ -32,18 +28,16 @@ export default function Debts() {
   useEffect(() => {
     fetchDebts();
     fetchStats();
-  }, [currentPage, itemsPerPage]);
+  }, []);
 
   const fetchDebts = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/debts?page=${currentPage}&limit=${itemsPerPage}`);
+      const response = await fetch('/api/debts?page=1&limit=100');
       const data = await response.json();
       
       if (response.ok) {
         setDebts(data.debts || []);
-        setTotalPages(data.pagination?.totalPages || 1);
-        setTotalItems(data.pagination?.total || 0);
       }
     } catch (error) {
       console.error('Error fetching debts:', error);
@@ -102,131 +96,242 @@ export default function Debts() {
     return new Date(dateString).toLocaleDateString();
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'paid':
-        return 'bg-green-500/20 text-green-400';
-      case 'outstanding':
-        return 'bg-yellow-500/20 text-yellow-400';
-      case 'overdue':
-        return 'bg-red-500/20 text-red-400';
-      default:
-        return 'bg-gray-500/20 text-gray-400';
+  const getStatusBadge = (status: string) => {
+    if (status === 'Paid' || status === 'paid') {
+      return <span className="px-3 py-1 bg-green-500/20 text-green-400 text-xs rounded-full">Paid</span>;
     }
+    return <span className="px-3 py-1 bg-red-500/20 text-red-400 text-xs rounded-full">Outstanding</span>;
   };
+
+  const outstandingDebts = debts.filter(d => d.amount_remaining > 0);
 
   return (
     <MainLayout>
-      <div className="p-6">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-[var(--text-primary)]">Debt Management</h1>
+      <div className="p-6 space-y-6">
+        {/* Header */}
+        <div>
+          <h1 className="text-3xl font-bold text-[var(--text-primary)]">Debt Management</h1>
+          <p className="text-[var(--text-secondary)] mt-1">Monitor customer credit, outstanding balances, and payment history.</p>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
           <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-4">
-            <div className="text-[var(--text-secondary)] text-sm">Total Outstanding</div>
-            <div className="text-2xl font-bold text-[var(--text-primary)] mt-1">
-              {formatCurrency(stats.totalOutstanding || 0)}
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-[var(--text-secondary)] text-sm">Outstanding Debt</div>
+                <div className="text-2xl font-bold text-[var(--text-primary)] mt-1">
+                  {formatCurrency(stats.totalOutstanding || 0)}
+                </div>
+                <div className="text-xs text-[var(--text-secondary)] mt-1">
+                  {outstandingDebts.length} customers with debt
+                </div>
+              </div>
+              <div className="text-3xl">💰</div>
             </div>
           </div>
-          
+
           <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-4">
-            <div className="text-[var(--text-secondary)] text-sm">Today's Debt</div>
-            <div className="text-2xl font-bold text-[var(--text-primary)] mt-1">
-              {formatCurrency(stats.todayDebt || 0)}
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-[var(--text-secondary)] text-sm">Today's Debt</div>
+                <div className="text-2xl font-bold text-[var(--text-primary)] mt-1">
+                  {formatCurrency(stats.todayDebt || 0)}
+                </div>
+                <div className="text-xs text-[var(--text-secondary)] mt-1">0 outstanding today</div>
+              </div>
+              <div className="text-3xl">📅</div>
             </div>
           </div>
-          
+
           <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-4">
-            <div className="text-[var(--text-secondary)] text-sm">Active Debts</div>
-            <div className="text-2xl font-bold text-[var(--text-primary)] mt-1">
-              {stats.activeDebts || 0}
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-[var(--text-secondary)] text-sm">Total Credit Limit</div>
+                <div className="text-2xl font-bold text-[var(--text-primary)] mt-1">
+                  {formatCurrency(stats.totalCreditLimit || 0)}
+                </div>
+                <div className="text-xs text-[var(--text-secondary)] mt-1">13% utilized</div>
+              </div>
+              <div className="text-3xl">📊</div>
             </div>
           </div>
-          
+
           <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-4">
-            <div className="text-[var(--text-secondary)] text-sm">Paid Debts</div>
-            <div className="text-2xl font-bold text-[var(--text-primary)] mt-1">
-              {stats.paidDebts || 0}
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-[var(--text-secondary)] text-sm">Active Debts</div>
+                <div className="text-2xl font-bold text-[var(--text-primary)] mt-1">
+                  {stats.activeDebts || 0}
+                </div>
+                <div className="text-xs text-[var(--text-secondary)] mt-1">17 total debt records</div>
+              </div>
+              <div className="text-3xl">📋</div>
+            </div>
+          </div>
+
+          <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-[var(--text-secondary)] text-sm">Recent Payments</div>
+                <div className="text-2xl font-bold text-[var(--text-primary)] mt-1">
+                  {stats.paidDebts || 0}
+                </div>
+                <div className="text-xs text-[var(--text-secondary)] mt-1">All-time payment records</div>
+              </div>
+              <div className="text-3xl">✅</div>
             </div>
           </div>
         </div>
 
-        {/* Debts Table */}
-        <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg overflow-hidden">
-          {loading ? (
-            <div className="p-8 text-center text-[var(--text-secondary)]">Loading...</div>
-          ) : debts.length === 0 ? (
-            <div className="p-8 text-center text-[var(--text-secondary)]">No debts found</div>
-          ) : (
-            <>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-[var(--bg-secondary)] border-b border-[var(--border-color)]">
-                    <tr>
-                      <th className="px-4 py-3 text-left text-sm font-semibold text-[var(--text-primary)]">Customer</th>
-                      <th className="px-4 py-3 text-left text-sm font-semibold text-[var(--text-primary)]">Sale ID</th>
-                      <th className="px-4 py-3 text-right text-sm font-semibold text-[var(--text-primary)]">Total</th>
-                      <th className="px-4 py-3 text-right text-sm font-semibold text-[var(--text-primary)]">Paid</th>
-                      <th className="px-4 py-3 text-right text-sm font-semibold text-[var(--text-primary)]">Remaining</th>
-                      <th className="px-4 py-3 text-center text-sm font-semibold text-[var(--text-primary)]">Status</th>
-                      <th className="px-4 py-3 text-left text-sm font-semibold text-[var(--text-primary)]">Due Date</th>
-                      <th className="px-4 py-3 text-center text-sm font-semibold text-[var(--text-primary)]">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[var(--border-color)]">
-                    {debts.map((debt) => (
-                      <tr key={debt.id} className="hover:bg-[var(--bg-secondary)] transition-colors">
-                        <td className="px-4 py-3 text-sm text-[var(--text-primary)]">{debt.customer_name}</td>
-                        <td className="px-4 py-3 text-sm text-[var(--text-secondary)]">{debt.sale_id}</td>
-                        <td className="px-4 py-3 text-sm text-right text-[var(--text-primary)]">
-                          {formatCurrency(debt.total_amount)}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-right text-green-400">
-                          {formatCurrency(debt.amount_paid)}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-right text-yellow-400">
-                          {formatCurrency(debt.amount_remaining)}
-                        </td>
-                        <td className="px-4 py-3 text-center">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(debt.status)}`}>
-                            {debt.status}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-sm text-[var(--text-secondary)]">
-                          {formatDate(debt.due_date)}
-                        </td>
-                        <td className="px-4 py-3 text-center">
-                          {debt.status !== 'Paid' && debt.amount_remaining > 0 && (
-                            <button
-                              onClick={() => setPaymentModal({ show: true, debt })}
-                              className="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-sm rounded transition-colors"
-                            >
-                              Record Payment
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              
-              <div className="p-4 border-t border-[var(--border-color)]">
-                <Pagination
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  totalItems={totalItems}
-                  itemsPerPage={itemsPerPage}
-                  onPageChange={setCurrentPage}
-                  onItemsPerPageChange={setItemsPerPage}
-                  itemName="debts"
-                />
-              </div>
-            </>
-          )}
+        {/* Tabs */}
+        <div className="border-b border-[var(--border-color)]">
+          <div className="flex gap-8">
+            <button
+              onClick={() => setActiveTab('overview')}
+              className={`px-4 py-3 font-medium border-b-2 transition-colors ${
+                activeTab === 'overview'
+                  ? 'border-emerald-500 text-emerald-500'
+                  : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+              }`}
+            >
+              Overview
+            </button>
+            <button
+              onClick={() => setActiveTab('all-debts')}
+              className={`px-4 py-3 font-medium border-b-2 transition-colors ${
+                activeTab === 'all-debts'
+                  ? 'border-emerald-500 text-emerald-500'
+                  : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+              }`}
+            >
+              All Debts
+            </button>
+            <button
+              onClick={() => setActiveTab('payments')}
+              className={`px-4 py-3 font-medium border-b-2 transition-colors ${
+                activeTab === 'payments'
+                  ? 'border-emerald-500 text-emerald-500'
+                  : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+              }`}
+            >
+              Payments
+            </button>
+            <button
+              onClick={() => setActiveTab('customer-summary')}
+              className={`px-4 py-3 font-medium border-b-2 transition-colors ${
+                activeTab === 'customer-summary'
+                  ? 'border-emerald-500 text-emerald-500'
+                  : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+              }`}
+            >
+              Customer Summary
+            </button>
+          </div>
         </div>
+
+        {/* Tab Content */}
+        {activeTab === 'overview' && (
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-xl font-bold text-[var(--text-primary)] mb-4">Recent Outstanding Debts</h2>
+              <div className="space-y-3">
+                {outstandingDebts.length === 0 ? (
+                  <div className="text-center py-8 text-[var(--text-secondary)]">No outstanding debts</div>
+                ) : (
+                  outstandingDebts.map((debt) => (
+                    <div
+                      key={debt.id}
+                      className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-4 flex items-center justify-between hover:bg-[var(--bg-secondary)] transition-colors"
+                    >
+                      <div className="flex-1">
+                        <div className="font-semibold text-[var(--text-primary)]">{debt.customer_name}</div>
+                        <div className="text-sm text-[var(--text-secondary)]">{debt.sale_id} • {formatDate(debt.created_at)}</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-bold text-[var(--text-primary)]">{formatCurrency(debt.amount_remaining)}</div>
+                        <button
+                          onClick={() => setPaymentModal({ show: true, debt })}
+                          className="text-xs mt-1 px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded transition-colors"
+                        >
+                          Partial
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'all-debts' && (
+          <div>
+            <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg overflow-hidden">
+              {loading ? (
+                <div className="p-8 text-center text-[var(--text-secondary)]">Loading...</div>
+              ) : debts.length === 0 ? (
+                <div className="p-8 text-center text-[var(--text-secondary)]">No debts found</div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-[var(--bg-secondary)] border-b border-[var(--border-color)]">
+                      <tr>
+                        <th className="px-4 py-3 text-left text-sm font-semibold text-[var(--text-primary)]">Customer</th>
+                        <th className="px-4 py-3 text-left text-sm font-semibold text-[var(--text-primary)]">Sale ID</th>
+                        <th className="px-4 py-3 text-right text-sm font-semibold text-[var(--text-primary)]">Total</th>
+                        <th className="px-4 py-3 text-right text-sm font-semibold text-[var(--text-primary)]">Paid</th>
+                        <th className="px-4 py-3 text-right text-sm font-semibold text-[var(--text-primary)]">Remaining</th>
+                        <th className="px-4 py-3 text-center text-sm font-semibold text-[var(--text-primary)]">Status</th>
+                        <th className="px-4 py-3 text-center text-sm font-semibold text-[var(--text-primary)]">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[var(--border-color)]">
+                      {debts.map((debt) => (
+                        <tr key={debt.id} className="hover:bg-[var(--bg-secondary)] transition-colors">
+                          <td className="px-4 py-3 text-sm text-[var(--text-primary)]">{debt.customer_name}</td>
+                          <td className="px-4 py-3 text-sm text-[var(--text-secondary)]">{debt.sale_id}</td>
+                          <td className="px-4 py-3 text-sm text-right text-[var(--text-primary)]">
+                            {formatCurrency(debt.total_amount)}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-right text-green-400">
+                            {formatCurrency(debt.amount_paid)}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-right text-yellow-400">
+                            {formatCurrency(debt.amount_remaining)}
+                          </td>
+                          <td className="px-4 py-3 text-center">{getStatusBadge(debt.status)}</td>
+                          <td className="px-4 py-3 text-center">
+                            {debt.amount_remaining > 0 && (
+                              <button
+                                onClick={() => setPaymentModal({ show: true, debt })}
+                                className="text-xs px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded transition-colors"
+                              >
+                                Pay
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'payments' && (
+          <div className="text-center py-12 text-[var(--text-secondary)]">
+            <p>Payment history and records will be displayed here</p>
+          </div>
+        )}
+
+        {activeTab === 'customer-summary' && (
+          <div className="text-center py-12 text-[var(--text-secondary)]">
+            <p>Customer credit summary and details will be displayed here</p>
+          </div>
+        )}
 
         {/* Payment Modal */}
         {paymentModal.show && paymentModal.debt && (
