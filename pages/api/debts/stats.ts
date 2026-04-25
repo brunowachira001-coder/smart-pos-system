@@ -22,29 +22,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (debtsError) throw debtsError;
 
-    // Get customer credit info
-    const { data: credits, error: creditsError } = await supabase
-      .from('customer_credit')
+    // Get customers for credit limit info
+    const { data: customers, error: customersError } = await supabase
+      .from('customers')
       .select('*');
 
-    if (creditsError) throw creditsError;
-
-    // Get recent payments with optional date filtering
-    let paymentsQuery = supabase
-      .from('debt_payments')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(20);
-
-    if (startDate && endDate) {
-      paymentsQuery = paymentsQuery
-        .gte('created_at', startDate)
-        .lte('created_at', endDate);
-    }
-
-    const { data: payments, error: paymentsError } = await paymentsQuery;
-
-    if (paymentsError) throw paymentsError;
+    if (customersError) throw customersError;
 
     // Calculate stats
     const totalOutstanding = debts?.reduce((sum, debt) => sum + parseFloat(debt.balance || 0), 0) || 0;
@@ -55,18 +38,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }) || [];
     const todayDebtAmount = todayDebts.reduce((sum, debt) => sum + parseFloat(debt.balance || 0), 0);
     
-    const totalCreditLimit = credits?.reduce((sum, c) => sum + parseFloat(c.credit_limit || 0), 0) || 0;
-    const activeDebts = debts?.filter(d => d.status !== 'Paid').length || 0;
-    const recentPaymentsCount = payments?.length || 0;
+    const totalCreditLimit = customers?.reduce((sum, c) => sum + parseFloat(c.credit_limit || 0), 0) || 0;
+    const activeDebts = debts?.filter(d => d.status !== 'paid').length || 0;
+    const paidDebts = debts?.filter(d => d.status === 'paid').length || 0;
 
     return res.status(200).json({
       totalOutstanding,
       todayDebt: todayDebtAmount,
       totalCreditLimit,
       activeDebts,
-      recentPayments: recentPaymentsCount,
+      paidDebts,
       debts: debts || [],
-      payments: payments || [],
     });
   } catch (error: any) {
     return res.status(500).json({ error: error.message });

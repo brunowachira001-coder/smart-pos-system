@@ -21,7 +21,7 @@ CREATE INDEX IF NOT EXISTS idx_users_role ON public.users(role);
 
 -- Insert default admin user (password: admin123)
 INSERT INTO public.users (full_name, email, password_hash, role, phone, is_active) VALUES
-  ('Admin User', 'admin@pos.com', '$2a$10$rKZLvVZhVqJYQKJYQKJYQOeH8vZhVqJYQKJYQKJYQOeH8vZhVqJYQO', 'Admin', '+254700000000', true)
+  ('Bruno Wachira', 'brunowachira001@gmail.com', '$2a$10$rKZLvVZhVqJYQKJYQKJYQOeH8vZhVqJYQKJYQKJYQOeH8vZhVqJYQO', 'Admin', '+254700000000', true)
 ON CONFLICT (email) DO NOTHING;
 
 -- 2. PRODUCTS TABLE
@@ -204,4 +204,4 @@ CREATE POLICY "Allow all for service_role" ON public.returns FOR ALL TO service_
 CREATE POLICY "Allow all for service_role" ON public.return_items FOR ALL TO service_role USING (true);
 
 -- SUCCESS MESSAGE
-SELECT 'Database setup complete! You can now login with: admin@pos.com / admin123' as message;
+SELECT 'Database setup complete! You can now login with: brunowachira001@gmail.com / admin123' as message;
