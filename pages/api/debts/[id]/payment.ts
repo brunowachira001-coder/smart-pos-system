@@ -20,6 +20,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (debtError) throw debtError;
     if (!debt) throw new Error('Debt not found');
 
+    // Validate payment amount
+    const paymentAmount = parseFloat(amount);
+    const currentRemaining = parseFloat(debt.amount_remaining);
+
+    if (paymentAmount <= 0) {
+      return res.status(400).json({ error: 'Payment amount must be greater than 0' });
+    }
+
+    if (paymentAmount > currentRemaining) {
+      return res.status(400).json({ 
+        error: `Payment amount (${paymentAmount}) exceeds outstanding debt (${currentRemaining})` 
+      });
+    }
+
     // Create payment record
     const { data: payment, error: paymentError } = await supabase
       .from('debt_payments')
@@ -27,7 +41,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         {
           debt_id: id,
           customer_id: debt.customer_id,
-          amount,
+          amount: paymentAmount,
           payment_method,
           reference_number,
           notes,
@@ -39,8 +53,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (paymentError) throw paymentError;
 
     // Update debt
-    const newAmountPaid = parseFloat(debt.amount_paid) + parseFloat(amount);
-    const newAmountRemaining = parseFloat(debt.total_amount) - newAmountPaid;
+    const newAmountPaid = parseFloat(debt.amount_paid) + paymentAmount;
+    const newAmountRemaining = Math.max(0, currentRemaining - paymentAmount);
 
     const { data: updatedDebt, error: updateError } = await supabase
       .from('debts')
