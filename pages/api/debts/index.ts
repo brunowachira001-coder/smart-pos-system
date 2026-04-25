@@ -17,7 +17,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       let query = supabase
         .from('debts')
-        .select('*, customers(name)', { count: 'exact' });
+        .select('*', { count: 'exact' });
 
       // Apply date filtering only if both dates are provided
       if (startDate && endDate) {
@@ -35,10 +35,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       if (error) throw error;
 
+      // Get all customer IDs from debts and fetch their names
+      const customerIds = [...new Set(debts?.map(d => d.customer_id) || [])];
+      let customerMap: any = {};
+      
+      if (customerIds.length > 0) {
+        const { data: customers } = await supabase
+          .from('customers')
+          .select('id, name')
+          .in('id', customerIds);
+        
+        customerMap = customers?.reduce((acc: any, c: any) => {
+          acc[c.id] = c.name;
+          return acc;
+        }, {}) || {};
+      }
+
       // Transform data to match frontend expectations
       const transformedDebts = debts?.map((debt: any) => ({
         id: debt.id,
-        customer_name: debt.customers?.name || 'Unknown',
+        customer_name: customerMap[debt.customer_id] || 'Unknown',
         sale_id: debt.transaction_id,
         total_amount: debt.amount,
         amount_paid: debt.amount_paid,

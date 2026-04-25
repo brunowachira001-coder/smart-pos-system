@@ -21,12 +21,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (customersError) throw customersError;
 
-    // Check 3: Get debts with customer names
-    const { data: debtsWithCustomers, error: joinError } = await supabase
+    // Check 3: Get debts (without join for now)
+    const { data: debtsOnly, error: debtsOnlyError } = await supabase
       .from('debts')
-      .select('*, customers(name)');
+      .select('*');
 
-    if (joinError) throw joinError;
+    if (debtsOnlyError) throw debtsOnlyError;
 
     // Check 4: Get transactions
     const { data: allTransactions, error: transError } = await supabase
@@ -40,7 +40,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       debts_data: allDebts,
       customers_count: allCustomers?.length || 0,
       customers_data: allCustomers,
-      debts_with_customers: debtsWithCustomers,
+      debts_only: debtsOnly,
       transactions_count: allTransactions?.length || 0,
       transactions_data: allTransactions,
     });
