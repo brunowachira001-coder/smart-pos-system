@@ -19,11 +19,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .from('debts')
         .select('*, customers(name)', { count: 'exact' });
 
-      // Apply date filtering if provided
+      // Apply date filtering only if both dates are provided
       if (startDate && endDate) {
         query = query
-          .gte('created_at', startDate)
-          .lte('created_at', endDate);
+          .gte('created_at', startDate as string)
+          .lte('created_at', endDate as string);
       }
 
       // Sorting and pagination
