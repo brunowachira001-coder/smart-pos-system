@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import DateRangeFilter, { getDateRange, formatDateLocal } from '../components/DateRangeFilter';
 
 interface Debt {
   id: string;
@@ -25,6 +26,10 @@ export default function DebtManagement() {
   const [paymentMethod, setPaymentMethod] = useState('Cash');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [dateFilter, setDateFilter] = useState('all');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
 
   useEffect(() => {
     fetchDebts();
@@ -34,12 +39,18 @@ export default function DebtManagement() {
   const fetchDebts = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/debts?page=1&limit=100');
-      const data = await response.json();
+      let url = '/api/debts?page=1&limit=100';
       
-      if (response.ok) {
-        setDebts(data.debts || []);
-      }
+      // Apply date range from dropdown
+      const range = getDateRange(dateFilter);
+      const sd = startDate || (range.startDate ? formatDateLocal(range.startDate) : '');
+      const ed = endDate || (range.endDate ? formatDateLocal(range.endDate) : '');
+      
+      if (sd && ed) url += `&startDate=${sd}&endDate=${ed}`;
+      
+      const response = await fetch(url);
+      const data = await response.json();
+      if (response.ok) setDebts(data.debts || []);
     } catch (error) {
       console.error('Error fetching debts:', error);
     } finally {
@@ -47,14 +58,28 @@ export default function DebtManagement() {
     }
   };
 
+  const handleDateFilterChange = (val: string) => {
+    setDateFilter(val);
+    setStartDate('');
+    setEndDate('');
+  };
+
+  const handleDateRangeChange = (start: string, end: string) => {
+    setStartDate(start);
+    setEndDate(end);
+    setDateFilter('all');
+  };
+
+  const handleRefreshData = () => {
+    fetchDebts();
+    fetchStats();
+  };
+
   const fetchStats = async () => {
     try {
       const response = await fetch('/api/debts/stats');
       const data = await response.json();
-      
-      if (response.ok) {
-        setStats(data);
-      }
+      if (response.ok) setStats(data);
     } catch (error) {
       console.error('Error fetching stats:', error);
     }
@@ -106,11 +131,6 @@ export default function DebtManagement() {
 
   const outstandingDebts = debts.filter(d => d.amount_remaining > 0);
 
-  const handleRefreshData = () => {
-    fetchDebts();
-    fetchStats();
-  };
-
   return (
     <div className="space-y-6">
         {/* Header */}
@@ -123,35 +143,21 @@ export default function DebtManagement() {
         <div className="flex items-center gap-3 flex-wrap">
           <button
             onClick={handleRefreshData}
-            className="flex items-center gap-2 px-4 py-2 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg hover:bg-[var(--bg-secondary)] transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg hover:bg-[var(--bg-secondary)] transition-colors text-[var(--text-primary)] text-sm"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
             </svg>
             Refresh Data
           </button>
 
-          <select className="px-4 py-2 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg text-[var(--text-primary)] focus:outline-none focus:border-emerald-500">
-            <option>All</option>
-            <option>Outstanding</option>
-            <option>Paid</option>
-          </select>
-
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-2 px-4 py-2 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg">
-              <svg className="w-5 h-5 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-              <input type="text" placeholder="mm/dd/yyyy" className="bg-transparent text-[var(--text-primary)] focus:outline-none w-24" />
-            </div>
-            <span className="text-[var(--text-secondary)]">to</span>
-            <div className="flex items-center gap-2 px-4 py-2 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg">
-              <svg className="w-5 h-5 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-              <input type="text" placeholder="mm/dd/yyyy" className="bg-transparent text-[var(--text-primary)] focus:outline-none w-24" />
-            </div>
-          </div>
+          <DateRangeFilter
+            value={dateFilter}
+            onChange={handleDateFilterChange}
+            startDate={startDate}
+            endDate={endDate}
+            onDateChange={handleDateRangeChange}
+          />
         </div>
 
         {/* Stats Cards */}
