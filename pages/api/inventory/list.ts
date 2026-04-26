@@ -3,7 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -34,11 +34,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (filter === 'parent') {
       query = query.is('variant_of', null);
     } else if (filter === 'archived') {
-      query = query.or('status.eq.inactive,stock_quantity.eq.0');
-    } else {
-      // For 'all', exclude archived items
-      query = query.neq('status', 'inactive').gt('stock_quantity', 0);
+      query = query.eq('status', 'inactive');
     }
+    // For 'all', show all products (no filter)
 
     // Search
     if (search) {
