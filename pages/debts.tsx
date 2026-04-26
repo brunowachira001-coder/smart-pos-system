@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import MainLayout from '../components/Layout/MainLayout';
 
 interface Debt {
   id: string;
@@ -24,6 +23,8 @@ export default function DebtManagement() {
   });
   const [paymentAmount, setPaymentAmount] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('Cash');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   useEffect(() => {
     fetchDebts();
@@ -106,8 +107,7 @@ export default function DebtManagement() {
   const outstandingDebts = debts.filter(d => d.amount_remaining > 0);
 
   return (
-    <MainLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* Header */}
         <div>
           <h1 className="text-3xl font-bold text-[var(--text-primary)]">Debt Management</h1>
@@ -405,6 +405,6 @@ export default function DebtManagement() {
           </div>
         )}
       </div>
-    </MainLayout>
-  );
-}
+    );
+  }
+
