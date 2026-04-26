@@ -202,13 +202,21 @@
           `;
         } else {
           result.className = 'info';
+          const manualSteps = data.manual_steps ? data.manual_steps.join('<br>') : '';
           result.innerHTML = `
-            <div class="result-title">⚠️ Partial Success</div>
+            <div class="result-title">⚠️ Manual Action Required</div>
             <div class="result-content">
               <p>${data.message}</p>
-              <p style="margin-top: 15px;"><strong>Manual action required:</strong></p>
-              <p>The API cannot create tables directly. You need to run the SQL manually.</p>
-              <p style="margin-top: 10px;">Copy the SQL from <code>lib/create-transactions-table.sql</code> and run it in your database.</p>
+              <p style="margin-top: 15px;"><strong>Why this happened:</strong></p>
+              <p>The production database is not accessible in your Supabase dashboard, and Supabase's API doesn't allow creating tables programmatically.</p>
+              
+              <p style="margin-top: 15px;"><strong>What you need to do:</strong></p>
+              <p>${manualSteps}</p>
+              
+              <p style="margin-top: 15px;"><strong>SQL to run:</strong></p>
+              <pre style="max-height: 300px; overflow-y: auto;">${data.sql_preview || 'See lib/create-transactions-table.sql'}</pre>
+              
+              <p style="margin-top: 15px;"><strong>Current status:</strong></p>
               <pre>${JSON.stringify(data.results, null, 2)}</pre>
             </div>
           `;

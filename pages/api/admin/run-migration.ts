@@ -22,134 +22,86 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const results: any[] = [];
     
     // Step 1: Check existing tables
-    results.push({ step: 'Checking existing tables...' });
+    results.push({ step: '1. Checking existing tables' });
     
     const { error: cartError } = await supabase.from('cart_items').select('id').limit(1);
     const { error: txError } = await supabase.from('transactions').select('id').limit(1);
     const { error: itemsError } = await supabase.from('transaction_items').select('id').limit(1);
     
-    results.push({
-      cart_items: cartError ? 'missing' : 'exists',
-      transactions: txError ? 'missing' : 'exists',
-      transaction_items: itemsError ? 'missing' : 'exists'
-    });
-
-    // Step 2: Create transactions table using raw SQL via PostgREST
-    if (txError) {
-      results.push({ step: 'Creating transactions table...' });
-      
-      // Try to create by doing a dummy insert that will fail but might create table
-      try {
-        const { error: createError } = await supabase.rpc('exec_sql', {
-          query: `
-            CREATE TABLE IF NOT EXISTS public.transactions (
-              id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-              transaction_number VARCHAR(100) UNIQUE NOT NULL,
-              customer_id UUID REFERENCES public.customers(id),
-              user_id UUID,
-              total_amount DECIMAL(12, 2) NOT NULL,
-              payment_method VARCHAR(50) NOT NULL,
-              payment_status VARCHAR(50) DEFAULT 'completed',
-              notes TEXT,
-              created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-              updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-            );
-            
-            ALTER TABLE public.transactions ENABLE ROW LEVEL SECURITY;
-            
-            DROP POLICY IF EXISTS "Allow all for anon" ON public.transactions;
-            DROP POLICY IF EXISTS "Allow all for authenticated users" ON public.transactions;
-            
-            CREATE POLICY "Allow all for anon" ON public.transactions FOR ALL TO anon USING (true);
-            CREATE POLICY "Allow all for authenticated users" ON public.transactions FOR ALL TO authenticated USING (true);
-            
-            CREATE INDEX IF NOT EXISTS idx_transactions_customer ON public.transactions(customer_id);
-            CREATE INDEX IF NOT EXISTS idx_transactions_created ON public.transactions(created_at);
-          `
-        });
-        
-        if (createError) {
-          results.push({ transactions_error: createError.message });
-        } else {
-          results.push({ transactions: 'created' });
-        }
-      } catch (e: any) {
-        results.push({ transactions_error: e.message });
-      }
-    }
-
-    // Step 3: Create transaction_items table
-    if (itemsError) {
-      results.push({ step: 'Creating transaction_items table...' });
-      
-      try {
-        const { error: createError } = await supabase.rpc('exec_sql', {
-          query: `
-            CREATE TABLE IF NOT EXISTS public.transaction_items (
-              id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-              transaction_id UUID REFERENCES public.transactions(id) ON DELETE CASCADE,
-              product_id UUID REFERENCES public.products(id),
-              quantity INTEGER NOT NULL,
-              unit_price DECIMAL(12, 2) NOT NULL,
-              subtotal DECIMAL(12, 2) NOT NULL,
-              created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-            );
-            
-            ALTER TABLE public.transaction_items ENABLE ROW LEVEL SECURITY;
-            
-            DROP POLICY IF EXISTS "Allow all for anon" ON public.transaction_items;
-            DROP POLICY IF EXISTS "Allow all for authenticated users" ON public.transaction_items;
-            
-            CREATE POLICY "Allow all for anon" ON public.transaction_items FOR ALL TO anon USING (true);
-            CREATE POLICY "Allow all for authenticated users" ON public.transaction_items FOR ALL TO authenticated USING (true);
-            
-            CREATE INDEX IF NOT EXISTS idx_transaction_items_transaction ON public.transaction_items(transaction_id);
-            CREATE INDEX IF NOT EXISTS idx_transaction_items_product ON public.transaction_items(product_id);
-          `
-        });
-        
-        if (createError) {
-          results.push({ transaction_items_error: createError.message });
-        } else {
-          results.push({ transaction_items: 'created' });
-        }
-      } catch (e: any) {
-        results.push({ transaction_items_error: e.message });
-      }
-    }
-
-    // Step 4: Verify tables
-    results.push({ step: 'Verifying tables...' });
-    
-    const { error: cartCheck2 } = await supabase.from('cart_items').select('id').limit(1);
-    const { error: txCheck2 } = await supabase.from('transactions').select('id').limit(1);
-    const { error: itemsCheck2 } = await supabase.from('transaction_items').select('id').limit(1);
-    
-    const finalStatus = {
-      cart_items: cartCheck2 ? 'failed' : 'ready',
-      transactions: txCheck2 ? 'failed' : 'ready',
-      transaction_items: itemsCheck2 ? 'failed' : 'ready'
+    const initialStatus = {
+      cart_items: cartError ? '❌ missing' : '✅ exists',
+      transactions: txError ? '❌ missing' : '✅ exists',
+      transaction_items: itemsError ? '❌ missing' : '✅ exists'
     };
     
-    results.push({ final_status: finalStatus });
+    results.push(initialStatus);
 
-    const allReady = !cartCheck2 && !txCheck2 && !itemsCheck2;
+    // If all tables exist, we're done
+    if (!cartError && !txError && !itemsError) {
+      return res.status(200).json({
+        success: true,
+        message: '✅ All tables already exist! POS is ready.',
+        results,
+        next_steps: 'Go to /pos and test a sale!'
+      });
+    }
+
+    // Step 2: Explain the situation
+    results.push({ 
+      step: '2. Attempting to create tables',
+      note: 'API cannot create tables directly in Supabase'
+    });
+
+    // The API cannot create tables - Supabase doesn't allow DDL via REST API
+    results.push({
+      step: '3. Result',
+      status: '⚠️ Cannot create tables via API',
+      reason: 'Supabase REST API does not support CREATE TABLE operations',
+      solution: 'Manual SQL execution required'
+    });
 
     return res.status(200).json({
-      success: allReady,
-      message: allReady 
-        ? '✅ All tables created! POS is ready to use.' 
-        : '⚠️ Some tables could not be created. Manual SQL execution required.',
+      success: false,
+      message: '⚠️ Tables cannot be created via API. Manual SQL execution required.',
       results,
-      next_steps: allReady 
-        ? 'Go to /pos and test a sale!'
-        : 'Copy SQL from lib/create-transactions-table.sql and run manually'
+      manual_steps: [
+        '1. Someone with Supabase dashboard access needs to run the SQL',
+        '2. SQL file location: lib/create-transactions-table.sql',
+        '3. Run in Supabase SQL Editor',
+        '4. Or contact the person who originally set up the database'
+      ],
+      sql_preview: `
+CREATE TABLE IF NOT EXISTS public.transactions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  transaction_number VARCHAR(100) UNIQUE NOT NULL,
+  customer_id UUID REFERENCES public.customers(id),
+  user_id UUID,
+  total_amount DECIMAL(12, 2) NOT NULL,
+  payment_method VARCHAR(50) NOT NULL,
+  payment_status VARCHAR(50) DEFAULT 'completed',
+  notes TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.transaction_items (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  transaction_id UUID REFERENCES public.transactions(id) ON DELETE CASCADE,
+  product_id UUID REFERENCES public.products(id),
+  quantity INTEGER NOT NULL,
+  unit_price DECIMAL(12, 2) NOT NULL,
+  subtotal DECIMAL(12, 2) NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- See lib/create-transactions-table.sql for complete SQL with indexes and policies
+      `.trim()
     });
 
   } catch (error: any) {
     return res.status(500).json({ 
       error: error.message,
-      hint: 'RPC function may not be available. Manual SQL execution required.'
+      stack: error.stack
     });
   }
 }
