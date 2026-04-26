@@ -117,7 +117,7 @@ export default function DebtManagement() {
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
           <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-start justify-between">
               <div>
                 <div className="text-[var(--text-secondary)] text-sm">Outstanding Debt</div>
                 <div className="text-2xl font-bold text-[var(--text-primary)] mt-1">
@@ -127,12 +127,14 @@ export default function DebtManagement() {
                   {outstandingDebts.length} customers with debt
                 </div>
               </div>
-              <div className="text-3xl">💰</div>
+              <svg className="w-6 h-6 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
             </div>
           </div>
 
           <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-start justify-between">
               <div>
                 <div className="text-[var(--text-secondary)] text-sm">Today's Debt</div>
                 <div className="text-2xl font-bold text-[var(--text-primary)] mt-1">
@@ -140,12 +142,14 @@ export default function DebtManagement() {
                 </div>
                 <div className="text-xs text-[var(--text-secondary)] mt-1">0 outstanding today</div>
               </div>
-              <div className="text-3xl">📅</div>
+              <svg className="w-6 h-6 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
             </div>
           </div>
 
           <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-start justify-between">
               <div>
                 <div className="text-[var(--text-secondary)] text-sm">Total Credit Limit</div>
                 <div className="text-2xl font-bold text-[var(--text-primary)] mt-1">
@@ -153,12 +157,14 @@ export default function DebtManagement() {
                 </div>
                 <div className="text-xs text-[var(--text-secondary)] mt-1">13% utilized</div>
               </div>
-              <div className="text-3xl">📊</div>
+              <svg className="w-6 h-6 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
             </div>
           </div>
 
           <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-start justify-between">
               <div>
                 <div className="text-[var(--text-secondary)] text-sm">Active Debts</div>
                 <div className="text-2xl font-bold text-[var(--text-primary)] mt-1">
@@ -166,12 +172,14 @@ export default function DebtManagement() {
                 </div>
                 <div className="text-xs text-[var(--text-secondary)] mt-1">17 total debt records</div>
               </div>
-              <div className="text-3xl">📋</div>
+              <svg className="w-6 h-6 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
             </div>
           </div>
 
           <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-start justify-between">
               <div>
                 <div className="text-[var(--text-secondary)] text-sm">Recent Payments</div>
                 <div className="text-2xl font-bold text-[var(--text-primary)] mt-1">
@@ -179,7 +187,9 @@ export default function DebtManagement() {
                 </div>
                 <div className="text-xs text-[var(--text-secondary)] mt-1">All-time payment records</div>
               </div>
-              <div className="text-3xl">✅</div>
+              <svg className="w-6 h-6 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
             </div>
           </div>
         </div>
