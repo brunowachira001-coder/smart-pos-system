@@ -50,14 +50,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return sum + (remaining > 0 ? remaining : 0);
     }, 0);
     
-    const totalCreditLimit = customers?.reduce((sum, c) => sum + parseFloat(c.credit_limit || 0), 0) || 0;
+    const totalCreditLimit = customers?.reduce((sum, c) => sum + parseFloat(c.debt_limit || 0), 0) || 0;
     const activeDebts = debts?.filter(d => d.status !== 'Paid' && parseFloat(d.amount_remaining || 0) > 0).length || 0;
     const paidDebts = debts?.filter(d => d.status === 'Paid' || parseFloat(d.amount_remaining || 0) <= 0).length || 0;
+    const utilizationPercent = totalCreditLimit > 0 ? Math.round((totalOutstanding / totalCreditLimit) * 100) : 0;
 
     return res.status(200).json({
       totalOutstanding,
       todayDebt: todayDebtAmount,
       totalCreditLimit,
+      utilizationPercent,
       activeDebts,
       paidDebts,
       debts: debts || [],
