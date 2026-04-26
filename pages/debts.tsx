@@ -134,34 +134,36 @@ export default function DebtManagement() {
   return (
     <div className="space-y-6">
         {/* Header */}
-        <div>
-          <h1 className="text-3xl font-bold text-[var(--text-primary)]">Debt Management</h1>
-          <p className="text-[var(--text-secondary)] mt-1">Monitor customer credit, outstanding balances, and payment history.</p>
-        </div>
+        <div className="flex items-start justify-between flex-wrap gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-[var(--text-primary)]">Debt Management</h1>
+            <p className="text-[var(--text-secondary)] mt-1">Monitor customer credit, outstanding balances, and payment history.</p>
+          </div>
 
-        {/* Toolbar */}
-        <div className="flex items-center gap-3 flex-wrap">
-          <button
-            onClick={handleRefreshData}
-            className="flex items-center gap-2 px-4 py-2 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg hover:bg-[var(--bg-secondary)] transition-colors text-[var(--text-primary)] text-sm"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-            Refresh Data
-          </button>
+          {/* Toolbar */}
+          <div className="flex items-center gap-3 flex-wrap">
+            <button
+              onClick={handleRefreshData}
+              className="flex items-center gap-2 px-4 py-2 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg hover:bg-[var(--bg-secondary)] transition-colors text-[var(--text-primary)] text-sm"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              Refresh Data
+            </button>
 
-          <DateRangeFilter
-            value={dateFilter}
-            onChange={handleDateFilterChange}
-            startDate={startDate}
-            endDate={endDate}
-            onDateChange={handleDateRangeChange}
-          />
+            <DateRangeFilter
+              value={dateFilter}
+              onChange={handleDateFilterChange}
+              startDate={startDate}
+              endDate={endDate}
+              onDateChange={handleDateRangeChange}
+            />
+          </div>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-4">
             <div className="flex items-start justify-between">
               <div>

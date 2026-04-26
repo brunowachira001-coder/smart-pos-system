@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface DateRangeFilterProps {
   value: string;
@@ -22,6 +22,13 @@ const getDisplayLabel = (value: string): string => {
   return labels[value] || 'All';
 };
 
+const formatDate = (date: Date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 export default function DateRangeFilter({ 
   value, 
   onChange, 
@@ -31,23 +38,58 @@ export default function DateRangeFilter({
 }: DateRangeFilterProps) {
   const [showDropdown, setShowDropdown] = useState(false);
 
-  const formatDate = (date: Date) => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+  // Compute displayed dates based on selected range
+  const getComputedDates = (range: string): { start: string; end: string } => {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    switch (range) {
+      case 'today':
+        return { start: formatDate(today), end: formatDate(today) };
+      case 'yesterday': {
+        const y = new Date(today); y.setDate(y.getDate() - 1);
+        return { start: formatDate(y), end: formatDate(y) };
+      }
+      case 'last7days': {
+        const s = new Date(today); s.setDate(s.getDate() - 6);
+        return { start: formatDate(s), end: formatDate(today) };
+      }
+      case 'last30days': {
+        const s = new Date(today); s.setDate(s.getDate() - 29);
+        return { start: formatDate(s), end: formatDate(today) };
+      }
+      case 'thisMonth':
+        return { start: formatDate(new Date(now.getFullYear(), now.getMonth(), 1)), end: formatDate(today) };
+      case 'lastMonth': {
+        const s = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        const e = new Date(now.getFullYear(), now.getMonth(), 0);
+        return { start: formatDate(s), end: formatDate(e) };
+      }
+      case 'thisYear':
+        return { start: formatDate(new Date(now.getFullYear(), 0, 1)), end: formatDate(today) };
+      default:
+        return { start: formatDate(today), end: formatDate(today) };
+    }
   };
 
-  // Always get current date - recalculated on every render
-  const getCurrentDate = () => formatDate(new Date());
-  
-  // Use provided dates or fall back to current date
-  const displayStartDate = startDate || getCurrentDate();
-  const displayEndDate = endDate || getCurrentDate();
+  // Use provided dates if set (manual override), otherwise compute from range
+  const computed = getComputedDates(value);
+  const displayStart = startDate || computed.start;
+  const displayEnd = endDate || computed.end;
+
+  const handleRangeSelect = (range: string) => {
+    onChange(range);
+    setShowDropdown(false);
+    // Update date inputs to reflect the selected range
+    if (range !== 'all') {
+      const dates = getComputedDates(range);
+      onDateChange?.(dates.start, dates.end);
+    }
+  };
 
   return (
     <div className="flex items-center gap-3">
-      {/* Dropdown Select - Similar to "All" in reference */}
+      {/* Dropdown */}
       <div className="relative">
         <button
           onClick={() => setShowDropdown(!showDropdown)}
@@ -59,85 +101,49 @@ export default function DateRangeFilter({
           </svg>
         </button>
 
-        {/* Dropdown Menu */}
         {showDropdown && (
           <>
-            <div 
-              className="fixed inset-0 z-40" 
-              onClick={() => setShowDropdown(false)}
-            />
+            <div className="fixed inset-0 z-40" onClick={() => setShowDropdown(false)} />
             <div className="absolute left-0 mt-2 w-48 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg shadow-xl z-50 py-1">
-              <button
-                onClick={() => { onChange('all'); setShowDropdown(false); }}
-                className="w-full text-left px-4 py-2.5 text-sm hover:bg-[var(--bg-primary)] text-[var(--text-primary)] transition-colors"
-              >
-                All
-              </button>
-              <button
-                onClick={() => { onChange('today'); setShowDropdown(false); }}
-                className="w-full text-left px-4 py-2.5 text-sm hover:bg-[var(--bg-primary)] text-[var(--text-primary)] transition-colors"
-              >
-                Today
-              </button>
-              <button
-                onClick={() => { onChange('yesterday'); setShowDropdown(false); }}
-                className="w-full text-left px-4 py-2.5 text-sm hover:bg-[var(--bg-primary)] text-[var(--text-primary)] transition-colors"
-              >
-                Yesterday
-              </button>
-              <button
-                onClick={() => { onChange('last7days'); setShowDropdown(false); }}
-                className="w-full text-left px-4 py-2.5 text-sm hover:bg-[var(--bg-primary)] text-[var(--text-primary)] transition-colors"
-              >
-                Last 7 Days
-              </button>
-              <button
-                onClick={() => { onChange('last30days'); setShowDropdown(false); }}
-                className="w-full text-left px-4 py-2.5 text-sm hover:bg-[var(--bg-primary)] text-[var(--text-primary)] transition-colors"
-              >
-                Last 30 Days
-              </button>
-              <button
-                onClick={() => { onChange('thisMonth'); setShowDropdown(false); }}
-                className="w-full text-left px-4 py-2.5 text-sm hover:bg-[var(--bg-primary)] text-[var(--text-primary)] transition-colors"
-              >
-                This Month
-              </button>
-              <button
-                onClick={() => { onChange('lastMonth'); setShowDropdown(false); }}
-                className="w-full text-left px-4 py-2.5 text-sm hover:bg-[var(--bg-primary)] text-[var(--text-primary)] transition-colors"
-              >
-                Last Month
-              </button>
-              <button
-                onClick={() => { onChange('thisYear'); setShowDropdown(false); }}
-                className="w-full text-left px-4 py-2.5 text-sm hover:bg-[var(--bg-primary)] text-[var(--text-primary)] transition-colors"
-              >
-                This Year
-              </button>
+              {['all', 'today', 'yesterday', 'last7days', 'last30days', 'thisMonth', 'lastMonth', 'thisYear'].map((opt) => (
+                <button
+                  key={opt}
+                  onClick={() => handleRangeSelect(opt)}
+                  className={`w-full text-left px-4 py-2.5 text-sm hover:bg-[var(--bg-primary)] transition-colors ${value === opt ? 'text-emerald-400' : 'text-[var(--text-primary)]'}`}
+                >
+                  {getDisplayLabel(opt)}
+                </button>
+              ))}
             </div>
           </>
         )}
       </div>
 
-      {/* Calendar Icon with Date Pickers */}
-      <div className="flex items-center gap-2 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg px-3 py-2">
-        <svg className="w-4 h-4 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-        </svg>
-        <input
-          type="date"
-          value={displayStartDate}
-          onChange={(e) => onDateChange?.(e.target.value, displayEndDate)}
-          className="bg-transparent border-none text-sm text-[var(--text-primary)] focus:outline-none w-[110px]"
-        />
+      {/* Date pickers */}
+      <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg px-3 py-2">
+          <svg className="w-4 h-4 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          <input
+            type="date"
+            value={displayStart}
+            onChange={(e) => onDateChange?.(e.target.value, displayEnd)}
+            className="bg-transparent border-none text-sm text-[var(--text-primary)] focus:outline-none w-[110px]"
+          />
+        </div>
         <span className="text-[var(--text-secondary)] text-sm">to</span>
-        <input
-          type="date"
-          value={displayEndDate}
-          onChange={(e) => onDateChange?.(displayStartDate, e.target.value)}
-          className="bg-transparent border-none text-sm text-[var(--text-primary)] focus:outline-none w-[110px]"
-        />
+        <div className="flex items-center gap-2 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg px-3 py-2">
+          <svg className="w-4 h-4 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          <input
+            type="date"
+            value={displayEnd}
+            onChange={(e) => onDateChange?.(displayStart, e.target.value)}
+            className="bg-transparent border-none text-sm text-[var(--text-primary)] focus:outline-none w-[110px]"
+          />
+        </div>
       </div>
     </div>
   );
