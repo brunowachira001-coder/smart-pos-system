@@ -111,8 +111,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const transactionItems = cartItems.map(item => ({
       transaction_id: transaction.id,
       product_id: item.product_id,
-      product_name: item.product_name || 'Unknown Product',
-      sku: item.sku || null,
       quantity: item.quantity,
       unit_price: item.unit_price,
       subtotal: item.subtotal
