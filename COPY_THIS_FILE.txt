@@ -1,0 +1,26 @@
+✅ USE THIS FILE: FINAL_COMPLETE_RESTORE.sql
+
+Location: /home/bruno/Desktop/FINAL_COMPLETE_RESTORE.sql
+
+This file is 410 lines and contains:
+1. DROP all old tables
+2. CREATE all tables with correct schemas
+3. ENABLE RLS with open policies
+4. INSERT 121 products
+5. INSERT 54 customers
+6. INSERT 18 returns (customer_id set to NULL where needed)
+7. INSERT 10 expenses
+8. INSERT 4 debts (customer_id set to NULL where needed)
+9. INSERT 1 shop settings (Nyla Wigs)
+10. VERIFY all data
+
+HOW TO USE:
+1. Open: gedit FINAL_COMPLETE_RESTORE.sql
+2. Copy all (Ctrl + A, then Ctrl + C)
+3. Go to: https://supabase.com/dashboard/project/xqnteamrznvoqgaazhpu/sql
+4. Click "New Query"
+5. Paste (Ctrl + V)
+6. Click "Run"
+7. Wait 10-15 seconds
+
+DONE! Hard refresh your dashboard (Ctrl + Shift + R)
