@@ -39,7 +39,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Fetch today's transactions
     const { data: todayTransactions, error: transactionsError } = await supabase
-      .from('sales_transactions')
+      .from('transactions')
       .select('*')
       .gte('created_at', today.toISOString())
       .lt('created_at', tomorrow.toISOString());
@@ -50,15 +50,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     // Calculate today's sales stats
-    const todaySales = todayTransactions?.reduce((sum, t) => sum + (parseFloat(t.total) || 0), 0) || 0;
-    const todayProfit = todayTransactions?.reduce((sum, t) => sum + (parseFloat(t.total) - parseFloat(t.subtotal || 0)), 0) || 0;
-    const todayTax = todayTransactions?.reduce((sum, t) => sum + (parseFloat(t.tax) || 0), 0) || 0;
+    const todaySales = todayTransactions?.reduce((sum, t) => sum + (parseFloat(t.total_amount) || 0), 0) || 0;
+    const todayProfit = 0; // We don't have cost data in transactions table
+    const todayTax = 0; // We don't have tax data in transactions table
     const transactionCount = todayTransactions?.length || 0;
     const avgTransaction = transactionCount > 0 ? todaySales / transactionCount : 0;
 
     // Fetch recent transactions (last 5)
     const { data: recentTransactions, error: recentError } = await supabase
-      .from('sales_transactions')
+      .from('transactions')
       .select('*')
       .order('created_at', { ascending: false })
       .limit(5);
@@ -90,9 +90,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         recentTransactions: recentTransactions?.map(t => ({
           id: t.id,
           transactionNumber: t.transaction_number || `TXN-${t.id}`,
-          customer: t.customer_name || 'Walk-in Customer',
+          customer: 'Walk-in Customer', // transactions table doesn't have customer_name
           itemCount: 0, // We'll need to count items separately
-          total: parseFloat(t.total) || 0,
+          total: parseFloat(t.total_amount) || 0,
           createdAt: t.created_at
         })) || []
       }

@@ -26,7 +26,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const offset = (pageNum - 1) * limitNum;
 
     let query = supabase
-      .from('sales_transactions')
+      .from('transactions')
       .select('*', { count: 'exact' });
 
     // Search filter
