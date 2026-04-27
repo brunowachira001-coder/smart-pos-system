@@ -88,16 +88,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const saleNumber = `SALE-${Math.floor(Math.random() * 900000 + 100000)}`;
     const transactionNumber = `TXN-${Date.now()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
 
-    // Create transaction
+    // Create transaction in sales_transactions table
     const { data: transaction, error: transactionError } = await supabase
-      .from('transactions')
+      .from('sales_transactions')
       .insert({
         transaction_number: transactionNumber,
         customer_id: customerId || null,
-        user_id: cashierId || null,
-        total_amount: total,
+        customer_name: customerName || 'Walk-in Customer',
+        customer_phone: null,
+        subtotal: subtotal,
+        discount: discount,
+        tax: tax,
+        total: total,
+        amount_paid: amountPaid || total,
+        change_amount: paymentMethod === 'debt' ? 0 : (amountPaid || 0) - total,
         payment_method: paymentMethod,
-        payment_status: 'completed',
+        payment_reference: paymentReference || null,
+        status: 'completed',
+        cashier_id: cashierId || null,
+        cashier_name: cashierName || 'Admin',
         notes: notes || null
       })
       .select()
@@ -107,21 +116,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(500).json({ error: `Transaction error: ${transactionError.message}` });
     }
 
-    // Create transaction items
+    // Create transaction items in sales_transaction_items table
     const transactionItems = cartItems.map(item => ({
       transaction_id: transaction.id,
       product_id: item.product_id,
+      product_name: item.product_name || 'Unknown Product',
       quantity: item.quantity,
       unit_price: item.unit_price,
-      subtotal: item.subtotal
+      subtotal: item.subtotal,
+      price_type: 'retail' // Default to retail, can be enhanced later
     }));
 
     const { error: itemsError } = await supabase
-      .from('transaction_items')
+      .from('sales_transaction_items')
       .insert(transactionItems);
 
     if (itemsError) {
-      await supabase.from('transactions').delete().eq('id', transaction.id);
+      await supabase.from('sales_transactions').delete().eq('id', transaction.id);
       return res.status(500).json({ error: `Items error: ${itemsError.message}` });
     }
 
@@ -148,8 +159,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
 
       if (debtError) {
-        await supabase.from('transaction_items').delete().eq('transaction_id', transaction.id);
-        await supabase.from('transactions').delete().eq('id', transaction.id);
+        await supabase.from('sales_transaction_items').delete().eq('transaction_id', transaction.id);
+        await supabase.from('sales_transactions').delete().eq('id', transaction.id);
         return res.status(500).json({ error: `Debt error: ${debtError.message}` });
       }
     }
