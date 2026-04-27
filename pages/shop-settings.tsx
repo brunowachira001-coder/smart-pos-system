@@ -25,15 +25,26 @@ export default function ShopSettingsPage() {
 
   const fetchSettings = async () => {
     try {
+      // Try to get user from localStorage, but fallback to fetching default settings
       const userData = localStorage.getItem('user');
+      let url = '/api/shop-settings';
+      
       if (userData) {
-        const user = JSON.parse(userData);
-        const response = await fetch(`/api/shop-settings?email=${encodeURIComponent(user.email)}`);
-        const data = await response.json();
-        
-        if (response.ok && data.settings) {
-          setSettings(data.settings);
+        try {
+          const user = JSON.parse(userData);
+          if (user.email) {
+            url = `/api/shop-settings?email=${encodeURIComponent(user.email)}`;
+          }
+        } catch (e) {
+          console.log('Could not parse user data, fetching default settings');
         }
+      }
+      
+      const response = await fetch(url);
+      const data = await response.json();
+      
+      if (response.ok && data.settings) {
+        setSettings(data.settings);
       }
     } catch (error) {
       console.error('Error fetching settings:', error);
@@ -48,17 +59,24 @@ export default function ShopSettingsPage() {
 
     try {
       const userData = localStorage.getItem('user');
-      if (!userData) {
-        showToast('User not found', 'error');
-        return;
+      let user_email = 'admin@system.local'; // Default fallback
+      
+      if (userData) {
+        try {
+          const user = JSON.parse(userData);
+          if (user.email) {
+            user_email = user.email;
+          }
+        } catch (e) {
+          console.log('Could not parse user data, using default email');
+        }
       }
 
-      const user = JSON.parse(userData);
       const response = await fetch('/api/shop-settings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          user_email: user.email,
+          user_email,
           ...settings
         })
       });
