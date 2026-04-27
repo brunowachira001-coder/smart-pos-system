@@ -109,25 +109,25 @@ export default function ShopSettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--bg-secondary)] p-6">
+    <div className="min-h-screen bg-[var(--bg-secondary)] p-4 md:p-6">
       {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} />}
 
       <div className="max-w-4xl mx-auto">
         <div className="mb-6">
-          <h1 className="text-2xl font-semibold text-[var(--text-primary)]">Shop Settings</h1>
-          <p className="text-sm text-[var(--text-secondary)] mt-1">
+          <h1 className="text-2xl md:text-3xl font-semibold text-[var(--text-primary)]">Shop Settings</h1>
+          <p className="text-base md:text-sm text-[var(--text-secondary)] mt-2">
             Customize your shop's branding and business information
           </p>
         </div>
 
         <form onSubmit={handleSave} className="space-y-6">
           {/* Business Information */}
-          <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-6">
-            <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">Business Information</h2>
+          <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-4 md:p-6">
+            <h2 className="text-xl md:text-lg font-semibold text-[var(--text-primary)] mb-4">Business Information</h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
+                <label className="block text-base md:text-sm font-medium text-[var(--text-primary)] mb-2">
                   Business Name *
                 </label>
                 <input
@@ -135,32 +135,32 @@ export default function ShopSettingsPage() {
                   required
                   value={settings.business_name}
                   onChange={(e) => setSettings({ ...settings, business_name: e.target.value })}
-                  className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-4 py-2 text-[var(--text-primary)] focus:ring-2 focus:ring-emerald-500"
+                  className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-4 py-3 text-base text-[var(--text-primary)] focus:ring-2 focus:ring-emerald-500"
                   placeholder="Enter your business name"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
+                <label className="block text-base md:text-sm font-medium text-[var(--text-primary)] mb-2">
                   Tagline
                 </label>
                 <input
                   type="text"
                   value={settings.business_tagline}
                   onChange={(e) => setSettings({ ...settings, business_tagline: e.target.value })}
-                  className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-4 py-2 text-[var(--text-primary)] focus:ring-2 focus:ring-emerald-500"
+                  className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-4 py-3 text-base text-[var(--text-primary)] focus:ring-2 focus:ring-emerald-500"
                   placeholder="Enter your tagline"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
+                <label className="block text-base md:text-sm font-medium text-[var(--text-primary)] mb-2">
                   Business Type
                 </label>
                 <select
                   value={settings.business_type}
                   onChange={(e) => setSettings({ ...settings, business_type: e.target.value })}
-                  className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-4 py-2 text-[var(--text-primary)] focus:ring-2 focus:ring-emerald-500"
+                  className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-4 py-3 text-base text-[var(--text-primary)] focus:ring-2 focus:ring-emerald-500"
                 >
                   <option value="">Select Type</option>
                   <option value="Retail Store">Retail Store</option>
@@ -177,17 +177,17 @@ export default function ShopSettingsPage() {
               </div>
 
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
+                <label className="block text-base md:text-sm font-medium text-[var(--text-primary)] mb-2">
                   Logo URL
                 </label>
                 <input
                   type="url"
                   value={settings.logo_url}
                   onChange={(e) => setSettings({ ...settings, logo_url: e.target.value })}
-                  className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-4 py-2 text-[var(--text-primary)] focus:ring-2 focus:ring-emerald-500"
+                  className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-4 py-3 text-base text-[var(--text-primary)] focus:ring-2 focus:ring-emerald-500"
                   placeholder="https://example.com/logo.png"
                 />
-                <p className="text-xs text-[var(--text-secondary)] mt-1">
+                <p className="text-sm md:text-xs text-[var(--text-secondary)] mt-2">
                   Enter a direct link to your logo image (PNG, JPG, or SVG)
                 </p>
                 {settings.logo_url && (
@@ -208,40 +208,40 @@ export default function ShopSettingsPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
+                <label className="block text-base md:text-sm font-medium text-[var(--text-primary)] mb-2">
                   Business Email
                 </label>
                 <input
                   type="email"
                   value={settings.business_email}
                   onChange={(e) => setSettings({ ...settings, business_email: e.target.value })}
-                  className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-4 py-2 text-[var(--text-primary)] focus:ring-2 focus:ring-emerald-500"
+                  className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-4 py-3 text-base text-[var(--text-primary)] focus:ring-2 focus:ring-emerald-500"
                   placeholder="business@example.com"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
+                <label className="block text-base md:text-sm font-medium text-[var(--text-primary)] mb-2">
                   Business Phone
                 </label>
                 <input
                   type="tel"
                   value={settings.business_phone}
                   onChange={(e) => setSettings({ ...settings, business_phone: e.target.value })}
-                  className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-4 py-2 text-[var(--text-primary)] focus:ring-2 focus:ring-emerald-500"
+                  className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-4 py-3 text-base text-[var(--text-primary)] focus:ring-2 focus:ring-emerald-500"
                   placeholder="+254 700 000 000"
                 />
               </div>
 
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
+                <label className="block text-base md:text-sm font-medium text-[var(--text-primary)] mb-2">
                   Business Address
                 </label>
                 <textarea
                   value={settings.business_address}
                   onChange={(e) => setSettings({ ...settings, business_address: e.target.value })}
                   rows={3}
-                  className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-4 py-2 text-[var(--text-primary)] focus:ring-2 focus:ring-emerald-500"
+                  className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-4 py-3 text-base text-[var(--text-primary)] focus:ring-2 focus:ring-emerald-500"
                   placeholder="Enter your business address"
                 />
               </div>
@@ -249,12 +249,12 @@ export default function ShopSettingsPage() {
           </div>
 
           {/* Branding */}
-          <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-6">
-            <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">Branding</h2>
+          <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-4 md:p-6">
+            <h2 className="text-xl md:text-lg font-semibold text-[var(--text-primary)] mb-4">Branding</h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
+                <label className="block text-base md:text-sm font-medium text-[var(--text-primary)] mb-2">
                   Primary Color
                 </label>
                 <div className="flex gap-2">
@@ -262,13 +262,13 @@ export default function ShopSettingsPage() {
                     type="color"
                     value={settings.primary_color}
                     onChange={(e) => setSettings({ ...settings, primary_color: e.target.value })}
-                    className="h-10 w-20 rounded border border-[var(--border-color)]"
+                    className="h-12 w-20 rounded border border-[var(--border-color)]"
                   />
                   <input
                     type="text"
                     value={settings.primary_color}
                     onChange={(e) => setSettings({ ...settings, primary_color: e.target.value })}
-                    className="flex-1 bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-4 py-2 text-[var(--text-primary)]"
+                    className="flex-1 bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-4 py-3 text-base text-[var(--text-primary)]"
                     placeholder="#10b981"
                   />
                 </div>
@@ -277,32 +277,32 @@ export default function ShopSettingsPage() {
           </div>
 
           {/* Currency */}
-          <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-6">
-            <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">Currency</h2>
+          <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-4 md:p-6">
+            <h2 className="text-xl md:text-lg font-semibold text-[var(--text-primary)] mb-4">Currency</h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
+                <label className="block text-base md:text-sm font-medium text-[var(--text-primary)] mb-2">
                   Currency Code
                 </label>
                 <input
                   type="text"
                   value={settings.currency}
                   onChange={(e) => setSettings({ ...settings, currency: e.target.value })}
-                  className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-4 py-2 text-[var(--text-primary)] focus:ring-2 focus:ring-emerald-500"
+                  className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-4 py-3 text-base text-[var(--text-primary)] focus:ring-2 focus:ring-emerald-500"
                   placeholder="KES"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
+                <label className="block text-base md:text-sm font-medium text-[var(--text-primary)] mb-2">
                   Currency Symbol
                 </label>
                 <input
                   type="text"
                   value={settings.currency_symbol}
                   onChange={(e) => setSettings({ ...settings, currency_symbol: e.target.value })}
-                  className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-4 py-2 text-[var(--text-primary)] focus:ring-2 focus:ring-emerald-500"
+                  className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-4 py-3 text-base text-[var(--text-primary)] focus:ring-2 focus:ring-emerald-500"
                   placeholder="KSh"
                 />
               </div>
@@ -310,18 +310,18 @@ export default function ShopSettingsPage() {
           </div>
 
           {/* Save Button */}
-          <div className="flex justify-end gap-3">
+          <div className="flex flex-col sm:flex-row justify-end gap-3">
             <button
               type="button"
               onClick={() => window.location.reload()}
-              className="px-6 py-2 border border-[var(--border-color)] rounded-lg text-[var(--text-primary)] hover:bg-[var(--bg-secondary)]"
+              className="px-6 py-3 text-base border border-[var(--border-color)] rounded-lg text-[var(--text-primary)] hover:bg-[var(--bg-secondary)]"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={saving}
-              className="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg disabled:opacity-50"
+              className="px-6 py-3 text-base bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg disabled:opacity-50 font-medium"
             >
               {saving ? 'Saving...' : 'Save Settings'}
             </button>
