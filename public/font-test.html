@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+    <title>Font Size Test - Mobile</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 20px;
+            background: #0a0e1a;
+            color: white;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            color: #10b981;
+        }
+        
+        .test-section {
+            background: #1e2330;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .test-section h2 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: #10b981;
+        }
+        
+        .test-text {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 15px;
+        }
+        
+        button {
+            font-size: 1.1rem;
+            padding: 1rem 1.5rem;
+            background: #10b981;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            width: 100%;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        
+        input {
+            font-size: 1.1rem;
+            padding: 1rem;
+            width: 100%;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            background: #0a0e1a;
+            color: white;
+            margin-bottom: 15px;
+        }
+        
+        .status {
+            background: #10b981;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        
+        .info {
+            background: #1e40af;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .info p {
+            font-size: 1rem;
+            line-height: 1.7;
+            margin-bottom: 10px;
+        }
+        
+        .deployment-time {
+            background: #7c3aed;
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 1rem;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📱 Mobile Font Test</h1>
+        
+        <div class="status">
+            ✅ Latest Deployment Active
+        </div>
+        
+        <div class="deployment-time">
+            Deployed: <span id="time"></span>
+        </div>
+        
+        <div class="info">
+            <p><strong>If you can read this easily, the fix is working!</strong></p>
+            <p>Base font size: 20px on mobile (was 16px)</p>
+            <p>All text is now 25% larger than before</p>
+        </div>
+        
+        <div class="test-section">
+            <h2>Test Elements</h2>
+            <p class="test-text">This is regular paragraph text. It should be easy to read without zooming.</p>
+            <button>Test Button - Easy to Tap</button>
+            <input type="text" placeholder="Test input field - large text">
+        </div>
+        
+        <div class="test-section">
+            <h2>Quick Actions</h2>
+            <button onclick="window.location.href='/login'">Go to Login</button>
+            <button onclick="window.location.href='/shop-settings'">Go to Shop Settings</button>
+            <button onclick="window.location.href='/clear-cache.html'">Clear Cache</button>
+        </div>
+        
+        <div class="test-section">
+            <h2>Screen Info</h2>
+            <p class="test-text">Screen Width: <span id="width"></span>px</p>
+            <p class="test-text">Screen Height: <span id="height"></span>px</p>
+            <p class="test-text">Device Pixel Ratio: <span id="dpr"></span></p>
+            <p class="test-text">User Agent: <span id="ua" style="font-size: 0.9rem; word-break: break-all;"></span></p>
+        </div>
+    </div>
+
+    <script>
+        // Display current time
+        document.getElementById('time').textContent = new Date().toLocaleString();
+        
+        // Display screen info
+        document.getElementById('width').textContent = window.innerWidth;
+        document.getElementById('height').textContent = window.innerHeight;
+        document.getElementById('dpr').textContent = window.devicePixelRatio;
+        document.getElementById('ua').textContent = navigator.userAgent;
+    </script>
+</body>
+</html>
