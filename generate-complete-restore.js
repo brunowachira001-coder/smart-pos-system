@@ -23,8 +23,10 @@ console.log('');
 
 // Insert Products
 console.log('-- INSERT PRODUCTS (' + data.products.length + ')');
-console.log('INSERT INTO products (sku, name, category, stock_quantity, retail_price, wholesale_price, cost_price, status, description, barcode, image_url, minimum_stock_level)');
-console.log('VALUES');
+console.log('INSERT INTO products (');
+console.log('  sku, name, category, stock_quantity, retail_price, wholesale_price,');
+console.log('  cost_price, status, description, barcode, image_url, minimum_stock_level');
+console.log(') VALUES');
 
 const productValues = data.products.map((p, i) => {
   const sku = (p.sku || '').replace(/'/g, "''");
@@ -49,8 +51,9 @@ console.log('');
 
 // Insert Customers
 console.log('-- INSERT CUSTOMERS (' + data.customers.length + ')');
-console.log('INSERT INTO customers (name, email, phone, address, customer_type, status)');
-console.log('VALUES');
+console.log('INSERT INTO customers (');
+console.log('  name, email, phone, address, customer_type, status');
+console.log(') VALUES');
 
 const customerValues = data.customers.map((c, i) => {
   const name = (c.name || '').replace(/'/g, "''");
@@ -70,8 +73,9 @@ console.log('');
 // Insert Returns
 if (data.returns && data.returns.length > 0) {
   console.log('-- INSERT RETURNS (' + data.returns.length + ')');
-  console.log('INSERT INTO returns (product_id, quantity, reason, status, refund_amount, created_at)');
-  console.log('VALUES');
+  console.log('INSERT INTO returns (');
+  console.log('  product_id, quantity, reason, status, refund_amount, created_at');
+  console.log(') VALUES');
   
   const returnValues = data.returns.map((r, i) => {
     const productId = r.product_id ? `'${r.product_id}'` : 'NULL';
@@ -92,8 +96,9 @@ if (data.returns && data.returns.length > 0) {
 // Insert Expenses
 if (data.expenses && data.expenses.length > 0) {
   console.log('-- INSERT EXPENSES (' + data.expenses.length + ')');
-  console.log('INSERT INTO expenses (category, amount, description, date, created_at)');
-  console.log('VALUES');
+  console.log('INSERT INTO expenses (');
+  console.log('  category, amount, description, date, created_at');
+  console.log(') VALUES');
   
   const expenseValues = data.expenses.map((e, i) => {
     const category = e.category ? `'${e.category.replace(/'/g, "''")}'` : "'Other'";
@@ -113,8 +118,9 @@ if (data.expenses && data.expenses.length > 0) {
 // Insert Debts
 if (data.debts && data.debts.length > 0) {
   console.log('-- INSERT DEBTS (' + data.debts.length + ')');
-  console.log('INSERT INTO debts (customer_id, amount, paid_amount, status, due_date, created_at)');
-  console.log('VALUES');
+  console.log('INSERT INTO debts (');
+  console.log('  customer_id, amount, paid_amount, status, due_date, created_at');
+  console.log(') VALUES');
   
   const debtValues = data.debts.map((d, i) => {
     const customerId = d.customer_id ? `'${d.customer_id}'` : 'NULL';
@@ -144,8 +150,11 @@ if (data.shop_settings && data.shop_settings.length > 0) {
   const taxRate = s.tax_rate || 0;
   const logo = s.logo_url ? `'${s.logo_url.replace(/'/g, "''")}'` : 'NULL';
   
-  console.log(`INSERT INTO shop_settings (shop_name, address, phone, email, currency, tax_rate, logo_url)`);
-  console.log(`VALUES (${shopName}, ${address}, ${phone}, ${email}, ${currency}, ${taxRate}, ${logo});`);
+  console.log('INSERT INTO shop_settings (');
+  console.log('  shop_name, address, phone, email, currency, tax_rate, logo_url');
+  console.log(') VALUES (');
+  console.log(`  ${shopName}, ${address}, ${phone}, ${email}, ${currency}, ${taxRate}, ${logo}`);
+  console.log(');');
   console.log('');
 }
 
