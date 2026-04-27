@@ -16,18 +16,33 @@ export default function Sidebar({ onClose }: SidebarProps) {
 
   const fetchShopSettings = async () => {
     try {
+      // Try to use cached settings first
       const cachedSettings = localStorage.getItem('shopSettings');
-      if (cachedSettings) setShopSettings(JSON.parse(cachedSettings));
+      if (cachedSettings) {
+        setShopSettings(JSON.parse(cachedSettings));
+      }
 
+      // Fetch fresh settings - try with user email if available, otherwise get default
       const userData = localStorage.getItem('user');
+      let url = '/api/shop-settings';
+      
       if (userData) {
-        const user = JSON.parse(userData);
-        const response = await fetch(`/api/shop-settings?email=${encodeURIComponent(user.email)}`);
-        const data = await response.json();
-        if (response.ok && data.settings) {
-          setShopSettings(data.settings);
-          localStorage.setItem('shopSettings', JSON.stringify(data.settings));
+        try {
+          const user = JSON.parse(userData);
+          if (user.email) {
+            url = `/api/shop-settings?email=${encodeURIComponent(user.email)}`;
+          }
+        } catch (e) {
+          console.log('Could not parse user data, fetching default settings');
         }
+      }
+      
+      const response = await fetch(url);
+      const data = await response.json();
+      
+      if (response.ok && data.settings) {
+        setShopSettings(data.settings);
+        localStorage.setItem('shopSettings', JSON.stringify(data.settings));
       }
     } catch (error) {
       console.error('Error fetching shop settings:', error);
