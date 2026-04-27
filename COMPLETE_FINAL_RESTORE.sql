@@ -1,6 +1,5 @@
 -- ========================================
 -- COMPLETE DATABASE RESTORATION
--- Products: 121 | Customers: 54 | Returns: 18 | Expenses: 10 | Debts: 4 | Shop Settings: 1
 -- ========================================
 
 DROP TABLE IF EXISTS returns CASCADE;
@@ -380,8 +379,8 @@ INSERT INTO debts (
   customer_id, customer_name, sale_id, total_amount, amount_paid,
   amount_remaining, credit_limit, status, due_date, notes, created_at, updated_at
 ) VALUES
-(NULL, 'Sam Ngungu', 'TXN-1776956545378-8Q8FVRU74', 180, 200, -20, 0, 'Paid', '2026-05-23', 'Credit sale - TXN-1776956545378-8Q8FVRU74', '2026-04-23T15:02:26.173447+00:00', '2026-04-24T12:33:11.83411+00:00'),
-(NULL, 'Customer 20', 'TXN-1777116366415-8DMZUTOWX', 1600, 0, 1600, 0, 'Outstanding', '2026-05-25', 'Credit sale - TXN-1777116366415-8DMZUTOWX', '2026-04-25T11:26:07.080664+00:00', '2026-04-25T11:26:07.080664+00:00'),
+('6252fa87-ed23-4628-b1e8-60b30ee04f11', 'Sam Ngungu', 'TXN-1776956545378-8Q8FVRU74', 180, 200, -20, 0, 'Paid', '2026-05-23', 'Credit sale - TXN-1776956545378-8Q8FVRU74', '2026-04-23T15:02:26.173447+00:00', '2026-04-24T12:33:11.83411+00:00'),
+('32530ac7-2f5e-40fc-8eab-e9d022a5450b', 'Customer 20', 'TXN-1777116366415-8DMZUTOWX', 1600, 0, 1600, 0, 'Outstanding', '2026-05-25', 'Credit sale - TXN-1777116366415-8DMZUTOWX', '2026-04-25T11:26:07.080664+00:00', '2026-04-25T11:26:07.080664+00:00'),
 (NULL, 'John Doe', 'SALE-000001', 900, 900, 0, 0, 'Paid', '2026-05-17', 'Credit sale', '2026-04-17T08:43:36.775306+00:00', '2026-04-20T19:37:30.665047+00:00'),
 (NULL, 'Jane Smith', 'SALE-000002', 600, 1200, -600, 0, 'Paid', '2026-05-17', 'Credit sale', '2026-04-17T08:43:36.775306+00:00', '2026-04-21T19:32:09.603565+00:00');
 

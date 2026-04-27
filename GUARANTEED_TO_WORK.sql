@@ -1,6 +1,5 @@
 -- ========================================
 -- COMPLETE DATABASE RESTORATION
--- Products: 121 | Customers: 54 | Returns: 18 | Expenses: 10 | Debts: 4 | Shop Settings: 1
 -- ========================================
 
 DROP TABLE IF EXISTS returns CASCADE;
@@ -148,10 +147,11 @@ CREATE POLICY "Allow all on shop_settings" ON shop_settings FOR ALL USING (true)
 -- ========================================
 
 -- INSERT PRODUCTS (121)
-INSERT INTO products (
-  sku, name, category, stock_quantity, retail_price, wholesale_price,
-  cost_price, status, description, barcode, image_url, minimum_stock_level
-) VALUES
+-- INSERT ALL DATA
+-- Products: 121 | Customers: 54 | Returns: 18 | Expenses: 10 | Debts: 4 | Shop Settings: 1
+
+-- INSERT PRODUCTS (121)
+INSERT INTO products (sku, name, category, stock_quantity, retail_price, wholesale_price, cost_price, status, description, barcode, image_url, minimum_stock_level) VALUES
 ('UC-002', 'USB-C Cable', 'Accessories', 500, 9.99, 8.49, 5.99, 'active', NULL, NULL, NULL, 10),
 ('PC-003', 'Phone Case', 'Accessories', 300, 5, 4.25, 3, 'active', NULL, NULL, NULL, 10),
 ('SP-004', 'Screen Protector', 'Accessories', 1000, 2, 1.7, 1.2, 'active', NULL, NULL, NULL, 10),
@@ -275,9 +275,7 @@ INSERT INTO products (
 ('SKU-00100', 'Product 100', 'Sports', 600, 1600, 1280, 1050, 'inactive', 'Demo product description for item 100', NULL, 'https://i.imgur.com/placeholder.jpg', 20);
 
 -- INSERT CUSTOMERS (54)
-INSERT INTO customers (
-  name, email, phone, address, customer_type, status
-) VALUES
+INSERT INTO customers (name, email, phone, address, customer_type, status) VALUES
 ('Ann Wachira', 'annwachira123@gmail.com', '01134990987', NULL, 'retail', 'active'),
 ('Sam Ngungu', 'samngungu123@gmail.com', '0721889007', NULL, 'retail', 'active'),
 ('Customer 22', 'customer22@example.com', '+254700000022', '22 Main Street', 'retail', 'active'),
@@ -333,12 +331,8 @@ INSERT INTO customers (
 ('Customer 20', 'customer20@example.com', '+254700000020', '20 Main Street', 'retail', 'active'),
 ('Job Phonix', 'jobphnonix123@gmail.com', '0112343567', NULL, 'retail', 'active');
 
--- INSERT RETURNS (18)
-INSERT INTO returns (
-  return_id, transaction_id, customer_id, customer_name, product_id, product_name,
-  quantity, amount, reason, status, refund_method, refund_amount, notes,
-  processed_by, return_date, processed_date, created_at, updated_at
-) VALUES
+-- INSERT RETURNS (18) - All customer_id set to NULL
+INSERT INTO returns (return_id, transaction_id, customer_id, customer_name, product_id, product_name, quantity, amount, reason, status, refund_method, refund_amount, notes, processed_by, return_date, processed_date, created_at, updated_at) VALUES
 ('7318bf7e-0d77-413e-813a-f3ab8569dce7d', 'SALE-915632', NULL, 'Jane Smith', NULL, 'USB-C Cable', 1, 9.99, 'Exchanging', 'Completed', NULL, 0, NULL, NULL, '2025-12-06T13:12:24+00:00', '2025-12-06T14:00:00+00:00', '2026-04-17T09:01:31.129122+00:00', '2026-04-17T09:01:31.129122+00:00'),
 ('874bc648-0bb6-4497-8b88-691d4f25cc09', 'SALE-502614', NULL, 'Bob Johnson', NULL, 'Phone Case', 10, 50, 'A lot', 'Completed', NULL, 0, NULL, NULL, '2025-12-05T15:48:17+00:00', '2025-12-05T16:30:00+00:00', '2026-04-17T09:01:31.129122+00:00', '2026-04-17T09:01:31.129122+00:00'),
 ('1ba019e8-a727-43b7-86d6-96e73dd0e417', 'SALE-180481', NULL, 'Alice Brown', NULL, 'Power Bank', 12, 240, 'Too much expensive', 'Completed', NULL, 0, NULL, NULL, '2025-12-03T12:47:23+00:00', '2025-12-03T14:00:00+00:00', '2026-04-17T09:01:31.129122+00:00', '2026-04-17T09:01:31.129122+00:00'),
@@ -359,11 +353,7 @@ INSERT INTO returns (
 ('pkrfqmpo-47um-ejpk-20yt-a5ttyut7jdb', 'TXN-1776520939947-WNLQP7DG9', NULL, 'Ngungu', NULL, 'Coffee (500g)', 2, 660, 'Not as Described', 'Completed', 'Cash', 660, NULL, 'Admin', '2026-04-18T14:10:45.343706+00:00', '2026-04-18T14:10:59.559189+00:00', '2026-04-18T14:10:45.343706+00:00', '2026-04-18T14:10:59.559189+00:00');
 
 -- INSERT EXPENSES (10)
-INSERT INTO expenses (
-  expense_id, category, subcategory, amount, description, payment_method,
-  vendor_name, receipt_number, is_recurring, recurrence_period, notes,
-  expense_date, created_by, approved_by, status, created_at, updated_at
-) VALUES
+INSERT INTO expenses (expense_id, category, subcategory, amount, description, payment_method, vendor_name, receipt_number, is_recurring, recurrence_period, notes, expense_date, created_by, approved_by, status, created_at, updated_at) VALUES
 ('EXP-245640', 'Rent', NULL, 35000, 'Monthly office rent', 'Bank Transfer', 'Property Management Ltd', NULL, false, NULL, NULL, '2026-04-12', 'Admin', NULL, 'Approved', '2026-04-17T09:19:34.466841+00:00', '2026-04-17T09:19:34.466841+00:00'),
 ('EXP-619447', 'Utilities', NULL, 4500, 'Electricity bill', 'M-Pesa', 'Kenya Power', NULL, false, NULL, NULL, '2026-04-14', 'Admin', NULL, 'Approved', '2026-04-17T09:19:34.466841+00:00', '2026-04-17T09:19:34.466841+00:00'),
 ('EXP-426061', 'Salaries', NULL, 85000, 'Staff salaries for December', 'Bank Transfer', 'Employees', NULL, false, NULL, NULL, '2026-04-15', 'Admin', NULL, 'Approved', '2026-04-17T09:19:34.466841+00:00', '2026-04-17T09:19:34.466841+00:00'),
@@ -375,26 +365,16 @@ INSERT INTO expenses (
 ('EXP-407834', 'Food & Dining', NULL, 800, NULL, 'Cash', NULL, NULL, false, NULL, NULL, '2026-04-20', 'Admin', 'Admin', 'Approved', '2026-04-20T09:06:00.551634+00:00', '2026-04-20T09:12:46.786035+00:00'),
 ('EXP-866763', 'Maintenance', NULL, 1500, 'Bulb & Switch repairs', 'M-Pesa', 'Karani Electricals', NULL, false, NULL, NULL, '2026-04-21', 'Admin', 'Admin', 'Approved', '2026-04-21T18:56:14.901112+00:00', '2026-04-21T19:04:40.851033+00:00');
 
--- INSERT DEBTS (4)
-INSERT INTO debts (
-  customer_id, customer_name, sale_id, total_amount, amount_paid,
-  amount_remaining, credit_limit, status, due_date, notes, created_at, updated_at
-) VALUES
+-- INSERT DEBTS (4) - All customer_id set to NULL
+INSERT INTO debts (customer_id, customer_name, sale_id, total_amount, amount_paid, amount_remaining, credit_limit, status, due_date, notes, created_at, updated_at) VALUES
 (NULL, 'Sam Ngungu', 'TXN-1776956545378-8Q8FVRU74', 180, 200, -20, 0, 'Paid', '2026-05-23', 'Credit sale - TXN-1776956545378-8Q8FVRU74', '2026-04-23T15:02:26.173447+00:00', '2026-04-24T12:33:11.83411+00:00'),
 (NULL, 'Customer 20', 'TXN-1777116366415-8DMZUTOWX', 1600, 0, 1600, 0, 'Outstanding', '2026-05-25', 'Credit sale - TXN-1777116366415-8DMZUTOWX', '2026-04-25T11:26:07.080664+00:00', '2026-04-25T11:26:07.080664+00:00'),
 (NULL, 'John Doe', 'SALE-000001', 900, 900, 0, 0, 'Paid', '2026-05-17', 'Credit sale', '2026-04-17T08:43:36.775306+00:00', '2026-04-20T19:37:30.665047+00:00'),
 (NULL, 'Jane Smith', 'SALE-000002', 600, 1200, -600, 0, 'Paid', '2026-05-17', 'Credit sale', '2026-04-17T08:43:36.775306+00:00', '2026-04-21T19:32:09.603565+00:00');
 
 -- INSERT SHOP SETTINGS
-INSERT INTO shop_settings (
-  user_id, business_name, business_tagline, business_email, business_phone,
-  business_address, logo_url, primary_color, secondary_color, currency,
-  currency_symbol, timezone, date_format, receipt_header, receipt_footer,
-  show_logo_on_receipt, business_type
-) VALUES (
-  'a8bf47b8-32f8-4311-a192-7eaeeb13e882', 'Nyla Wigs', 'Luxury wigs that EAT everytime', 'nylawigs254@gmail.com', '0718307550', '10-3489 Nairobi,KENYA', 'https://ugemjqouxnholwlgvzer.supabase.co/storage/v1/object/public/logos/WhatsApp%20Image%202026-04-23%20at%2011.27.20.jpeg',
-  '#b7a110', '#059669', 'KES', 'KSh', 'Africa/Nairobi',
-  'DD/MM/YYYY', NULL, NULL, true, 'Retail Store'
+INSERT INTO shop_settings (user_id, business_name, business_tagline, business_email, business_phone, business_address, logo_url, primary_color, secondary_color, currency, currency_symbol, timezone, date_format, receipt_header, receipt_footer, show_logo_on_receipt, business_type) VALUES (
+  'a8bf47b8-32f8-4311-a192-7eaeeb13e882', 'Nyla Wigs', 'Luxury wigs that EAT everytime', 'nylawigs254@gmail.com', '0718307550', '10-3489 Nairobi,KENYA', 'https://ugemjqouxnholwlgvzer.supabase.co/storage/v1/object/public/logos/WhatsApp%20Image%202026-04-23%20at%2011.27.20.jpeg', '#b7a110', '#059669', 'KES', 'KSh', 'Africa/Nairobi', 'DD/MM/YYYY', NULL, NULL, true, 'Retail Store'
 );
 
 -- VERIFY DATA

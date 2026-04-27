@@ -1,8 +1,10 @@
 -- ========================================
 -- COMPLETE DATABASE RESTORATION
+-- DROP OLD TABLES AND CREATE NEW WITH ALL DATA
 -- Products: 121 | Customers: 54 | Returns: 18 | Expenses: 10 | Debts: 4 | Shop Settings: 1
 -- ========================================
 
+-- STEP 1: DROP ALL EXISTING TABLES
 DROP TABLE IF EXISTS returns CASCADE;
 DROP TABLE IF EXISTS expenses CASCADE;
 DROP TABLE IF EXISTS debts CASCADE;
@@ -10,6 +12,7 @@ DROP TABLE IF EXISTS shop_settings CASCADE;
 DROP TABLE IF EXISTS products CASCADE;
 DROP TABLE IF EXISTS customers CASCADE;
 
+-- STEP 2: CREATE PRODUCTS TABLE
 CREATE TABLE products (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   sku TEXT UNIQUE NOT NULL,
@@ -28,6 +31,7 @@ CREATE TABLE products (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- STEP 3: CREATE CUSTOMERS TABLE
 CREATE TABLE customers (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,
@@ -40,6 +44,7 @@ CREATE TABLE customers (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- STEP 4: CREATE RETURNS TABLE
 CREATE TABLE returns (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   return_id TEXT UNIQUE NOT NULL,
@@ -62,6 +67,7 @@ CREATE TABLE returns (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- STEP 5: CREATE EXPENSES TABLE
 CREATE TABLE expenses (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   expense_id TEXT UNIQUE,
@@ -84,6 +90,7 @@ CREATE TABLE expenses (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- STEP 6: CREATE DEBTS TABLE
 CREATE TABLE debts (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   customer_id UUID REFERENCES customers(id) ON DELETE CASCADE,
@@ -100,6 +107,7 @@ CREATE TABLE debts (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- STEP 7: CREATE SHOP SETTINGS TABLE
 CREATE TABLE shop_settings (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID,
@@ -123,6 +131,7 @@ CREATE TABLE shop_settings (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- STEP 8: ENABLE RLS
 ALTER TABLE products ENABLE ROW LEVEL SECURITY;
 ALTER TABLE customers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE returns ENABLE ROW LEVEL SECURITY;
@@ -130,6 +139,7 @@ ALTER TABLE expenses ENABLE ROW LEVEL SECURITY;
 ALTER TABLE debts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE shop_settings ENABLE ROW LEVEL SECURITY;
 
+-- STEP 9: CREATE POLICIES
 CREATE POLICY "Allow all on products" ON products FOR ALL USING (true);
 CREATE POLICY "Allow all on customers" ON customers FOR ALL USING (true);
 CREATE POLICY "Allow all on returns" ON returns FOR ALL USING (true);
@@ -137,6 +147,8 @@ CREATE POLICY "Allow all on expenses" ON expenses FOR ALL USING (true);
 CREATE POLICY "Allow all on debts" ON debts FOR ALL USING (true);
 CREATE POLICY "Allow all on shop_settings" ON shop_settings FOR ALL USING (true);
 
+-- STEP 10: INSERT ALL DATA
+-- ========================================
 -- ========================================
 -- COMPLETE DATA RESTORATION
 -- Products: 121
@@ -339,14 +351,14 @@ INSERT INTO returns (
   quantity, amount, reason, status, refund_method, refund_amount, notes,
   processed_by, return_date, processed_date, created_at, updated_at
 ) VALUES
-('7318bf7e-0d77-413e-813a-f3ab8569dce7d', 'SALE-915632', NULL, 'Jane Smith', NULL, 'USB-C Cable', 1, 9.99, 'Exchanging', 'Completed', NULL, 0, NULL, NULL, '2025-12-06T13:12:24+00:00', '2025-12-06T14:00:00+00:00', '2026-04-17T09:01:31.129122+00:00', '2026-04-17T09:01:31.129122+00:00'),
-('874bc648-0bb6-4497-8b88-691d4f25cc09', 'SALE-502614', NULL, 'Bob Johnson', NULL, 'Phone Case', 10, 50, 'A lot', 'Completed', NULL, 0, NULL, NULL, '2025-12-05T15:48:17+00:00', '2025-12-05T16:30:00+00:00', '2026-04-17T09:01:31.129122+00:00', '2026-04-17T09:01:31.129122+00:00'),
-('1ba019e8-a727-43b7-86d6-96e73dd0e417', 'SALE-180481', NULL, 'Alice Brown', NULL, 'Power Bank', 12, 240, 'Too much expensive', 'Completed', NULL, 0, NULL, NULL, '2025-12-03T12:47:23+00:00', '2025-12-03T14:00:00+00:00', '2026-04-17T09:01:31.129122+00:00', '2026-04-17T09:01:31.129122+00:00'),
-('4a05daec-0fbd-4d58-9a7a-b8b2b7be5999', 'SALE-773559', NULL, 'Charlie Wilson', NULL, 'Bluetooth Speaker', 2, 70, 'Gzzz', 'Completed', NULL, 0, NULL, NULL, '2025-12-02T18:24:47+00:00', '2025-12-02T19:00:00+00:00', '2026-04-17T09:01:31.129122+00:00', '2026-04-17T09:01:31.129122+00:00'),
+('7318bf7e-0d77-413e-813a-f3ab8569dce7d', 'SALE-915632', '7e18cae8-47fd-4fab-821b-b789e1a86e2c', 'Jane Smith', NULL, 'USB-C Cable', 1, 9.99, 'Exchanging', 'Completed', NULL, 0, NULL, NULL, '2025-12-06T13:12:24+00:00', '2025-12-06T14:00:00+00:00', '2026-04-17T09:01:31.129122+00:00', '2026-04-17T09:01:31.129122+00:00'),
+('874bc648-0bb6-4497-8b88-691d4f25cc09', 'SALE-502614', 'da2f912d-5892-42bb-91cd-9947e0d57166', 'Bob Johnson', NULL, 'Phone Case', 10, 50, 'A lot', 'Completed', NULL, 0, NULL, NULL, '2025-12-05T15:48:17+00:00', '2025-12-05T16:30:00+00:00', '2026-04-17T09:01:31.129122+00:00', '2026-04-17T09:01:31.129122+00:00'),
+('1ba019e8-a727-43b7-86d6-96e73dd0e417', 'SALE-180481', '5461c5b8-654a-4a80-8474-5ad066c6b015', 'Alice Brown', NULL, 'Power Bank', 12, 240, 'Too much expensive', 'Completed', NULL, 0, NULL, NULL, '2025-12-03T12:47:23+00:00', '2025-12-03T14:00:00+00:00', '2026-04-17T09:01:31.129122+00:00', '2026-04-17T09:01:31.129122+00:00'),
+('4a05daec-0fbd-4d58-9a7a-b8b2b7be5999', 'SALE-773559', 'da375fd4-18d0-44c3-8681-dadc9f97016d', 'Charlie Wilson', NULL, 'Bluetooth Speaker', 2, 70, 'Gzzz', 'Completed', NULL, 0, NULL, NULL, '2025-12-02T18:24:47+00:00', '2025-12-02T19:00:00+00:00', '2026-04-17T09:01:31.129122+00:00', '2026-04-17T09:01:31.129122+00:00'),
 ('il3kbzt9-x6tx-byqf-23i4-bo8d9thahu', 'TXN-1776507878669-Z08LULM6Y', NULL, 'Walk-in Customer', NULL, 'bread', 2, 160, 'Quality Issues', 'Completed', 'Cash', 160, NULL, 'Admin', '2026-04-18T12:21:29.214696+00:00', '2026-04-18T12:21:57.195223+00:00', '2026-04-18T12:21:29.214696+00:00', '2026-04-18T12:21:57.195223+00:00'),
 ('7eixpgqk-10kq-dclk-9ti3-mhqh47o39m', 'TXN-1777116366415-8DMZUTOWX', NULL, 'Customer 20', NULL, 'Product 10', 1, 1600, 'Wrong Item', 'Completed', 'Cash', 1600, NULL, 'Admin', '2026-04-25T19:23:49.710319+00:00', '2026-04-25T19:24:01.731034+00:00', '2026-04-25T19:23:49.710319+00:00', '2026-04-25T19:24:01.731034+00:00'),
 ('335rzv4w-okwj-582g-7xwr-6xmvc03rhil', 'TXN-1776514997646-SH384CT9Z', NULL, 'Walk-in Customer', NULL, 'beans', 1, 170, 'Changed Mind', 'Completed', 'Cash', 170, NULL, 'Admin', '2026-04-18T12:24:45.265605+00:00', '2026-04-18T12:24:52.499578+00:00', '2026-04-18T12:24:45.265605+00:00', '2026-04-18T12:24:52.499578+00:00'),
-('464f7c37-cbc5-4e57-9d92-57b7d83c6041', 'SALE-158044', NULL, 'John Doe', NULL, 'Wireless Headphones', 6, 299.94, 'Zzz', 'Completed', 'Cash', 299.94, NULL, 'Admin', '2025-03-09T11:50:49+00:00', '2026-04-25T19:24:14.652514+00:00', '2026-04-17T09:01:31.129122+00:00', '2026-04-25T19:24:14.652514+00:00'),
+('464f7c37-cbc5-4e57-9d92-57b7d83c6041', 'SALE-158044', '984faa0a-6e5c-452f-b3c5-d31841b9d4db', 'John Doe', NULL, 'Wireless Headphones', 6, 299.94, 'Zzz', 'Completed', 'Cash', 299.94, NULL, 'Admin', '2025-03-09T11:50:49+00:00', '2026-04-25T19:24:14.652514+00:00', '2026-04-17T09:01:31.129122+00:00', '2026-04-25T19:24:14.652514+00:00'),
 ('fzh7y9hf-457d-0dvt-a6gx-31xvz8onll8', 'TXN-1776515839290-WLTJXSH7J', NULL, 'Walk-in Customer', NULL, 'coffee', 1, 350, 'Quality Issues', 'Completed', 'Cash', 350, NULL, 'Admin', '2026-04-18T12:39:28.88924+00:00', '2026-04-18T12:39:37.91328+00:00', '2026-04-18T12:39:28.88924+00:00', '2026-04-18T12:39:37.91328+00:00'),
 ('o7o1mr53-4uo0-g9ge-zgfo-3qytsvrk4tc', 'TXN-1776516038379-9ZYDXRD6J', NULL, 'Walk-in Customer', NULL, 'coffee', 1, 250, 'Not as Described', 'Completed', 'Cash', 250, NULL, 'Admin', '2026-04-18T12:41:59.265476+00:00', '2026-04-18T12:42:08.740176+00:00', '2026-04-18T12:41:59.265476+00:00', '2026-04-18T12:42:08.740176+00:00'),
 ('nzsah9rp-ill0-9xqp-w0go-a1rssfe0c76', 'TXN-1776516183669-F80ZI7P7D', NULL, 'Walk-in Customer', NULL, 'milk', 1, 150, 'Damaged', 'Completed', 'Cash', 150, NULL, 'Admin', '2026-04-18T12:43:59.385701+00:00', '2026-04-18T12:44:06.001067+00:00', '2026-04-18T12:43:59.385701+00:00', '2026-04-18T12:44:06.001067+00:00'),
@@ -380,10 +392,10 @@ INSERT INTO debts (
   customer_id, customer_name, sale_id, total_amount, amount_paid,
   amount_remaining, credit_limit, status, due_date, notes, created_at, updated_at
 ) VALUES
-(NULL, 'Sam Ngungu', 'TXN-1776956545378-8Q8FVRU74', 180, 200, -20, 0, 'Paid', '2026-05-23', 'Credit sale - TXN-1776956545378-8Q8FVRU74', '2026-04-23T15:02:26.173447+00:00', '2026-04-24T12:33:11.83411+00:00'),
-(NULL, 'Customer 20', 'TXN-1777116366415-8DMZUTOWX', 1600, 0, 1600, 0, 'Outstanding', '2026-05-25', 'Credit sale - TXN-1777116366415-8DMZUTOWX', '2026-04-25T11:26:07.080664+00:00', '2026-04-25T11:26:07.080664+00:00'),
-(NULL, 'John Doe', 'SALE-000001', 900, 900, 0, 0, 'Paid', '2026-05-17', 'Credit sale', '2026-04-17T08:43:36.775306+00:00', '2026-04-20T19:37:30.665047+00:00'),
-(NULL, 'Jane Smith', 'SALE-000002', 600, 1200, -600, 0, 'Paid', '2026-05-17', 'Credit sale', '2026-04-17T08:43:36.775306+00:00', '2026-04-21T19:32:09.603565+00:00');
+('6252fa87-ed23-4628-b1e8-60b30ee04f11', 'Sam Ngungu', 'TXN-1776956545378-8Q8FVRU74', 180, 200, -20, 0, 'Paid', '2026-05-23', 'Credit sale - TXN-1776956545378-8Q8FVRU74', '2026-04-23T15:02:26.173447+00:00', '2026-04-24T12:33:11.83411+00:00'),
+('32530ac7-2f5e-40fc-8eab-e9d022a5450b', 'Customer 20', 'TXN-1777116366415-8DMZUTOWX', 1600, 0, 1600, 0, 'Outstanding', '2026-05-25', 'Credit sale - TXN-1777116366415-8DMZUTOWX', '2026-04-25T11:26:07.080664+00:00', '2026-04-25T11:26:07.080664+00:00'),
+('984faa0a-6e5c-452f-b3c5-d31841b9d4db', 'John Doe', 'SALE-000001', 900, 900, 0, 0, 'Paid', '2026-05-17', 'Credit sale', '2026-04-17T08:43:36.775306+00:00', '2026-04-20T19:37:30.665047+00:00'),
+('7e18cae8-47fd-4fab-821b-b789e1a86e2c', 'Jane Smith', 'SALE-000002', 600, 1200, -600, 0, 'Paid', '2026-05-17', 'Credit sale', '2026-04-17T08:43:36.775306+00:00', '2026-04-21T19:32:09.603565+00:00');
 
 -- INSERT SHOP SETTINGS
 INSERT INTO shop_settings (

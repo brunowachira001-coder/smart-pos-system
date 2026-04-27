@@ -76,8 +76,8 @@ if (data.returns && data.returns.length > 0) {
   const returnValues = data.returns.map((r, i) => {
     const returnId = r.return_id ? `'${r.return_id}'` : 'gen_random_uuid()::text';
     const txnId = r.transaction_id ? `'${r.transaction_id.replace(/'/g, "''")}'` : "'UNKNOWN'";
-    // Set customer_id to NULL if the customer doesn't exist in our export
-    const custId = (r.customer_id && validCustomerIds.has(r.customer_id)) ? `'${r.customer_id}'` : 'NULL';
+    // Set ALL customer_ids to NULL since old UUIDs won't match new auto-generated ones
+    const custId = 'NULL';
     const custName = r.customer_name ? `'${r.customer_name.replace(/'/g, "''")}'` : "'Walk-in Customer'";
     const prodId = 'NULL'; // Set to NULL since we don't have product IDs
     const prodName = r.product_name ? `'${r.product_name.replace(/'/g, "''")}'` : "'Unknown'";
@@ -147,8 +147,8 @@ if (data.debts && data.debts.length > 0) {
   console.log(') VALUES');
   
   const debtValues = data.debts.map((d, i) => {
-    // Set customer_id to NULL if the customer doesn't exist in our export
-    const customerId = (d.customer_id && validCustomerIds.has(d.customer_id)) ? `'${d.customer_id}'` : 'NULL';
+    // Set ALL customer_ids to NULL since old UUIDs won't match new auto-generated ones
+    const customerId = 'NULL';
     const customerName = d.customer_name ? `'${d.customer_name.replace(/'/g, "''")}'` : "'Unknown'";
     const saleId = d.sale_id ? `'${d.sale_id}'` : "'SALE-000000'";
     const totalAmount = d.total_amount || 0;

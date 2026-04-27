@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Copy SQL File</title>
+    <style>
+        body { font-family: monospace; padding: 20px; }
+        textarea { width: 100%; height: 80vh; font-family: monospace; font-size: 12px; }
+        button { padding: 10px 20px; font-size: 16px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h2>Database Restoration SQL - Click "Copy to Clipboard" button below</h2>
+    <button onclick="copyToClipboard()">Copy to Clipboard</button>
+    <textarea id="sqlContent" readonly></textarea>
+    
+    <script>
+        // Load the SQL file content
+        fetch('FINAL_RESTORATION.sql')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('sqlContent').value = data;
+            });
+        
+        function copyToClipboard() {
+            const textarea = document.getElementById('sqlContent');
+            textarea.select();
+            document.execCommand('copy');
+            alert('SQL copied to clipboard! Now paste it into Supabase SQL Editor.');
+        }
+    </script>
+</body>
+</html>
