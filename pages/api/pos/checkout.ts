@@ -95,18 +95,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         transaction_number: transactionNumber,
         customer_id: customerId || null,
         customer_name: customerName || 'Walk-in Customer',
-        customer_phone: null,
+        user_id: cashierId || null,
         subtotal: subtotal,
-        discount: discount,
         tax: tax,
         total: total,
-        amount_paid: amountPaid || total,
-        change_amount: paymentMethod === 'debt' ? 0 : (amountPaid || 0) - total,
         payment_method: paymentMethod,
-        payment_reference: paymentReference || null,
-        status: 'completed',
-        cashier_id: cashierId || null,
-        cashier_name: cashierName || 'Admin',
+        payment_status: 'completed',
         notes: notes || null
       })
       .select()
@@ -116,19 +110,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(500).json({ error: `Transaction error: ${transactionError.message}` });
     }
 
-    // Create transaction items in sales_transaction_items table
+    // Create transaction items in transaction_items table
     const transactionItems = cartItems.map(item => ({
       transaction_id: transaction.id,
       product_id: item.product_id,
       product_name: item.product_name || 'Unknown Product',
+      sku: item.sku || null,
       quantity: item.quantity,
       unit_price: item.unit_price,
-      subtotal: item.subtotal,
-      price_type: 'retail' // Default to retail, can be enhanced later
+      subtotal: item.subtotal
     }));
 
     const { error: itemsError } = await supabase
-      .from('sales_transaction_items')
+      .from('transaction_items')
       .insert(transactionItems);
 
     if (itemsError) {
@@ -159,7 +153,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
 
       if (debtError) {
-        await supabase.from('sales_transaction_items').delete().eq('transaction_id', transaction.id);
+        await supabase.from('transaction_items').delete().eq('transaction_id', transaction.id);
         await supabase.from('sales_transactions').delete().eq('id', transaction.id);
         return res.status(500).json({ error: `Debt error: ${debtError.message}` });
       }

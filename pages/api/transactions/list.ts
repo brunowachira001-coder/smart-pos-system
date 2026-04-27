@@ -69,17 +69,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Get items count for each transaction and filter by price type if needed
     let transactionsWithItems = await Promise.all(
       (transactions || []).map(async (transaction) => {
-        let itemsQuery = supabase
-          .from('sales_transaction_items')
+        const { data: items } = await supabase
+          .from('transaction_items')
           .select('*')
           .eq('transaction_id', transaction.id);
-        
-        // Filter by price type if specified
-        if (priceType && priceType !== 'all') {
-          itemsQuery = itemsQuery.eq('price_type', priceType);
-        }
-
-        const { data: items } = await itemsQuery;
 
         return {
           ...transaction,
@@ -88,11 +81,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         };
       })
     );
-
-    // If filtering by price type, remove transactions with no matching items
-    if (priceType && priceType !== 'all') {
-      transactionsWithItems = transactionsWithItems.filter(t => t.items_count > 0);
-    }
 
     return res.status(200).json({
       transactions: transactionsWithItems,
