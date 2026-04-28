@@ -72,6 +72,12 @@
         <pre id="dashboard-result"></pre>
     </div>
 
+    <div class="test-section">
+        <h2>Debug Transactions (Check if sales are saved)</h2>
+        <button onclick="debugTransactions()">Debug Transactions</button>
+        <pre id="debug-result"></pre>
+    </div>
+
     <script>
         async function testAllAPIs() {
             const result = document.getElementById('all-result');
@@ -124,6 +130,21 @@
             
             try {
                 const response = await fetch('/api/dashboard/stats');
+                const data = await response.json();
+                result.className = response.ok ? 'success' : 'error';
+                result.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                result.className = 'error';
+                result.textContent = 'Error: ' + error.message;
+            }
+        }
+
+        async function debugTransactions() {
+            const result = document.getElementById('debug-result');
+            result.textContent = 'Testing...';
+            
+            try {
+                const response = await fetch('/api/debug-transaction');
                 const data = await response.json();
                 result.className = response.ok ? 'success' : 'error';
                 result.textContent = JSON.stringify(data, null, 2);
