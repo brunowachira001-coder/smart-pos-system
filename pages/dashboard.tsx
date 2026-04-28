@@ -38,13 +38,15 @@ export default function Dashboard() {
   const loadDashboard = async () => {
     try {
       setLoading(true);
-      // Force fresh data with timestamp
+      // Force fresh data with timestamp and build version
       const timestamp = Date.now();
-      const response = await fetch(`/api/dashboard/stats?v=${timestamp}`, {
+      const buildVersion = '20260428-v2'; // Update this to force cache bust
+      const response = await fetch(`/api/dashboard/stats?v=${timestamp}&build=${buildVersion}`, {
         cache: 'no-store',
         headers: {
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache'
+          'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
+          'Pragma': 'no-cache',
+          'Expires': '0'
         }
       });
 
