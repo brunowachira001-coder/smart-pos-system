@@ -12,6 +12,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       sessionId,
       customerId,
       customerName,
+      customerPhone,
       subtotal,
       discount = 0,
       tax = 0,
