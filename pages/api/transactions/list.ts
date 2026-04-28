@@ -25,18 +25,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const limitNum = parseInt(limit as string);
     const offset = (pageNum - 1) * limitNum;
 
-    // Join with customers table to get customer name
+    // Simple query without join first
     let query = supabase
       .from('transactions')
-      .select(`
-        *,
-        customers (
-          name,
-          phone
-        )
-      `, { count: 'exact' });
+      .select('*', { count: 'exact' });
 
-    // Search filter - transactions table only has transaction_number
+    // Search filter
     if (search) {
       query = query.ilike('transaction_number', `%${search}%`);
     }
@@ -46,19 +40,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       query = query.eq('payment_method', paymentMethod);
     }
 
-    // Status filter - use payment_status column
+    // Status filter
     if (status && status !== 'all') {
       query = query.eq('payment_status', status);
     }
 
-    // Date range filter - dates come already formatted from frontend
+    // Date range filter
     if (startDate) {
       query = query.gte('created_at', startDate);
-      console.log('Start date filter (raw):', startDate);
     }
     if (endDate) {
       query = query.lte('created_at', endDate);
-      console.log('End date filter (raw):', endDate);
     }
 
     // Sorting
@@ -70,26 +62,44 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { data: transactions, error, count } = await query;
 
     if (error) {
+      console.error('Transactions query error:', error);
       return res.status(500).json({ error: error.message });
     }
 
-    // Get items count for each transaction
-    let transactionsWithItems = await Promise.all(
+    // Get customer names and items for each transaction
+    let transactionsWithDetails = await Promise.all(
       (transactions || []).map(async (transaction) => {
+        // Get customer name if customer_id exists
+        let customerName = 'Walk-in Customer';
+        let customerPhone = '';
+        
+        if (transaction.customer_id) {
+          const { data: customer } = await supabase
+            .from('customers')
+            .select('name, phone')
+            .eq('id', transaction.customer_id)
+            .single();
+          
+          if (customer) {
+            customerName = customer.name;
+            customerPhone = customer.phone || '';
+          }
+        }
+
+        // Get transaction items
         const { data: items } = await supabase
           .from('transaction_items')
           .select('*')
           .eq('transaction_id', transaction.id);
 
-        // Map database fields to frontend expected fields
         return {
           id: transaction.id,
           transaction_number: transaction.transaction_number,
-          customer_name: transaction.customers?.name || 'Walk-in Customer',
-          customer_phone: transaction.customers?.phone || '',
-          total: transaction.total_amount, // Map total_amount to total
+          customer_name: customerName,
+          customer_phone: customerPhone,
+          total: transaction.total_amount,
           payment_method: transaction.payment_method,
-          status: transaction.payment_status, // Map payment_status to status
+          status: transaction.payment_status,
           created_at: transaction.created_at,
           items_count: items?.length || 0,
           items: items || []
@@ -98,7 +108,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     );
 
     return res.status(200).json({
-      transactions: transactionsWithItems,
+      transactions: transactionsWithDetails,
       pagination: {
         page: pageNum,
         limit: limitNum,

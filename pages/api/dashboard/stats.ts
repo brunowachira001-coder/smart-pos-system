@@ -58,13 +58,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Fetch today's transactions using UTC timestamps
     const { data: todayTransactions, error: transactionsError } = await supabase
       .from('transactions')
-      .select(`
-        *,
-        customers (
-          name,
-          phone
-        )
-      `)
+      .select('*')
       .gte('created_at', todayStartUTC.toISOString())
       .lt('created_at', todayEndUTC.toISOString());
 
@@ -96,13 +90,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Fetch recent transactions (last 5)
     const { data: recentTransactions, error: recentError } = await supabase
       .from('transactions')
-      .select(`
-        *,
-        customers (
-          name,
-          phone
-        )
-      `)
+      .select('*')
       .order('created_at', { ascending: false })
       .limit(5);
 
@@ -110,6 +98,34 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       console.error('Recent transactions error:', recentError);
       throw recentError;
     }
+
+    // Get customer names for recent transactions
+    const recentWithCustomers = await Promise.all(
+      (recentTransactions || []).map(async (t) => {
+        let customerName = 'Walk-in Customer';
+        
+        if (t.customer_id) {
+          const { data: customer } = await supabase
+            .from('customers')
+            .select('name')
+            .eq('id', t.customer_id)
+            .single();
+          
+          if (customer) {
+            customerName = customer.name;
+          }
+        }
+
+        return {
+          id: t.id,
+          transactionNumber: t.transaction_number || `TXN-${t.id}`,
+          customer: customerName,
+          itemCount: 0,
+          total: parseFloat(t.total_amount) || 0,
+          createdAt: t.created_at
+        };
+      })
+    );
 
     // Format response
     res.status(200).json({
@@ -130,14 +146,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         customers: {
           totalCustomers: customersCount || 0
         },
-        recentTransactions: recentTransactions?.map(t => ({
-          id: t.id,
-          transactionNumber: t.transaction_number || `TXN-${t.id}`,
-          customer: t.customers?.name || 'Walk-in Customer',
-          itemCount: 0, // We'll need to count items separately
-          total: parseFloat(t.total_amount) || 0,
-          createdAt: t.created_at
-        })) || []
+        recentTransactions: recentWithCustomers
       }
     });
   } catch (error: any) {
