@@ -16,7 +16,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { startDate, endDate } = req.query;
 
     let query = supabase
-      .from('sales_transactions')
+      .from('transactions')
       .select('*');
 
     if (startDate) {
@@ -33,32 +33,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const totalTransactions = transactions?.length || 0;
-    const totalRevenue = transactions?.reduce((sum, t) => sum + parseFloat(t.total || 0), 0) || 0;
-    const totalDiscounts = transactions?.reduce((sum, t) => sum + parseFloat(t.discount || 0), 0) || 0;
+    const totalRevenue = transactions?.reduce((sum, t) => sum + parseFloat(t.total_amount || 0), 0) || 0;
+    const totalDiscounts = 0;
     const averageTransactionValue = totalTransactions > 0 ? totalRevenue / totalTransactions : 0;
 
-    // Get transaction IDs to fetch items
-    const transactionIds = transactions?.map(t => t.id) || [];
+    // Use transaction_id (TEXT) for joining with transaction_items
+    const transactionIds = transactions?.map(t => t.transaction_id).filter(Boolean) || [];
     
     let retailRevenue = 0;
     let wholesaleRevenue = 0;
 
     if (transactionIds.length > 0) {
-      // Fetch all transaction items to determine retail vs wholesale
       const { data: items } = await supabase
-        .from('sales_transaction_items')
-        .select('transaction_id, unit_price, quantity, price_type')
+        .from('transaction_items')
+        .select('transaction_id, unit_price, quantity, total_price')
         .in('transaction_id', transactionIds);
 
-      // Calculate revenue by price type
       if (items) {
         for (const item of items) {
-          const itemRevenue = parseFloat(item.unit_price || 0) * (item.quantity || 0);
-          if (item.price_type === 'retail') {
-            retailRevenue += itemRevenue;
-          } else if (item.price_type === 'wholesale') {
-            wholesaleRevenue += itemRevenue;
-          }
+          const itemRevenue = parseFloat(item.total_price || 0) || (parseFloat(item.unit_price || 0) * (item.quantity || 0));
+          // All revenue goes to retail by default since we don't have price_type
+          retailRevenue += itemRevenue;
         }
       }
     }

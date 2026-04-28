@@ -21,8 +21,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Get all transactions in date range
     let transactionsQuery = supabase
-      .from('sales_transactions')
-      .select('id, created_at, status');
+      .from('transactions')
+      .select('id, transaction_id, created_at, payment_status');
 
     if (startDate) {
       transactionsQuery = transactionsQuery.gte('created_at', startDate);
@@ -38,13 +38,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(500).json({ error: transactionsError.message });
     }
 
-    const transactionIds = transactions?.map(t => t.id) || [];
+    // Use transaction_id (TEXT) not id (UUID) for joining with transaction_items
+    const transactionIds = transactions?.map(t => t.transaction_id).filter(Boolean) || [];
 
     // Get all transaction items for these transactions
     let salesItems: any[] = [];
     if (transactionIds.length > 0) {
       const { data: items, error: itemsError } = await supabase
-        .from('sales_transaction_items')
+        .from('transaction_items')
         .select('*')
         .in('transaction_id', transactionIds);
 
@@ -76,7 +77,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const productSales = salesItems.filter(item => item.product_id === product.id);
       const unitsSold = productSales.reduce((sum, item) => sum + (item.quantity || 0), 0);
       const netRevenue = productSales.reduce((sum, item) => 
-        sum + (parseFloat(item.unit_price || 0) * (item.quantity || 0)), 0
+        sum + (parseFloat(item.total_price || item.unit_price || 0) * (item.total_price ? 1 : (item.quantity || 0))), 0
       );
 
       // Calculate cost
