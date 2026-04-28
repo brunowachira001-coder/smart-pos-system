@@ -25,9 +25,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const limitNum = parseInt(limit as string);
     const offset = (pageNum - 1) * limitNum;
 
+    // Join with customers table to get customer name
     let query = supabase
       .from('transactions')
-      .select('*', { count: 'exact' });
+      .select(`
+        *,
+        customers (
+          name,
+          phone
+        )
+      `, { count: 'exact' });
 
     // Search filter - transactions table only has transaction_number
     if (search) {
@@ -78,8 +85,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return {
           id: transaction.id,
           transaction_number: transaction.transaction_number,
-          customer_name: 'Walk-in Customer', // transactions table doesn't have this
-          customer_phone: '', // transactions table doesn't have this
+          customer_name: transaction.customers?.name || 'Walk-in Customer',
+          customer_phone: transaction.customers?.phone || '',
           total: transaction.total_amount, // Map total_amount to total
           payment_method: transaction.payment_method,
           status: transaction.payment_status, // Map payment_status to status

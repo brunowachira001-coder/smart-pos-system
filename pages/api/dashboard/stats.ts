@@ -58,7 +58,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Fetch today's transactions using UTC timestamps
     const { data: todayTransactions, error: transactionsError } = await supabase
       .from('transactions')
-      .select('*')
+      .select(`
+        *,
+        customers (
+          name,
+          phone
+        )
+      `)
       .gte('created_at', todayStartUTC.toISOString())
       .lt('created_at', todayEndUTC.toISOString());
 
@@ -90,7 +96,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Fetch recent transactions (last 5)
     const { data: recentTransactions, error: recentError } = await supabase
       .from('transactions')
-      .select('*')
+      .select(`
+        *,
+        customers (
+          name,
+          phone
+        )
+      `)
       .order('created_at', { ascending: false })
       .limit(5);
 
@@ -121,7 +133,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         recentTransactions: recentTransactions?.map(t => ({
           id: t.id,
           transactionNumber: t.transaction_number || `TXN-${t.id}`,
-          customer: 'Walk-in Customer', // transactions table doesn't have customer_name
+          customer: t.customers?.name || 'Walk-in Customer',
           itemCount: 0, // We'll need to count items separately
           total: parseFloat(t.total_amount) || 0,
           createdAt: t.created_at
