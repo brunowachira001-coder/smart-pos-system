@@ -60,65 +60,139 @@ export default function ReceiptPrint({ data, onClose }: ReceiptPrintProps) {
   };
 
   const handleThermalPrint = () => {
-    // Build thermal receipt HTML and open in new window sized for thermal printer
-    const itemsHtml = data.items.map(item => `
-      <tr>
-        <td style="padding:2px 4px;text-align:center">${item.quantity}</td>
-        <td style="padding:2px 4px">${item.product_name}</td>
-        <td style="padding:2px 4px;text-align:right">${item.unit_price.toFixed(2)}</td>
-        <td style="padding:2px 4px;text-align:right">${item.subtotal.toFixed(2)}</td>
+    const itemsHtml = data.items.map((item, i) => `
+      <tr style="background:${i % 2 === 0 ? '#f9f9f9' : '#ffffff'}">
+        <td style="padding:4px 6px;text-align:center;font-weight:600;color:#111">${item.quantity}</td>
+        <td style="padding:4px 6px;color:#333">${item.product_name}</td>
+        <td style="padding:4px 6px;text-align:right;color:#333">${item.unit_price.toFixed(2)}</td>
+        <td style="padding:4px 6px;text-align:right;font-weight:600;color:#111">${item.subtotal.toFixed(2)}</td>
       </tr>
     `).join('');
 
-    const win = window.open('', '_blank', 'width=320,height=600');
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+
+    const win = window.open('', '_blank', 'width=340,height=700');
     if (!win) return;
     win.document.write(`
       <!DOCTYPE html><html><head><title>Receipt</title>
       <style>
         * { margin:0; padding:0; box-sizing:border-box; }
-        body { font-family: 'Courier New', monospace; font-size: 11px; width: 80mm; padding: 4mm; }
+        body { font-family: Arial, sans-serif; font-size: 11px; width: 80mm; background: white; }
         .center { text-align: center; }
-        .bold { font-weight: bold; }
-        .divider { border-top: 1px dashed #000; margin: 4px 0; }
-        table { width: 100%; border-collapse: collapse; font-size: 10px; }
-        th { border-bottom: 1px solid #000; padding: 2px 4px; text-align: left; font-size: 10px; }
-        .total-row { font-weight: bold; font-size: 13px; border-top: 2px solid #000; }
-        @media print { @page { size: 80mm auto; margin: 0; } }
+        .divider { border-top: 1px solid #ccc; margin: 6px 0; }
+        .dashed { border-top: 1px dashed #999; margin: 6px 0; }
+        table { width: 100%; border-collapse: collapse; }
+        th { padding: 5px 6px; text-align: left; font-size: 10px; color: white; background: #003087; }
+        th:last-child, th:nth-child(3) { text-align: right; }
+        .total-bar { background: #003087; color: white; font-weight: bold; font-size: 13px; padding: 6px 8px; display: flex; justify-content: space-between; margin-top: 4px; }
+        .payment-box { background: #f0fdf4; border: 1px solid #10b981; border-radius: 4px; padding: 6px 8px; margin: 6px 0; }
+        .payment-row { display: flex; justify-content: space-between; font-size: 10px; margin: 2px 0; }
+        .shop-name { color: #C41E3A; font-size: 16px; font-weight: bold; text-transform: uppercase; margin: 4px 0 2px; }
+        .tagline { color: #555; font-style: italic; font-size: 10px; margin-bottom: 4px; }
+        .contact { font-size: 10px; color: #333; margin: 1px 0; }
+        .receipt-title { color: #003087; font-size: 14px; font-weight: bold; margin: 4px 0 1px; }
+        .thank-you { color: #C41E3A; font-style: italic; font-size: 10px; }
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; font-size: 10px; margin: 4px 0; }
+        .info-label { color: #555; }
+        .info-value { font-weight: 600; color: #111; }
+        .subtotal-row { display: flex; justify-content: space-between; padding: 3px 6px; font-size: 11px; }
+        * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        @media print { @page { size: 80mm auto; margin: 0; } body { width: 80mm; } }
       </style></head><body>
-      ${data.shopLogo ? `<div class="center"><img src="${data.shopLogo}" style="width:60px;height:60px;object-fit:contain"/></div>` : ''}
-      <div class="center bold" style="font-size:14px;margin:4px 0">${data.shopName || 'SHOP'}</div>
-      ${data.shopTagline ? `<div class="center" style="font-size:10px;margin-bottom:2px">${data.shopTagline}</div>` : ''}
-      ${data.shopAddress ? `<div class="center">${data.shopAddress}</div>` : ''}
-      ${data.shopPhone ? `<div class="center">Tel: ${data.shopPhone}</div>` : ''}
-      <div class="divider"></div>
-      <div class="center bold" style="font-size:13px">RECEIPT</div>
-      <div class="divider"></div>
-      <div>Receipt No: ${data.transactionNumber}</div>
-      <div>Customer: ${data.customerName}</div>
-      <div>Date: ${new Date().toLocaleDateString('en-GB')} ${new Date().toLocaleTimeString('en-US', {hour:'2-digit',minute:'2-digit'})}</div>
-      <div>Cashier: ${data.cashierName}</div>
-      <div class="divider"></div>
-      <table>
-        <thead><tr>
-          <th>Qty</th><th>Item</th><th style="text-align:right">Price</th><th style="text-align:right">Total</th>
-        </tr></thead>
-        <tbody>${itemsHtml}</tbody>
-      </table>
-      <div class="divider"></div>
-      <div style="display:flex;justify-content:space-between"><span>Subtotal:</span><span>${data.subtotal.toFixed(2)}</span></div>
-      ${data.discount > 0 ? `<div style="display:flex;justify-content:space-between"><span>Discount:</span><span>-${data.discount.toFixed(2)}</span></div>` : ''}
-      <div class="divider"></div>
-      <div style="display:flex;justify-content:space-between;font-weight:bold;font-size:14px"><span>TOTAL:</span><span>KES ${data.total.toFixed(2)}</span></div>
-      <div class="divider"></div>
-      <div>Payment: ${data.paymentMethod.toUpperCase()}</div>
-      ${data.paymentMethod !== 'debt' ? `<div>Paid: KES ${data.amountPaid.toFixed(2)}</div><div>Change: KES ${data.change.toFixed(2)}</div>` : ''}
-      <div class="divider"></div>
-      <div class="center" style="margin-top:6px">Thank you for shopping with us!</div>
-      <div class="center">Goods once sold are not returnable</div>
+      <div style="padding: 6px 8px;">
+        <!-- Logo -->
+        <div class="center" style="margin-bottom:4px">
+          ${data.shopLogo
+            ? `<img src="${data.shopLogo}" style="width:70px;height:70px;object-fit:contain;border-radius:4px"/>`
+            : `<div style="width:60px;height:60px;background:linear-gradient(135deg,#C41E3A,#003087);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:white;font-size:20px;font-weight:bold">${(data.shopName || 'SP').substring(0,2).toUpperCase()}</div>`
+          }
+        </div>
+
+        <!-- Shop Name & Info -->
+        <div class="center">
+          <div class="shop-name">${data.shopName || 'SHOP'}</div>
+          ${data.shopTagline ? `<div class="tagline">${data.shopTagline}</div>` : ''}
+          ${data.shopAddress ? `<div class="contact">📍 ${data.shopAddress}</div>` : ''}
+          ${data.shopPhone ? `<div class="contact">📞 ${data.shopPhone}</div>` : ''}
+          ${data.shopEmail ? `<div class="contact">✉️ ${data.shopEmail}</div>` : ''}
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Receipt Title -->
+        <div class="center">
+          <div style="width:36px;height:36px;background:#003087;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;margin-bottom:3px">
+            <span style="color:white;font-size:16px">🛒</span>
+          </div>
+          <div class="receipt-title">RECEIPT</div>
+          <div class="thank-you">Thank you for shopping with us!</div>
+        </div>
+
+        <div class="dashed"></div>
+
+        <!-- Transaction Info -->
+        <div class="info-grid">
+          <div><span class="info-label">Receipt No.</span></div>
+          <div><span class="info-value">${data.transactionNumber}</span></div>
+          <div><span class="info-label">Customer</span></div>
+          <div><span class="info-value">${data.customerName}</span></div>
+          <div><span class="info-label">Date</span></div>
+          <div><span class="info-value">${dateStr}</span></div>
+          <div><span class="info-label">Cashier</span></div>
+          <div><span class="info-value">${data.cashierName}</span></div>
+          <div><span class="info-label">Time</span></div>
+          <div><span class="info-value">${timeStr}</span></div>
+        </div>
+
+        <div class="dashed"></div>
+
+        <!-- Items Table -->
+        <table>
+          <thead>
+            <tr>
+              <th>Qty</th>
+              <th>Description</th>
+              <th style="text-align:right">Price</th>
+              <th style="text-align:right">Total</th>
+            </tr>
+          </thead>
+          <tbody>${itemsHtml}</tbody>
+        </table>
+
+        <!-- Subtotal -->
+        <div class="dashed"></div>
+        <div class="subtotal-row"><span style="color:#555">Subtotal</span><span style="font-weight:600">${data.subtotal.toFixed(2)}</span></div>
+        ${data.discount > 0 ? `<div class="subtotal-row"><span style="color:#C41E3A">Discount</span><span style="color:#C41E3A">-${data.discount.toFixed(2)}</span></div>` : ''}
+
+        <!-- Total Bar -->
+        <div class="total-bar">
+          <span>TOTAL AMOUNT</span>
+          <span>KES ${data.total.toFixed(2)}</span>
+        </div>
+
+        <!-- Payment Details -->
+        <div class="payment-box">
+          <div style="font-weight:bold;color:#047857;font-size:10px;margin-bottom:3px">PAYMENT DETAILS</div>
+          <div class="payment-row"><span>Payment Method</span><span style="font-weight:600">${data.paymentMethod.toUpperCase()}</span></div>
+          ${data.paymentMethod !== 'debt' ? `
+            <div class="payment-row"><span>Amount Paid</span><span style="font-weight:600">KES ${data.amountPaid.toFixed(2)}</span></div>
+            <div class="payment-row"><span>Change</span><span style="font-weight:600;color:#10b981">KES ${data.change.toFixed(2)}</span></div>
+          ` : ''}
+        </div>
+
+        <!-- Footer -->
+        <div class="dashed"></div>
+        <div class="center" style="margin-top:4px">
+          <div style="color:#C41E3A;font-weight:bold;font-size:11px">Thank you for shopping with us!</div>
+          <div style="color:#555;font-size:9px;margin-top:2px">Goods once sold are not returnable</div>
+        </div>
+      </div>
       </body></html>
     `);
     win.document.close();
-    setTimeout(() => win.print(), 300);
+    setTimeout(() => win.print(), 400);
   };
 
   // Format date and time separately
@@ -138,22 +212,13 @@ export default function ReceiptPrint({ data, onClose }: ReceiptPrintProps) {
         <div className="p-4 border-b border-gray-200 flex justify-end items-center print:hidden">
           <div className="flex gap-2">
             <button
-              onClick={handlePrint}
+              onClick={handleThermalPrint}
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm flex items-center gap-2"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
               </svg>
-              Print A4
-            </button>
-            <button
-              onClick={handleThermalPrint}
-              className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm flex items-center gap-2"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-              </svg>
-              Thermal (80mm)
+              Print
             </button>
             <button
               onClick={onClose}
