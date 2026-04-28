@@ -59,6 +59,68 @@ export default function ReceiptPrint({ data, onClose }: ReceiptPrintProps) {
     window.print();
   };
 
+  const handleThermalPrint = () => {
+    // Build thermal receipt HTML and open in new window sized for thermal printer
+    const itemsHtml = data.items.map(item => `
+      <tr>
+        <td style="padding:2px 4px;text-align:center">${item.quantity}</td>
+        <td style="padding:2px 4px">${item.product_name}</td>
+        <td style="padding:2px 4px;text-align:right">${item.unit_price.toFixed(2)}</td>
+        <td style="padding:2px 4px;text-align:right">${item.subtotal.toFixed(2)}</td>
+      </tr>
+    `).join('');
+
+    const win = window.open('', '_blank', 'width=320,height=600');
+    if (!win) return;
+    win.document.write(`
+      <!DOCTYPE html><html><head><title>Receipt</title>
+      <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family: 'Courier New', monospace; font-size: 11px; width: 80mm; padding: 4mm; }
+        .center { text-align: center; }
+        .bold { font-weight: bold; }
+        .divider { border-top: 1px dashed #000; margin: 4px 0; }
+        table { width: 100%; border-collapse: collapse; font-size: 10px; }
+        th { border-bottom: 1px solid #000; padding: 2px 4px; text-align: left; font-size: 10px; }
+        .total-row { font-weight: bold; font-size: 13px; border-top: 2px solid #000; }
+        @media print { @page { size: 80mm auto; margin: 0; } }
+      </style></head><body>
+      ${data.shopLogo ? `<div class="center"><img src="${data.shopLogo}" style="width:60px;height:60px;object-fit:contain"/></div>` : ''}
+      <div class="center bold" style="font-size:14px;margin:4px 0">${data.shopName || 'SHOP'}</div>
+      ${data.shopTagline ? `<div class="center" style="font-size:10px;margin-bottom:2px">${data.shopTagline}</div>` : ''}
+      ${data.shopAddress ? `<div class="center">${data.shopAddress}</div>` : ''}
+      ${data.shopPhone ? `<div class="center">Tel: ${data.shopPhone}</div>` : ''}
+      <div class="divider"></div>
+      <div class="center bold" style="font-size:13px">RECEIPT</div>
+      <div class="divider"></div>
+      <div>Receipt No: ${data.transactionNumber}</div>
+      <div>Customer: ${data.customerName}</div>
+      <div>Date: ${new Date().toLocaleDateString('en-GB')} ${new Date().toLocaleTimeString('en-US', {hour:'2-digit',minute:'2-digit'})}</div>
+      <div>Cashier: ${data.cashierName}</div>
+      <div class="divider"></div>
+      <table>
+        <thead><tr>
+          <th>Qty</th><th>Item</th><th style="text-align:right">Price</th><th style="text-align:right">Total</th>
+        </tr></thead>
+        <tbody>${itemsHtml}</tbody>
+      </table>
+      <div class="divider"></div>
+      <div style="display:flex;justify-content:space-between"><span>Subtotal:</span><span>${data.subtotal.toFixed(2)}</span></div>
+      ${data.discount > 0 ? `<div style="display:flex;justify-content:space-between"><span>Discount:</span><span>-${data.discount.toFixed(2)}</span></div>` : ''}
+      <div class="divider"></div>
+      <div style="display:flex;justify-content:space-between;font-weight:bold;font-size:14px"><span>TOTAL:</span><span>KES ${data.total.toFixed(2)}</span></div>
+      <div class="divider"></div>
+      <div>Payment: ${data.paymentMethod.toUpperCase()}</div>
+      ${data.paymentMethod !== 'debt' ? `<div>Paid: KES ${data.amountPaid.toFixed(2)}</div><div>Change: KES ${data.change.toFixed(2)}</div>` : ''}
+      <div class="divider"></div>
+      <div class="center" style="margin-top:6px">Thank you for shopping with us!</div>
+      <div class="center">Goods once sold are not returnable</div>
+      </body></html>
+    `);
+    win.document.close();
+    setTimeout(() => win.print(), 300);
+  };
+
   // Format date and time separately
   const formatDateTime = () => {
     const now = new Date();
@@ -82,7 +144,16 @@ export default function ReceiptPrint({ data, onClose }: ReceiptPrintProps) {
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
               </svg>
-              Print
+              Print A4
+            </button>
+            <button
+              onClick={handleThermalPrint}
+              className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm flex items-center gap-2"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+              </svg>
+              Thermal (80mm)
             </button>
             <button
               onClick={onClose}
@@ -270,26 +341,37 @@ export default function ReceiptPrint({ data, onClose }: ReceiptPrintProps) {
       {/* Print Styles */}
       <style jsx global>{`
         @media print {
+          /* Hide everything except the receipt */
+          body > * {
+            display: none !important;
+          }
+          body > div:last-child {
+            display: block !important;
+          }
           body * {
             visibility: hidden;
           }
           .receipt-content,
           .receipt-content * {
-            visibility: visible;
+            visibility: visible !important;
           }
           .receipt-content {
-            position: absolute;
+            position: fixed;
             left: 0;
             top: 0;
             width: 100%;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 10mm;
+            padding: 15mm 20mm;
             box-shadow: none;
+            background: white !important;
+          }
+          /* Ensure colors print */
+          * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
           }
           @page {
-            size: A4;
-            margin: 10mm;
+            size: A4 portrait;
+            margin: 0;
           }
         }
       `}</style>
