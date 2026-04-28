@@ -36,6 +36,13 @@ export default function TransactionsPage() {
   const [showReceipt, setShowReceipt] = useState(false);
   const [receiptTransaction, setReceiptTransaction] = useState<Transaction | null>(null);
   const [shopSettings, setShopSettings] = useState<any>(null);
+  const [showReturnModal, setShowReturnModal] = useState(false);
+  const [returnTransaction, setReturnTransaction] = useState<Transaction | null>(null);
+  const [returnForm, setReturnForm] = useState({ reason: '', notes: '' });
+  const [returnItems, setReturnItems] = useState<Array<{ product_name: string; quantity: number; amount: number }>>([]);
+  const [submittingReturn, setSubmittingReturn] = useState(false);
+  const [returnError, setReturnError] = useState('');
+  const [returnSuccess, setReturnSuccess] = useState(false);
   const [currentDate, setCurrentDate] = useState(new Date().toDateString());
 
   useEffect(() => {
@@ -194,8 +201,57 @@ export default function TransactionsPage() {
   };
 
   const createReturn = (transaction: Transaction) => {
-    // Navigate to returns page with transaction pre-filled
-    router.push(`/returns?transaction_id=${transaction.transaction_number}&customer=${encodeURIComponent(transaction.customer_name || 'Walk-in Customer')}`);
+    setReturnTransaction(transaction);
+    // Pre-fill return items from transaction items
+    const items = transaction.items.map(item => ({
+      product_name: item.product_name,
+      quantity: item.quantity,
+      amount: parseFloat(item.total_price || item.subtotal || 0)
+    }));
+    setReturnItems(items.length > 0 ? items : [{ product_name: '', quantity: 1, amount: 0 }]);
+    setReturnForm({ reason: '', notes: '' });
+    setReturnError('');
+    setReturnSuccess(false);
+    setShowReturnModal(true);
+  };
+
+  const submitReturn = async () => {
+    if (!returnTransaction) return;
+    if (!returnForm.reason) { setReturnError('Please select a reason'); return; }
+    if (returnItems.some(i => !i.product_name || i.quantity < 1 || i.amount <= 0)) {
+      setReturnError('Please fill in all item details'); return;
+    }
+
+    setSubmittingReturn(true);
+    setReturnError('');
+    try {
+      // Submit one return record per item
+      for (const item of returnItems) {
+        const res = await fetch('/api/returns', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            transaction_id: returnTransaction.transaction_number,
+            customer_name: returnTransaction.customer_name || 'Walk-in Customer',
+            product_name: item.product_name,
+            quantity: item.quantity,
+            amount: item.amount,
+            reason: returnForm.reason,
+            notes: returnForm.notes
+          })
+        });
+        if (!res.ok) {
+          const d = await res.json();
+          throw new Error(d.error || 'Failed to create return');
+        }
+      }
+      setReturnSuccess(true);
+      setTimeout(() => { setShowReturnModal(false); setReturnSuccess(false); }, 2000);
+    } catch (e: any) {
+      setReturnError(e.message);
+    } finally {
+      setSubmittingReturn(false);
+    }
   };
 
   const exportTransactions = () => {
@@ -589,6 +645,126 @@ export default function TransactionsPage() {
           }}
           onClose={() => setShowReceipt(false)}
         />
+      )}
+      {/* Return Modal */}
+      {showReturnModal && returnTransaction && (
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+          <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-bold text-[var(--text-primary)]">Create Return</h2>
+              <button onClick={() => setShowReturnModal(false)} className="text-[var(--text-secondary)] hover:text-[var(--text-primary)]">✕</button>
+            </div>
+
+            {returnSuccess ? (
+              <div className="text-center py-8">
+                <div className="text-4xl mb-3">✅</div>
+                <p className="text-emerald-500 font-semibold">Return created successfully!</p>
+              </div>
+            ) : (
+              <>
+                {/* Pre-filled info */}
+                <div className="bg-[var(--bg-secondary)] rounded-lg p-3 mb-4 text-sm space-y-1">
+                  <div className="flex justify-between">
+                    <span className="text-[var(--text-secondary)]">Transaction</span>
+                    <span className="font-medium text-[var(--text-primary)]">{returnTransaction.transaction_number}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-[var(--text-secondary)]">Customer</span>
+                    <span className="font-medium text-[var(--text-primary)]">{returnTransaction.customer_name || 'Walk-in Customer'}</span>
+                  </div>
+                </div>
+
+                {/* Reason */}
+                <div className="mb-4">
+                  <label className="block text-sm text-[var(--text-secondary)] mb-1">Return Reason *</label>
+                  <select
+                    value={returnForm.reason}
+                    onChange={e => setReturnForm(f => ({ ...f, reason: e.target.value }))}
+                    className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-sm text-[var(--text-primary)]"
+                  >
+                    <option value="">Select reason...</option>
+                    <option value="Defective product">Defective product</option>
+                    <option value="Wrong item">Wrong item</option>
+                    <option value="Customer changed mind">Customer changed mind</option>
+                    <option value="Damaged in transit">Damaged in transit</option>
+                    <option value="Not as described">Not as described</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+
+                {/* Items */}
+                <div className="mb-4">
+                  <label className="block text-sm text-[var(--text-secondary)] mb-2">Items to Return *</label>
+                  <div className="space-y-2">
+                    {returnItems.map((item, i) => (
+                      <div key={i} className="grid grid-cols-12 gap-2 items-center">
+                        <input
+                          className="col-span-5 bg-[var(--bg-primary)] border border-[var(--border-color)] rounded px-2 py-1.5 text-xs text-[var(--text-primary)]"
+                          placeholder="Product name"
+                          value={item.product_name}
+                          onChange={e => { const n = [...returnItems]; n[i].product_name = e.target.value; setReturnItems(n); }}
+                        />
+                        <input
+                          type="number" min="1"
+                          className="col-span-2 bg-[var(--bg-primary)] border border-[var(--border-color)] rounded px-2 py-1.5 text-xs text-[var(--text-primary)]"
+                          placeholder="Qty"
+                          value={item.quantity}
+                          onChange={e => { const n = [...returnItems]; n[i].quantity = parseInt(e.target.value) || 1; setReturnItems(n); }}
+                        />
+                        <input
+                          type="number" min="0" step="0.01"
+                          className="col-span-3 bg-[var(--bg-primary)] border border-[var(--border-color)] rounded px-2 py-1.5 text-xs text-[var(--text-primary)]"
+                          placeholder="Amount"
+                          value={item.amount}
+                          onChange={e => { const n = [...returnItems]; n[i].amount = parseFloat(e.target.value) || 0; setReturnItems(n); }}
+                        />
+                        <button
+                          onClick={() => setReturnItems(returnItems.filter((_, idx) => idx !== i))}
+                          className="col-span-2 text-red-500 hover:text-red-400 text-xs"
+                          disabled={returnItems.length === 1}
+                        >Remove</button>
+                      </div>
+                    ))}
+                  </div>
+                  <button
+                    onClick={() => setReturnItems([...returnItems, { product_name: '', quantity: 1, amount: 0 }])}
+                    className="mt-2 text-xs text-blue-500 hover:text-blue-400"
+                  >+ Add item</button>
+                </div>
+
+                {/* Notes */}
+                <div className="mb-4">
+                  <label className="block text-sm text-[var(--text-secondary)] mb-1">Notes (optional)</label>
+                  <textarea
+                    value={returnForm.notes}
+                    onChange={e => setReturnForm(f => ({ ...f, notes: e.target.value }))}
+                    rows={2}
+                    className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-sm text-[var(--text-primary)]"
+                    placeholder="Additional notes..."
+                  />
+                </div>
+
+                {returnError && <p className="text-red-500 text-sm mb-3">{returnError}</p>}
+
+                <div className="flex gap-3">
+                  <button
+                    onClick={submitReturn}
+                    disabled={submittingReturn}
+                    className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-lg text-sm font-medium disabled:opacity-50"
+                  >
+                    {submittingReturn ? 'Submitting...' : 'Submit Return'}
+                  </button>
+                  <button
+                    onClick={() => setShowReturnModal(false)}
+                    className="flex-1 bg-[var(--bg-secondary)] border border-[var(--border-color)] py-2 rounded-lg text-sm text-[var(--text-primary)] hover:bg-[var(--bg-primary)]"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
       )}
     </div>
   );
