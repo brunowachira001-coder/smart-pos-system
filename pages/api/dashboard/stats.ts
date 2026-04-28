@@ -102,9 +102,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Get customer names for recent transactions
     const recentWithCustomers = await Promise.all(
       (recentTransactions || []).map(async (t) => {
-        let customerName = 'Walk-in Customer';
+        // Use customer_name from transaction, or look up if customer_id exists
+        let customerName = t.customer_name || 'Walk-in Customer';
         
-        if (t.customer_id) {
+        // If customer_id exists but no name stored, look it up
+        if (t.customer_id && !t.customer_name) {
           const { data: customer } = await supabase
             .from('customers')
             .select('name')
