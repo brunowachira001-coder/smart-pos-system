@@ -66,7 +66,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(500).json({ error: error.message });
     }
 
-    // Get items count for each transaction and filter by price type if needed
+    // Get items count for each transaction
     let transactionsWithItems = await Promise.all(
       (transactions || []).map(async (transaction) => {
         const { data: items } = await supabase
@@ -74,8 +74,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           .select('*')
           .eq('transaction_id', transaction.id);
 
+        // Map database fields to frontend expected fields
         return {
-          ...transaction,
+          id: transaction.id,
+          transaction_number: transaction.transaction_number,
+          customer_name: 'Walk-in Customer', // transactions table doesn't have this
+          customer_phone: '', // transactions table doesn't have this
+          total: transaction.total_amount, // Map total_amount to total
+          payment_method: transaction.payment_method,
+          status: transaction.payment_status, // Map payment_status to status
+          created_at: transaction.created_at,
           items_count: items?.length || 0,
           items: items || []
         };
@@ -87,8 +95,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       pagination: {
         page: pageNum,
         limit: limitNum,
-        total: transactionsWithItems.length, // Update count based on filtered results
-        totalPages: Math.ceil(transactionsWithItems.length / limitNum)
+        total: count || 0,
+        totalPages: Math.ceil((count || 0) / limitNum)
       }
     });
 
