@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import DateRangeFilter, { getDateRange, formatDateLocal } from '../components/DateRangeFilter';
+import { useToast } from '../hooks/useToast';
+import Toast from '../components/Toast';
 
 interface Debt {
   id: string;
@@ -14,6 +16,7 @@ interface Debt {
 }
 
 export default function DebtManagement() {
+  const { toast, showToast, hideToast } = useToast();
   const [debts, setDebts] = useState<Debt[]>([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<any>({});
@@ -99,18 +102,18 @@ export default function DebtManagement() {
       });
 
       if (response.ok) {
-        alert('Payment recorded successfully!');
+        showToast('Payment recorded successfully!', 'success');
         setPaymentModal({ show: false, debt: null });
         setPaymentAmount('');
         fetchDebts();
         fetchStats();
       } else {
         const data = await response.json();
-        alert(data.error || 'Payment failed');
+        showToast(data.error || 'Payment failed', 'error');
       }
     } catch (error) {
       console.error('Error recording payment:', error);
-      alert('Payment failed');
+      showToast('Payment failed', 'error');
     }
   };
 
@@ -132,7 +135,9 @@ export default function DebtManagement() {
   const outstandingDebts = debts.filter(d => d.amount_remaining > 0);
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-screen bg-[var(--bg-secondary)] p-4 md:p-6">
+      {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} />}
+      <div className="space-y-6">
         {/* Header */}
         <div className="flex items-start justify-between flex-wrap gap-4">
           <div>
@@ -203,7 +208,9 @@ export default function DebtManagement() {
                 <div className="text-2xl font-bold text-[var(--text-primary)] mt-1">
                   {formatCurrency(stats.totalCreditLimit || 0)}
                 </div>
-                <div className="text-xs text-[var(--text-secondary)] mt-1">{stats.utilizationPercent || 0}% utilized</div>
+                <div className="text-xs text-[var(--text-secondary)] mt-1">
+                  {stats.utilizationPercent || 0}% utilized • set per customer
+                </div>
               </div>
               <svg className="w-6 h-6 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -463,6 +470,7 @@ export default function DebtManagement() {
           </div>
         )}
       </div>
+    </div>
     );
   }
 
