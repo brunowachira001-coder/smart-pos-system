@@ -160,20 +160,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (allTransactions && allTransactions.length > 0) {
       const transactionIds = allTransactions.map(t => t.id);
       
-      // Fetch all transaction items for these transactions (NO price type filter for transactions)
+      // Fetch all transaction items for these transactions
       const { data: transactionItems, error: itemsError } = await supabase
         .from('transaction_items')
-        .select('product_id, quantity, unit_price, transaction_id, price_type')
+        .select('product_id, quantity, unit_price, transaction_id')
         .in('transaction_id', transactionIds);
 
       if (transactionItems && transactionItems.length > 0) {
         // Create a map of product IDs to cost prices for faster lookup
         const productCostMap = new Map();
+        const productRetailMap = new Map();
+        const productWholesaleMap = new Map();
         products?.forEach(p => {
           productCostMap.set(p.id, parseFloat(p.cost_price) || 0);
+          productRetailMap.set(p.id, parseFloat(p.retail_price) || 0);
+          productWholesaleMap.set(p.id, parseFloat(p.wholesale_price) || 0);
         });
 
-        // Calculate profit for each item and track retail/wholesale
+        // Calculate profit for each item and determine retail/wholesale based on price
         for (const item of transactionItems) {
           const costPrice = productCostMap.get(item.product_id) || 0;
           const sellingPrice = parseFloat(item.unit_price) || 0;
@@ -181,23 +185,55 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           const itemProfit = (sellingPrice - costPrice) * quantity;
           const itemRevenue = sellingPrice * quantity;
           
-          allTimeProfit += itemProfit;
+          // Only count profit if cost price exists and is valid
+          if (costPrice > 0 && sellingPrice > 0) {
+            allTimeProfit += itemProfit;
+          }
           
-          // Track retail vs wholesale
-          if (item.price_type === 'retail') {
+          // Determine if retail or wholesale based on which price it matches
+          const retailPrice = productRetailMap.get(item.product_id) || 0;
+          const wholesalePrice = productWholesaleMap.get(item.product_id) || 0;
+          
+          // Check which price the selling price is closer to
+          const retailDiff = Math.abs(sellingPrice - retailPrice);
+          const wholesaleDiff = Math.abs(sellingPrice - wholesalePrice);
+          
+          if (retailDiff < wholesaleDiff || wholesalePrice === 0) {
+            // It's a retail sale
             retailRevenue += itemRevenue;
-            retailProfit += itemProfit;
-          } else if (item.price_type === 'wholesale') {
+            if (costPrice > 0 && sellingPrice > 0) {
+              retailProfit += itemProfit;
+            }
+          } else {
+            // It's a wholesale sale
             wholesaleRevenue += itemRevenue;
-            wholesaleProfit += itemProfit;
+            if (costPrice > 0 && sellingPrice > 0) {
+              wholesaleProfit += itemProfit;
+            }
           }
         }
         
-        // Count unique transactions by price type
-        const retailTransactions = new Set(transactionItems.filter(i => i.price_type === 'retail').map(i => i.transaction_id));
-        const wholesaleTransactions = new Set(transactionItems.filter(i => i.price_type === 'wholesale').map(i => i.transaction_id));
-        retailSales = retailTransactions.size;
-        wholesaleSales = wholesaleTransactions.size;
+        // Count unique transactions by determining retail/wholesale for each transaction
+        const transactionTypes = new Map();
+        for (const item of transactionItems) {
+          const sellingPrice = parseFloat(item.unit_price) || 0;
+          const retailPrice = productRetailMap.get(item.product_id) || 0;
+          const wholesalePrice = productWholesaleMap.get(item.product_id) || 0;
+          
+          const retailDiff = Math.abs(sellingPrice - retailPrice);
+          const wholesaleDiff = Math.abs(sellingPrice - wholesalePrice);
+          
+          if (!transactionTypes.has(item.transaction_id)) {
+            if (retailDiff < wholesaleDiff || wholesalePrice === 0) {
+              transactionTypes.set(item.transaction_id, 'retail');
+            } else {
+              transactionTypes.set(item.transaction_id, 'wholesale');
+            }
+          }
+        }
+        
+        retailSales = Array.from(transactionTypes.values()).filter(t => t === 'retail').length;
+        wholesaleSales = Array.from(transactionTypes.values()).filter(t => t === 'wholesale').length;
       }
     }
 
@@ -446,10 +482,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const trendTransactionIds = trendTransactionsWithIds?.map(t => t.id) || [];
 
       if (trendTransactionIds.length > 0) {
-        // Fetch transaction items (NO price type filter for chart data)
+        // Fetch transaction items
         const { data: trendItems } = await supabase
           .from('transaction_items')
-          .select('transaction_id, product_id, quantity, unit_price, price_type')
+          .select('transaction_id, product_id, quantity, unit_price')
           .in('transaction_id', trendTransactionIds);
 
         // Create a map of product IDs to cost prices
@@ -466,7 +502,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             const costPrice = productCostMap.get(item.product_id) || 0;
             const sellingPrice = parseFloat(item.unit_price) || 0;
             const quantity = item.quantity || 0;
-            const itemProfit = (sellingPrice - costPrice) * quantity;
+            
+            // Only calculate profit if cost price exists and is valid
+            const itemProfit = (costPrice > 0 && sellingPrice > 0) ? (sellingPrice - costPrice) * quantity : 0;
             
             if (!profitByTransaction[item.transaction_id]) {
               profitByTransaction[item.transaction_id] = 0;
