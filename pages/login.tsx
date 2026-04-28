@@ -39,7 +39,7 @@ export default function Login() {
         
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(user));
-        router.push('/dashboard');
+        router.push('/dashboard-pro');
       } else {
         throw new Error(data.error || 'Login failed');
       }

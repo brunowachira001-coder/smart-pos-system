@@ -27,6 +27,7 @@ export default function TopBar({ onMenuClick }: TopBarProps) {
   ];
 
   const pageTitle: Record<string, string> = {
+    '/dashboard-pro': 'Dashboard',
     '/dashboard': 'Dashboard',
     '/dashboard-advanced': 'Dashboard',
     '/pos-advanced': 'Point of Sale',
