@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Pages</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        .test-section {
+            background: #2a2a2a;
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        button {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #059669;
+        }
+        pre {
+            background: #1a1a1a;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            max-height: 400px;
+        }
+        .error {
+            color: #ef4444;
+        }
+        .success {
+            color: #10b981;
+        }
+    </style>
+</head>
+<body>
+    <h1>API Test Page</h1>
+    
+    <div class="test-section">
+        <h2>Test All APIs</h2>
+        <button onclick="testAllAPIs()">Test All APIs</button>
+        <pre id="all-result"></pre>
+    </div>
+
+    <div class="test-section">
+        <h2>Test Transactions List API</h2>
+        <button onclick="testTransactions()">Test Transactions</button>
+        <pre id="transactions-result"></pre>
+    </div>
+
+    <div class="test-section">
+        <h2>Test Expenses API</h2>
+        <button onclick="testExpenses()">Test Expenses</button>
+        <pre id="expenses-result"></pre>
+    </div>
+
+    <div class="test-section">
+        <h2>Test Dashboard Stats API</h2>
+        <button onclick="testDashboard()">Test Dashboard</button>
+        <pre id="dashboard-result"></pre>
+    </div>
+
+    <script>
+        async function testAllAPIs() {
+            const result = document.getElementById('all-result');
+            result.textContent = 'Testing...';
+            
+            try {
+                const response = await fetch('/api/test-apis');
+                const data = await response.json();
+                result.className = response.ok ? 'success' : 'error';
+                result.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                result.className = 'error';
+                result.textContent = 'Error: ' + error.message;
+            }
+        }
+
+        async function testTransactions() {
+            const result = document.getElementById('transactions-result');
+            result.textContent = 'Testing...';
+            
+            try {
+                const response = await fetch('/api/transactions/list?page=1&limit=5');
+                const data = await response.json();
+                result.className = response.ok ? 'success' : 'error';
+                result.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                result.className = 'error';
+                result.textContent = 'Error: ' + error.message;
+            }
+        }
+
+        async function testExpenses() {
+            const result = document.getElementById('expenses-result');
+            result.textContent = 'Testing...';
+            
+            try {
+                const response = await fetch('/api/expenses?page=1&limit=5');
+                const data = await response.json();
+                result.className = response.ok ? 'success' : 'error';
+                result.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                result.className = 'error';
+                result.textContent = 'Error: ' + error.message;
+            }
+        }
+
+        async function testDashboard() {
+            const result = document.getElementById('dashboard-result');
+            result.textContent = 'Testing...';
+            
+            try {
+                const response = await fetch('/api/dashboard/stats');
+                const data = await response.json();
+                result.className = response.ok ? 'success' : 'error';
+                result.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                result.className = 'error';
+                result.textContent = 'Error: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>
