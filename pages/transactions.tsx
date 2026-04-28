@@ -148,6 +148,22 @@ export default function TransactionsPage() {
     return hasWholesale ? 'Wholesale' : 'Retail';
   };
 
+  const [openActionMenu, setOpenActionMenu] = useState<string | null>(null);
+
+  const deleteTransaction = async (transactionId: string) => {
+    if (!confirm('Delete this transaction? This cannot be undone.')) return;
+    try {
+      const res = await fetch(`/api/transactions/${transactionId}`, { method: 'DELETE' });
+      if (res.ok) {
+        fetchTransactions();
+      } else {
+        alert('Failed to delete transaction');
+      }
+    } catch {
+      alert('Error deleting transaction');
+    }
+  };
+
   const viewTransactionDetails = (transaction: Transaction) => {
     setSelectedTransaction(transaction);
     setShowDetails(true);
@@ -354,12 +370,30 @@ export default function TransactionsPage() {
                         KSH {transaction.total.toFixed(2)}
                       </td>
                       <td className="px-6 py-4">
-                        <button
-                          onClick={() => viewTransactionDetails(transaction)}
-                          className="text-blue-500 hover:text-blue-400 text-sm font-medium"
-                        >
-                          •••
-                        </button>
+                        <div className="relative">
+                          <button
+                            onClick={() => setOpenActionMenu(openActionMenu === transaction.id ? null : transaction.id)}
+                            className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-sm font-bold px-2 py-1 rounded hover:bg-[var(--bg-secondary)]"
+                          >
+                            •••
+                          </button>
+                          {openActionMenu === transaction.id && (
+                            <div className="absolute right-0 mt-1 w-40 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg shadow-lg z-10">
+                              <button
+                                onClick={() => { viewTransactionDetails(transaction); setOpenActionMenu(null); }}
+                                className="w-full text-left px-4 py-2 text-sm hover:bg-[var(--bg-secondary)] text-[var(--text-primary)] flex items-center gap-2"
+                              >
+                                👁 View Details
+                              </button>
+                              <button
+                                onClick={() => { deleteTransaction(transaction.id); setOpenActionMenu(null); }}
+                                className="w-full text-left px-4 py-2 text-sm hover:bg-[var(--bg-secondary)] text-red-500 flex items-center gap-2"
+                              >
+                                🗑 Delete
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))
@@ -455,10 +489,10 @@ export default function TransactionsPage() {
                       <div>
                         <p className="font-medium">{item.product_name}</p>
                         <p className="text-xs text-[var(--text-secondary)]">
-                          {item.quantity} x KSH {item.unit_price.toFixed(2)}
+                          {item.quantity} x KSH {parseFloat(item.unit_price).toFixed(2)}
                         </p>
                       </div>
-                      <p className="font-semibold">KSH {item.subtotal.toFixed(2)}</p>
+                      <p className="font-semibold">KSH {parseFloat(item.total_price || item.subtotal || 0).toFixed(2)}</p>
                     </div>
                   ))}
                 </div>

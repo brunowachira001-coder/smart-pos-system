@@ -1,58 +1,65 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { supabase } from '../../../lib/supabase-client';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'GET') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
+  const { id } = req.query;
 
-  try {
-    const { id } = req.query;
-
-    // Try to find by transaction_number first
-    let { data: transaction, error } = await supabase
-      .from('sales_transactions')
-      .select('*')
-      .eq('transaction_number', id)
-      .single();
-
-    // If not found by transaction_number, try by id
-    if (error || !transaction) {
-      const result = await supabase
-        .from('sales_transactions')
+  if (req.method === 'GET') {
+    try {
+      const { data: transaction, error } = await supabase
+        .from('transactions')
         .select('*')
         .eq('id', id)
         .single();
-      
-      transaction = result.data;
-      error = result.error;
+
+      if (error || !transaction) {
+        return res.status(404).json({ error: 'Transaction not found' });
+      }
+
+      const { data: items } = await supabase
+        .from('transaction_items')
+        .select('*')
+        .eq('transaction_id', transaction.transaction_id);
+
+      return res.status(200).json({ transaction, items: items || [] });
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
     }
-
-    if (error || !transaction) {
-      return res.status(404).json({ error: 'Transaction not found' });
-    }
-
-    // Get transaction items
-    const { data: items, error: itemsError } = await supabase
-      .from('sales_transaction_items')
-      .select('*')
-      .eq('transaction_id', transaction.id);
-
-    if (itemsError) {
-      return res.status(500).json({ error: itemsError.message });
-    }
-
-    return res.status(200).json({
-      transaction,
-      items: items || []
-    });
-  } catch (error: any) {
-    console.error('Error fetching transaction:', error);
-    return res.status(500).json({ error: error.message });
   }
+
+  if (req.method === 'DELETE') {
+    try {
+      // Get transaction first to get transaction_id (TEXT)
+      const { data: transaction, error: fetchError } = await supabase
+        .from('transactions')
+        .select('transaction_id')
+        .eq('id', id)
+        .single();
+
+      if (fetchError || !transaction) {
+        return res.status(404).json({ error: 'Transaction not found' });
+      }
+
+      // Delete items first
+      await supabase
+        .from('transaction_items')
+        .delete()
+        .eq('transaction_id', transaction.transaction_id);
+
+      // Delete transaction
+      const { error } = await supabase
+        .from('transactions')
+        .delete()
+        .eq('id', id);
+
+      if (error) return res.status(500).json({ error: error.message });
+
+      return res.status(200).json({ success: true });
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message });
+    }
+  }
+
+  res.setHeader('Allow', ['GET', 'DELETE']);
+  return res.status(405).json({ error: `Method ${req.method} Not Allowed` });
 }
