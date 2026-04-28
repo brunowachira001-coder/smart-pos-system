@@ -167,12 +167,16 @@ export default function Dashboard() {
       if (data.products) {
         // Filter products with pricing issues and add issue type
         // Match the exact logic from comprehensive-stats API
+        // Only show ACTIVE products in the dropdown
         const productsWithIssues = data.products.filter((product: any) => {
+          // Only show active products
+          if (product.status !== 'active') return false;
+          
           const costPrice = parseFloat(product.cost_price) || 0;
           const retailPrice = parseFloat(product.retail_price) || 0;
           const wholesalePrice = parseFloat(product.wholesale_price) || 0;
           
-          // Determine issue types - using same logic as API
+          // Determine issue types - match exact API logic
           const issues: string[] = [];
           let hasIssue = false;
 
@@ -182,25 +186,25 @@ export default function Dashboard() {
             issues.push('No Cost');
           }
 
-          // Check 2: Zero selling price (both retail and wholesale)
+          // Check 2: Zero selling price (both retail and wholesale) - only if no previous issue
           if (!hasIssue && (retailPrice === 0 || !product.retail_price) && (wholesalePrice === 0 || !product.wholesale_price)) {
             hasIssue = true;
             issues.push('Zero Price');
           }
 
-          // Check 3: Selling below cost (retail)
+          // Check 3: Selling below cost (retail) - only if no previous issue
           if (!hasIssue && costPrice > 0 && retailPrice > 0 && retailPrice < costPrice) {
             hasIssue = true;
             issues.push('Below Cost');
           }
 
-          // Check 4: Selling below cost (wholesale)
+          // Check 4: Selling below cost (wholesale) - only if no previous issue
           if (!hasIssue && costPrice > 0 && wholesalePrice > 0 && wholesalePrice < costPrice) {
             hasIssue = true;
             issues.push('Below Cost');
           }
 
-          // Check 5: Unrealistic markup (>500%)
+          // Check 5: Unrealistic markup (>500%) - only if no previous issue
           if (!hasIssue && costPrice > 0 && retailPrice > 0) {
             const markup = ((retailPrice - costPrice) / costPrice) * 100;
             if (markup > 500) {
@@ -211,7 +215,7 @@ export default function Dashboard() {
           
           if (hasIssue) {
             product.issues = issues;
-            console.log('Product with issue:', product.name, 'Issues:', issues, 'Cost:', costPrice, 'Retail:', retailPrice, 'Wholesale:', wholesalePrice);
+            console.log('Product with issue:', product.name, 'Issues:', issues, 'Cost:', costPrice, 'Retail:', retailPrice, 'Wholesale:', wholesalePrice, 'Status:', product.status);
             return true;
           }
           return false;
