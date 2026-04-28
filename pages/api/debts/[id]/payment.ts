@@ -34,28 +34,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
-    // Create payment record
-    const { data: payment, error: paymentError } = await supabase
-      .from('debt_payments')
-      .insert([
-        {
-          debt_id: id,
-          customer_id: debt.customer_id,
-          amount: paymentAmount,
-          payment_method,
-          reference_number,
-          notes,
-        },
-      ])
-      .select()
-      .single();
-
-    if (paymentError) throw paymentError;
-
-    // Update debt
+    // Update debt directly (no debt_payments table needed)
     const newAmountPaid = parseFloat(debt.amount_paid) + paymentAmount;
     const newBalance = Math.max(0, currentBalance - paymentAmount);
-    const newStatus = newBalance <= 0 ? 'Paid' : 'Outstanding';
+    const newStatus = newBalance <= 0 ? 'Paid' : 'Partial';
 
     const { data: updatedDebt, error: updateError } = await supabase
       .from('debts')
@@ -92,7 +74,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .eq('customer_id', debt.customer_id);
     }
 
-    return res.status(200).json({ payment, debt: updatedDebt });
+    return res.status(200).json({ success: true, debt: updatedDebt });
   } catch (error: any) {
     return res.status(500).json({ error: error.message });
   }
