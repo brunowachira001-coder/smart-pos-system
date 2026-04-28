@@ -153,9 +153,9 @@ export default function TransactionsPage() {
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = () => setOpenActionMenu(null);
-    if (openActionMenu) document.addEventListener('click', handleClickOutside);
+    document.addEventListener('click', handleClickOutside);
     return () => document.removeEventListener('click', handleClickOutside);
-  }, [openActionMenu]);
+  }, []);
 
   const deleteTransaction = async (transactionId: string) => {
     if (!confirm('Delete this transaction? This cannot be undone.')) return;
@@ -420,13 +420,13 @@ export default function TransactionsPage() {
                       <td className="px-6 py-4">
                         <div className="relative">
                           <button
-                            onClick={() => setOpenActionMenu(openActionMenu === transaction.id ? null : transaction.id)}
+                            onClick={(e) => { e.stopPropagation(); setOpenActionMenu(openActionMenu === transaction.id ? null : transaction.id); }}
                             className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-lg font-bold px-2 py-1 rounded hover:bg-[var(--bg-secondary)]"
                           >
                             •••
                           </button>
                           {openActionMenu === transaction.id && (
-                            <div className="absolute right-0 mt-1 w-44 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl shadow-xl z-20 overflow-hidden">
+                            <div onClick={(e) => e.stopPropagation()} className="absolute right-0 mt-1 w-44 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl shadow-xl z-20 overflow-hidden">
                               <button
                                 onClick={() => { viewTransactionDetails(transaction); setOpenActionMenu(null); }}
                                 className="w-full text-left px-5 py-3 text-sm hover:bg-[var(--bg-secondary)] text-[var(--text-primary)] transition-colors"
