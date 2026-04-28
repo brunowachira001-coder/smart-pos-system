@@ -15,8 +15,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           .eq('email', email)
           .single();
 
+        // If user not found, fall back to first settings record
         if (!user) {
-          return res.status(404).json({ error: 'User not found' });
+          const { data: fallbackSettings } = await supabase
+            .from('shop_settings')
+            .select('*')
+            .order('created_at', { ascending: true })
+            .limit(1)
+            .single();
+          return res.status(200).json({ settings: fallbackSettings || null });
         }
 
         // Get shop settings for specific user
@@ -30,9 +37,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           return res.status(500).json({ error: error.message });
         }
 
-        // Return null if no settings exist
+        // If no settings for this user, fall back to first settings record
         if (!settings) {
-          return res.status(200).json({ settings: null });
+          const { data: fallbackSettings } = await supabase
+            .from('shop_settings')
+            .select('*')
+            .order('created_at', { ascending: true })
+            .limit(1)
+            .single();
+          return res.status(200).json({ settings: fallbackSettings || null });
         }
 
         return res.status(200).json({ settings });
