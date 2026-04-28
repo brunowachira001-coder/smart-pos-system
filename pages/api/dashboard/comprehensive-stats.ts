@@ -135,8 +135,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Potential profit (if all inventory sold at selected price type)
     const potentialProfit = inventoryValueSelling - inventoryValueCost;
 
-    // Fetch all sales transactions for all-time profit (or filtered by date range)
-    let allTransactionsQuery = supabase.from('sales_transactions').select('*');
+    // Fetch all transactions for all-time profit (or filtered by date range)
+    let allTransactionsQuery = supabase.from('transactions').select('*');
     
     if (startDate && endDate) {
       allTransactionsQuery = allTransactionsQuery
@@ -162,7 +162,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       
       // Fetch all transaction items for these transactions (NO price type filter for transactions)
       const { data: transactionItems, error: itemsError } = await supabase
-        .from('sales_transaction_items')
+        .from('transaction_items')
         .select('product_id, quantity, unit_price, transaction_id, price_type')
         .in('transaction_id', transactionIds);
 
@@ -207,7 +207,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Fetch transactions for the selected date range (not just today)
     // This will be used for "Today's Net Revenue" or "Yesterday's Net Revenue" etc.
     let rangeTransactions;
-    let rangeTransactionsQuery = supabase.from('sales_transactions').select('*');
+    let rangeTransactionsQuery = supabase.from('transactions').select('*');
     
     if (startDate && endDate) {
       // Use the selected date range
@@ -227,12 +227,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Calculate net revenue for the selected range
     const rangeNetRevenue = rangeTransactionsData?.reduce((sum, t) => {
-      return sum + (parseFloat(t.total) || 0);
+      return sum + (parseFloat(t.total_amount) || 0);
     }, 0) || 0;
     
     // ALWAYS fetch today's transactions for the Net Revenue breakdown
     const { data: todayTransactionsData, error: todayTxnError } = await supabase
-      .from('sales_transactions')
+      .from('transactions')
       .select('*')
       .gte('created_at', todayUTC)
       .lt('created_at', tomorrowUTC);
@@ -246,7 +246,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       
       // Fetch today's transaction items
       const { data: todayItems } = await supabase
-        .from('sales_transaction_items')
+        .from('transaction_items')
         .select('unit_price, quantity')
         .in('transaction_id', todayTransactionIds);
 
@@ -423,8 +423,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const trendEndDate = endDate || new Date();
 
     const { data: trendTransactions, error: trendError } = await supabase
-      .from('sales_transactions')
-      .select('created_at, total, subtotal, tax')
+      .from('transactions')
+      .select('created_at, total_amount')
       .gte('created_at', trendStartDate.toISOString())
       .lte('created_at', trendEndDate.toISOString())
       .order('created_at', { ascending: true });
@@ -437,8 +437,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (trendTransactions && trendTransactions.length > 0) {
       // Fetch transactions with IDs for chart
       const { data: trendTransactionsWithIds } = await supabase
-        .from('sales_transactions')
-        .select('id, created_at, total, subtotal')
+        .from('transactions')
+        .select('id, created_at, total_amount')
         .gte('created_at', trendStartDate.toISOString())
         .lte('created_at', trendEndDate.toISOString())
         .order('created_at', { ascending: true });
@@ -448,7 +448,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (trendTransactionIds.length > 0) {
         // Fetch transaction items (NO price type filter for chart data)
         const { data: trendItems } = await supabase
-          .from('sales_transaction_items')
+          .from('transaction_items')
           .select('transaction_id, product_id, quantity, unit_price, price_type')
           .in('transaction_id', trendTransactionIds);
 
@@ -499,12 +499,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           if (!salesByDate[date]) {
             salesByDate[date] = { gross: 0, net: 0, expenses: 0, profit: 0, timestamp: dateObj.getTime() };
           }
-          const total = parseFloat(t.total) || 0;
-          const subtotal = parseFloat(t.subtotal) || 0;
+          const total = parseFloat(t.total_amount) || 0;
           const profit = profitByTransaction[t.id] || 0;
           
           salesByDate[date].gross += total;
-          salesByDate[date].net += subtotal;
+          salesByDate[date].net += total; // Use total_amount for net as well
           salesByDate[date].profit += profit;
         });
 
