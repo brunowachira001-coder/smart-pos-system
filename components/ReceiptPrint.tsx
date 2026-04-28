@@ -127,7 +127,6 @@ export default function ReceiptPrint({ data, onClose }: ReceiptPrintProps) {
             <span style="color:white;font-size:16px">🛒</span>
           </div>
           <div class="receipt-title">RECEIPT</div>
-          <div class="thank-you">Thank you for shopping with us!</div>
         </div>
 
         <div class="dashed"></div>
@@ -184,9 +183,13 @@ export default function ReceiptPrint({ data, onClose }: ReceiptPrintProps) {
 
         <!-- Footer -->
         <div class="dashed"></div>
-        <div class="center" style="margin-top:4px">
-          <div style="color:#C41E3A;font-weight:bold;font-size:11px">Thank you for shopping with us!</div>
-          <div style="color:#555;font-size:9px;margin-top:2px">Goods once sold are not returnable</div>
+        <div class="center" style="margin-top:6px;padding-bottom:8px">
+          <div style="display:flex;align-items:center;justify-content:center;gap:4px;margin-bottom:3px">
+            <span style="color:#C41E3A;font-size:11px">✦</span>
+            <span style="color:#003087;font-family:Georgia,serif;font-style:italic;font-size:13px;font-weight:bold">Thank you for shopping with us!</span>
+            <span style="color:#C41E3A;font-size:11px">✦</span>
+          </div>
+          <div style="color:#555;font-size:9px">Goods once sold are not returnable</div>
         </div>
       </div>
       </body></html>
@@ -298,7 +301,6 @@ export default function ReceiptPrint({ data, onClose }: ReceiptPrintProps) {
             </div>
             <div className="text-center">
               <h2 className="text-2xl font-bold" style={{ color: '#003087' }}>RECEIPT</h2>
-              <p className="text-sm italic" style={{ color: '#C41E3A' }}>Thank you for shopping with us!</p>
             </div>
           </div>
 
@@ -395,9 +397,13 @@ export default function ReceiptPrint({ data, onClose }: ReceiptPrintProps) {
 
           {/* Footer */}
           <div className="text-center border-t-2 border-dashed border-gray-400 pt-4 relative z-10">
-            <p className="text-xl font-bold mb-2" style={{ color: '#C41E3A', fontFamily: 'cursive' }}>
-              Thank you for shopping with us!
-            </p>
+            <div className="flex items-center justify-center gap-2 mb-1">
+              <span style={{ color: '#C41E3A', fontSize: '14px' }}>✦</span>
+              <p className="text-lg font-bold" style={{ color: '#003087', fontFamily: 'Georgia, serif', fontStyle: 'italic' }}>
+                Thank you for shopping with us!
+              </p>
+              <span style={{ color: '#C41E3A', fontSize: '14px' }}>✦</span>
+            </div>
             <p className="text-xs" style={{ color: '#1F2937' }}>Goods once sold are not returnable</p>
           </div>
         </div>
