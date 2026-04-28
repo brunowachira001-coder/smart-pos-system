@@ -1,8 +1,10 @@
 -- ========================================
 -- COMPLETE DATABASE RESTORATION
--- Products: 121 | Customers: 54 | Returns: 18 | Expenses: 10 | Debts: 4 | Shop Settings: 1
+-- Products: 121 | Customers: 54 | Transactions: 6 | Returns: 18 | Expenses: 10 | Debts: 4 | Shop Settings: 1
 -- ========================================
 
+DROP TABLE IF EXISTS transaction_items CASCADE;
+DROP TABLE IF EXISTS transactions CASCADE;
 DROP TABLE IF EXISTS returns CASCADE;
 DROP TABLE IF EXISTS expenses CASCADE;
 DROP TABLE IF EXISTS debts CASCADE;
@@ -141,6 +143,7 @@ CREATE POLICY "Allow all on shop_settings" ON shop_settings FOR ALL USING (true)
 -- COMPLETE DATA RESTORATION
 -- Products: 121
 -- Customers: 54
+-- Transactions: 6
 -- Returns: 18
 -- Expenses: 10
 -- Debts: 4
@@ -397,6 +400,66 @@ INSERT INTO shop_settings (
   'DD/MM/YYYY', NULL, NULL, true, 'Retail Store'
 );
 
+-- CREATE TRANSACTIONS TABLE
+CREATE TABLE IF NOT EXISTS transactions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  transaction_id TEXT UNIQUE NOT NULL,
+  customer_id UUID REFERENCES customers(id) ON DELETE SET NULL,
+  customer_name TEXT,
+  customer_phone TEXT,
+  total_amount DECIMAL(10,2) NOT NULL,
+  payment_method TEXT NOT NULL,
+  payment_status TEXT DEFAULT 'Completed',
+  notes TEXT,
+  created_by TEXT,
+  transaction_date TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+ALTER TABLE transactions ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow all on transactions" ON transactions FOR ALL USING (true);
+
+-- CREATE TRANSACTION_ITEMS TABLE
+CREATE TABLE IF NOT EXISTS transaction_items (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  transaction_id TEXT NOT NULL,
+  product_id UUID REFERENCES products(id) ON DELETE SET NULL,
+  product_name TEXT NOT NULL,
+  quantity INTEGER NOT NULL,
+  unit_price DECIMAL(10,2) NOT NULL,
+  total_price DECIMAL(10,2) NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+ALTER TABLE transaction_items ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow all on transaction_items" ON transaction_items FOR ALL USING (true);
+
+-- INSERT TRANSACTIONS (6)
+INSERT INTO transactions (
+  transaction_id, customer_id, customer_name, customer_phone, total_amount,
+  payment_method, payment_status, notes, created_by, transaction_date
+) VALUES
+('TXN-1776507878669-Z08LULM6Y', NULL, 'Walk-in Customer', NULL, 160, 'Cash', 'Completed', NULL, 'Admin', '2026-04-18T12:21:00+00:00'),
+('TXN-1777116366415-8DMZUTOWX', NULL, 'Customer 20', '+254700000020', 1600, 'Credit', 'Completed', 'Credit sale', 'Admin', '2026-04-25T11:26:00+00:00'),
+('TXN-1776514997646-SH384CT9Z', NULL, 'Walk-in Customer', NULL, 170, 'Cash', 'Completed', NULL, 'Admin', '2026-04-18T12:24:00+00:00'),
+('TXN-1776956545378-8Q8FVRU74', NULL, 'Sam Ngungu', '0721889007', 180, 'Credit', 'Completed', 'Credit sale', 'Admin', '2026-04-23T15:02:00+00:00'),
+('TXN-1776520939947-WNLQP7DG9', NULL, 'Ngungu', NULL, 1140, 'Cash', 'Completed', NULL, 'Admin', '2026-04-18T14:10:00+00:00'),
+('TXN-1776517264177-BTA6YWD7I', NULL, 'Walk-in Customer', NULL, 310, 'Cash', 'Completed', NULL, 'Admin', '2026-04-18T13:40:00+00:00');
+
+-- INSERT TRANSACTION ITEMS
+INSERT INTO transaction_items (
+  transaction_id, product_id, product_name, quantity, unit_price, total_price
+) VALUES
+('TXN-1776507878669-Z08LULM6Y', NULL, 'Bread (Loaf)', 2, 80, 160),
+('TXN-1777116366415-8DMZUTOWX', NULL, 'Product 10', 1, 1600, 1600),
+('TXN-1776514997646-SH384CT9Z', NULL, 'Beans (1kg)', 1, 170, 170),
+('TXN-1776956545378-8Q8FVRU74', NULL, 'Beans (1kg)', 1, 180, 180),
+('TXN-1776520939947-WNLQP7DG9', NULL, 'Pasta (500g)', 4, 120, 480),
+('TXN-1776520939947-WNLQP7DG9', NULL, 'Coffee (500g)', 2, 330, 660),
+('TXN-1776517264177-BTA6YWD7I', NULL, 'Flour (2kg)', 1, 140, 140),
+('TXN-1776517264177-BTA6YWD7I', NULL, 'Beans (1kg)', 1, 170, 170);
+
 -- VERIFY DATA
 SELECT COUNT(*) as total_products FROM products;
 SELECT COUNT(*) as total_customers FROM customers;
@@ -404,3 +467,5 @@ SELECT COUNT(*) as total_returns FROM returns;
 SELECT COUNT(*) as total_expenses FROM expenses;
 SELECT COUNT(*) as total_debts FROM debts;
 SELECT COUNT(*) as total_shop_settings FROM shop_settings;
+SELECT COUNT(*) as total_transactions FROM transactions;
+SELECT COUNT(*) as total_transaction_items FROM transaction_items;

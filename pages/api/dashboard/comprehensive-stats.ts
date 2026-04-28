@@ -158,7 +158,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     let wholesaleSales = 0;
     
     if (allTransactions && allTransactions.length > 0) {
-      const transactionIds = allTransactions.map(t => t.id);
+      // Use transaction_id (TEXT) not id (UUID) for joining with transaction_items
+      const transactionIds = allTransactions.map(t => t.transaction_id);
       
       // Fetch all transaction items for these transactions
       const { data: transactionItems, error: itemsError } = await supabase
@@ -471,22 +472,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     let chartData: Array<{ date: string; gross: number; net: number; expenses: number; profit: number }> = [];
 
     if (trendTransactions && trendTransactions.length > 0) {
-      // Fetch transactions with IDs for chart
+      // Fetch transactions with IDs for chart - use transaction_id (TEXT) not id (UUID)
       const { data: trendTransactionsWithIds } = await supabase
         .from('transactions')
-        .select('id, created_at, total_amount')
+        .select('id, transaction_id, created_at, total_amount')
         .gte('created_at', trendStartDate.toISOString())
         .lte('created_at', trendEndDate.toISOString())
         .order('created_at', { ascending: true });
 
-      const trendTransactionIds = trendTransactionsWithIds?.map(t => t.id) || [];
+      const transactionIdsForChart = trendTransactionsWithIds?.map(t => t.transaction_id) || [];
 
-      if (trendTransactionIds.length > 0) {
+      if (transactionIdsForChart.length > 0) {
         // Fetch transaction items
         const { data: trendItems } = await supabase
           .from('transaction_items')
           .select('transaction_id, product_id, quantity, unit_price')
-          .in('transaction_id', trendTransactionIds);
+          .in('transaction_id', transactionIdsForChart);
 
         // Create a map of product IDs to cost prices
         const productCostMap = new Map();
