@@ -94,6 +94,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .insert({
         transaction_number: transactionNumber,
         customer_id: customerId || null,
+        customer_name: customerName || 'Walk-in Customer',
+        customer_phone: customerPhone || null,
         user_id: cashierId || null,
         total_amount: total,
         payment_method: paymentMethod,

@@ -69,11 +69,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Get customer names and items for each transaction
     let transactionsWithDetails = await Promise.all(
       (transactions || []).map(async (transaction) => {
-        // Get customer name if customer_id exists
-        let customerName = 'Walk-in Customer';
-        let customerPhone = '';
+        // Use customer_name from transaction, or look up if customer_id exists
+        let customerName = transaction.customer_name || 'Walk-in Customer';
+        let customerPhone = transaction.customer_phone || '';
         
-        if (transaction.customer_id) {
+        // If customer_id exists but no name stored, look it up
+        if (transaction.customer_id && !transaction.customer_name) {
           const { data: customer } = await supabase
             .from('customers')
             .select('name, phone')
