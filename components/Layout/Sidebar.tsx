@@ -50,7 +50,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
   };
 
   const menuItems = [
-    { label: 'Dashboard', href: '/dashboard-pro', icon: '📊' },
+    { label: 'Dashboard', href: '/dashboard', icon: '📊' },
     { label: 'Point of Sale', href: '/pos', icon: '🛒' },
     { label: 'Transactions', href: '/transactions', icon: '💳' },
     { label: 'Returns', href: '/returns', icon: '↩️' },
