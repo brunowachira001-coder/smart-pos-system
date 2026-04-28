@@ -30,9 +30,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .from('transactions')
       .select('*', { count: 'exact' });
 
-    // Search filter
+    // Search filter - search by transaction_id (the TEXT field)
     if (search) {
-      query = query.ilike('transaction_number', `%${search}%`);
+      query = query.or(`transaction_id.ilike.%${search}%,customer_name.ilike.%${search}%`);
     }
 
     // Payment method filter
@@ -87,15 +87,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           }
         }
 
-        // Get transaction items
+        // Get transaction items - use transaction_id (TEXT) not id (UUID)
         const { data: items } = await supabase
           .from('transaction_items')
           .select('*')
-          .eq('transaction_id', transaction.id);
+          .eq('transaction_id', transaction.transaction_id);
 
         return {
           id: transaction.id,
-          transaction_number: transaction.transaction_number,
+          transaction_number: transaction.transaction_id, // Use transaction_id as the display number
           customer_name: customerName,
           customer_phone: customerPhone,
           total: transaction.total_amount,
