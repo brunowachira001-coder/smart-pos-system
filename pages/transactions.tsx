@@ -150,6 +150,13 @@ export default function TransactionsPage() {
 
   const [openActionMenu, setOpenActionMenu] = useState<string | null>(null);
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => setOpenActionMenu(null);
+    if (openActionMenu) document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [openActionMenu]);
+
   const deleteTransaction = async (transactionId: string) => {
     if (!confirm('Delete this transaction? This cannot be undone.')) return;
     try {
@@ -167,6 +174,47 @@ export default function TransactionsPage() {
   const viewTransactionDetails = (transaction: Transaction) => {
     setSelectedTransaction(transaction);
     setShowDetails(true);
+  };
+
+  const printReceipt = (transaction: Transaction) => {
+    const items = transaction.items.map(item =>
+      `${item.product_name} x${item.quantity} @ KSH ${parseFloat(item.unit_price).toFixed(2)} = KSH ${parseFloat(item.total_price || item.subtotal || 0).toFixed(2)}`
+    ).join('\n');
+
+    const receiptWindow = window.open('', '_blank', 'width=400,height=600');
+    if (!receiptWindow) return;
+    receiptWindow.document.write(`
+      <html><head><title>Receipt</title>
+      <style>
+        body { font-family: monospace; padding: 20px; font-size: 13px; }
+        h2 { text-align: center; margin-bottom: 4px; }
+        p { margin: 2px 0; }
+        .divider { border-top: 1px dashed #000; margin: 8px 0; }
+        .total { font-weight: bold; font-size: 15px; }
+        .center { text-align: center; }
+      </style></head><body>
+      <h2>Nyla Wigs</h2>
+      <p class="center">Receipt</p>
+      <div class="divider"></div>
+      <p>TXN: ${transaction.transaction_number}</p>
+      <p>Customer: ${transaction.customer_name || 'Walk-in Customer'}</p>
+      <p>Date: ${new Date(transaction.created_at).toLocaleString()}</p>
+      <p>Payment: ${transaction.payment_method}</p>
+      <div class="divider"></div>
+      <pre>${items}</pre>
+      <div class="divider"></div>
+      <p class="total">TOTAL: KSH ${transaction.total.toFixed(2)}</p>
+      <div class="divider"></div>
+      <p class="center">Thank you for your purchase!</p>
+      </body></html>
+    `);
+    receiptWindow.document.close();
+    receiptWindow.print();
+  };
+
+  const createReturn = (transaction: Transaction) => {
+    // Navigate to returns page with transaction pre-filled
+    router.push(`/returns?transaction_id=${transaction.transaction_number}&customer=${encodeURIComponent(transaction.customer_name || 'Walk-in Customer')}`);
   };
 
   const exportTransactions = () => {
@@ -373,23 +421,29 @@ export default function TransactionsPage() {
                         <div className="relative">
                           <button
                             onClick={() => setOpenActionMenu(openActionMenu === transaction.id ? null : transaction.id)}
-                            className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-sm font-bold px-2 py-1 rounded hover:bg-[var(--bg-secondary)]"
+                            className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-lg font-bold px-2 py-1 rounded hover:bg-[var(--bg-secondary)]"
                           >
                             •••
                           </button>
                           {openActionMenu === transaction.id && (
-                            <div className="absolute right-0 mt-1 w-40 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg shadow-lg z-10">
+                            <div className="absolute right-0 mt-1 w-44 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl shadow-xl z-20 overflow-hidden">
                               <button
                                 onClick={() => { viewTransactionDetails(transaction); setOpenActionMenu(null); }}
-                                className="w-full text-left px-4 py-2 text-sm hover:bg-[var(--bg-secondary)] text-[var(--text-primary)] flex items-center gap-2"
+                                className="w-full text-left px-5 py-3 text-sm hover:bg-[var(--bg-secondary)] text-[var(--text-primary)] transition-colors"
                               >
-                                👁 View Details
+                                View Details
                               </button>
                               <button
-                                onClick={() => { deleteTransaction(transaction.id); setOpenActionMenu(null); }}
-                                className="w-full text-left px-4 py-2 text-sm hover:bg-[var(--bg-secondary)] text-red-500 flex items-center gap-2"
+                                onClick={() => { printReceipt(transaction); setOpenActionMenu(null); }}
+                                className="w-full text-left px-5 py-3 text-sm hover:bg-[var(--bg-secondary)] text-[var(--text-primary)] transition-colors"
                               >
-                                🗑 Delete
+                                Print Receipt
+                              </button>
+                              <button
+                                onClick={() => { createReturn(transaction); setOpenActionMenu(null); }}
+                                className="w-full text-left px-5 py-3 text-sm hover:bg-[var(--bg-secondary)] text-[var(--text-primary)] transition-colors"
+                              >
+                                Create Return
                               </button>
                             </div>
                           )}
