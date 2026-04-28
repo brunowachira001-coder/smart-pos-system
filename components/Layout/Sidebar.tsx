@@ -8,7 +8,16 @@ interface SidebarProps {
 
 export default function Sidebar({ onClose }: SidebarProps) {
   const router = useRouter();
-  const [shopSettings, setShopSettings] = useState<any>(null);
+  // Initialize from localStorage immediately - no delay on first render
+  const [shopSettings, setShopSettings] = useState<any>(() => {
+    if (typeof window !== 'undefined') {
+      const cached = localStorage.getItem('shopSettings');
+      if (cached) {
+        try { return JSON.parse(cached); } catch {}
+      }
+    }
+    return null;
+  });
 
   useEffect(() => {
     fetchShopSettings();
@@ -16,13 +25,6 @@ export default function Sidebar({ onClose }: SidebarProps) {
 
   const fetchShopSettings = async () => {
     try {
-      // Try to use cached settings first
-      const cachedSettings = localStorage.getItem('shopSettings');
-      if (cachedSettings) {
-        setShopSettings(JSON.parse(cachedSettings));
-      }
-
-      // Fetch fresh settings - try with user email if available, otherwise get default
       const userData = localStorage.getItem('user');
       let url = '/api/shop-settings';
       
@@ -32,9 +34,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
           if (user.email) {
             url = `/api/shop-settings?email=${encodeURIComponent(user.email)}`;
           }
-        } catch (e) {
-          console.log('Could not parse user data, fetching default settings');
-        }
+        } catch (e) {}
       }
       
       const response = await fetch(url);
@@ -94,7 +94,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
         </button>
       </div>
 
-      {shopSettings && (
+      {shopSettings ? (
         <div className="p-4 border-b border-[var(--border-color)]">
           <div className="flex items-center gap-3">
             {shopSettings.logo_url && (
@@ -118,6 +118,10 @@ export default function Sidebar({ onClose }: SidebarProps) {
               )}
             </div>
           </div>
+        </div>
+      ) : (
+        <div className="p-4 border-b border-[var(--border-color)]">
+          <div className="h-6 w-32 bg-[var(--bg-secondary)] rounded animate-pulse"></div>
         </div>
       )}
 
