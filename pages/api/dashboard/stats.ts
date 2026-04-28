@@ -14,9 +14,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    // Get today's date range in Kenyan timezone (EAT/UTC+3)
-    const today = getTodayStartInKenyaTime();
-    const tomorrow = getTodayEndInKenyaTime();
+    // Get today's date range in UTC (Kenya is UTC+3)
+    // Calculate Kenya time start/end and convert to UTC for database query
+    const now = new Date();
+    const kenyaOffset = 3 * 60; // Kenya is UTC+3 (180 minutes)
+    const localOffset = now.getTimezoneOffset(); // Local offset in minutes (negative for ahead of UTC)
+    
+    // Get today's start in Kenya time (00:00:00 EAT)
+    const kenyaNow = new Date(now.getTime() + (kenyaOffset + localOffset) * 60000);
+    const kenyaTodayStart = new Date(kenyaNow.getFullYear(), kenyaNow.getMonth(), kenyaNow.getDate(), 0, 0, 0, 0);
+    const kenyaTodayEnd = new Date(kenyaTodayStart.getTime() + 24 * 60 * 60 * 1000);
+    
+    // Convert Kenya time to UTC for database query
+    const todayStartUTC = new Date(kenyaTodayStart.getTime() - kenyaOffset * 60000);
+    const todayEndUTC = new Date(kenyaTodayEnd.getTime() - kenyaOffset * 60000);
+
+    console.log('Dashboard Stats - Date Range:', {
+      kenyaTodayStart: kenyaTodayStart.toISOString(),
+      kenyaTodayEnd: kenyaTodayEnd.toISOString(),
+      todayStartUTC: todayStartUTC.toISOString(),
+      todayEndUTC: todayEndUTC.toISOString()
+    });
 
     // Fetch products count and low stock
     const { data: products, error: productsError } = await supabase
@@ -37,17 +55,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (customersError) throw customersError;
 
-    // Fetch today's transactions
+    // Fetch today's transactions using UTC timestamps
     const { data: todayTransactions, error: transactionsError } = await supabase
       .from('transactions')
       .select('*')
-      .gte('created_at', today.toISOString())
-      .lt('created_at', tomorrow.toISOString());
+      .gte('created_at', todayStartUTC.toISOString())
+      .lt('created_at', todayEndUTC.toISOString());
 
     if (transactionsError) {
       console.error('Transactions error:', transactionsError);
       throw transactionsError;
     }
+
+    console.log('Dashboard Stats - Transactions found:', todayTransactions?.length || 0);
 
     // Calculate today's sales stats
     const todaySales = todayTransactions?.reduce((sum, t) => sum + (parseFloat(t.total_amount) || 0), 0) || 0;
@@ -55,6 +75,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const todayTax = 0; // We don't have tax data in transactions table
     const transactionCount = todayTransactions?.length || 0;
     const avgTransaction = transactionCount > 0 ? todaySales / transactionCount : 0;
+
+    console.log('Dashboard Stats - Calculated:', {
+      todaySales,
+      transactionCount,
+      avgTransaction,
+      transactions: todayTransactions?.map(t => ({
+        id: t.id,
+        amount: t.total_amount,
+        created: t.created_at
+      }))
+    });
 
     // Fetch recent transactions (last 5)
     const { data: recentTransactions, error: recentError } = await supabase
