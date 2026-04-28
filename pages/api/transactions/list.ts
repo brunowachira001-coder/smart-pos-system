@@ -29,9 +29,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .from('transactions')
       .select('*', { count: 'exact' });
 
-    // Search filter
+    // Search filter - transactions table only has transaction_number
     if (search) {
-      query = query.or(`transaction_number.ilike.%${search}%,customer_name.ilike.%${search}%,customer_phone.ilike.%${search}%`);
+      query = query.ilike('transaction_number', `%${search}%`);
     }
 
     // Payment method filter
@@ -39,9 +39,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       query = query.eq('payment_method', paymentMethod);
     }
 
-    // Status filter
+    // Status filter - use payment_status column
     if (status && status !== 'all') {
-      query = query.eq('status', status);
+      query = query.eq('payment_status', status);
     }
 
     // Date range filter - dates come already formatted from frontend
