@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import DateRangeFilter, { getDateRange, formatDateLocal } from '../components/DateRangeFilter';
 import Pagination from '../components/Pagination';
+import ReceiptPrint from '../components/ReceiptPrint';
 
 interface Transaction {
   id: string;
@@ -32,6 +33,9 @@ export default function TransactionsPage() {
   const [totalTransactions, setTotalTransactions] = useState(0);
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [showDetails, setShowDetails] = useState(false);
+  const [showReceipt, setShowReceipt] = useState(false);
+  const [receiptTransaction, setReceiptTransaction] = useState<Transaction | null>(null);
+  const [shopSettings, setShopSettings] = useState<any>(null);
   const [currentDate, setCurrentDate] = useState(new Date().toDateString());
 
   useEffect(() => {
@@ -83,6 +87,14 @@ export default function TransactionsPage() {
   useEffect(() => {
     fetchTransactions();
   }, [searchQuery, filterType, paymentFilter, startDate, endDate, currentPage, itemsPerPage]);
+
+  // Fetch shop settings once on mount
+  useEffect(() => {
+    fetch('/api/shop-settings')
+      .then(r => r.json())
+      .then(d => { if (d.settings) setShopSettings(d.settings); })
+      .catch(() => {});
+  }, []);
 
   const fetchTransactions = async () => {
     setLoading(true);
@@ -177,39 +189,8 @@ export default function TransactionsPage() {
   };
 
   const printReceipt = (transaction: Transaction) => {
-    const items = transaction.items.map(item =>
-      `${item.product_name} x${item.quantity} @ KSH ${parseFloat(item.unit_price).toFixed(2)} = KSH ${parseFloat(item.total_price || item.subtotal || 0).toFixed(2)}`
-    ).join('\n');
-
-    const receiptWindow = window.open('', '_blank', 'width=400,height=600');
-    if (!receiptWindow) return;
-    receiptWindow.document.write(`
-      <html><head><title>Receipt</title>
-      <style>
-        body { font-family: monospace; padding: 20px; font-size: 13px; }
-        h2 { text-align: center; margin-bottom: 4px; }
-        p { margin: 2px 0; }
-        .divider { border-top: 1px dashed #000; margin: 8px 0; }
-        .total { font-weight: bold; font-size: 15px; }
-        .center { text-align: center; }
-      </style></head><body>
-      <h2>Nyla Wigs</h2>
-      <p class="center">Receipt</p>
-      <div class="divider"></div>
-      <p>TXN: ${transaction.transaction_number}</p>
-      <p>Customer: ${transaction.customer_name || 'Walk-in Customer'}</p>
-      <p>Date: ${new Date(transaction.created_at).toLocaleString()}</p>
-      <p>Payment: ${transaction.payment_method}</p>
-      <div class="divider"></div>
-      <pre>${items}</pre>
-      <div class="divider"></div>
-      <p class="total">TOTAL: KSH ${transaction.total.toFixed(2)}</p>
-      <div class="divider"></div>
-      <p class="center">Thank you for your purchase!</p>
-      </body></html>
-    `);
-    receiptWindow.document.close();
-    receiptWindow.print();
+    setReceiptTransaction(transaction);
+    setShowReceipt(true);
   };
 
   const createReturn = (transaction: Transaction) => {
@@ -575,6 +556,39 @@ export default function TransactionsPage() {
             </button>
           </div>
         </div>
+      )}
+      {/* Receipt Modal */}
+      {showReceipt && receiptTransaction && (
+        <ReceiptPrint
+          data={{
+            transactionNumber: receiptTransaction.transaction_number,
+            date: receiptTransaction.created_at,
+            customerName: receiptTransaction.customer_name || 'Walk-in Customer',
+            customerPhone: receiptTransaction.customer_phone || '',
+            items: receiptTransaction.items.map(item => ({
+              product_name: item.product_name,
+              quantity: item.quantity,
+              unit_price: parseFloat(item.unit_price),
+              price_type: 'retail',
+              subtotal: parseFloat(item.total_price || item.subtotal || 0)
+            })),
+            subtotal: receiptTransaction.total,
+            discount: 0,
+            tax: 0,
+            total: receiptTransaction.total,
+            amountPaid: receiptTransaction.total,
+            change: 0,
+            paymentMethod: receiptTransaction.payment_method,
+            cashierName: 'Cashier',
+            shopName: shopSettings?.business_name || 'Nyla Wigs',
+            shopTagline: shopSettings?.business_tagline || '',
+            shopLogo: shopSettings?.logo_url || '',
+            shopAddress: shopSettings?.business_address || '',
+            shopPhone: shopSettings?.business_phone || '',
+            shopEmail: shopSettings?.business_email || ''
+          }}
+          onClose={() => setShowReceipt(false)}
+        />
       )}
     </div>
   );
