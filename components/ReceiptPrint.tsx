@@ -281,12 +281,15 @@ export default function ReceiptPrint({ data, onClose }: ReceiptPrintProps) {
             position: absolute;
             left: 0;
             top: 0;
-            width: 80mm;
-            padding: 5mm;
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 10mm;
+            box-shadow: none;
           }
           @page {
-            size: 80mm auto;
-            margin: 0;
+            size: A4;
+            margin: 10mm;
           }
         }
       `}</style>
