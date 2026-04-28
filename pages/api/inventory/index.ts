@@ -40,10 +40,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           image_url: imageUrl || null,
           description: description || null,
           barcode: barcode || null,
-          status: 'active',
-          // Keep old fields for backward compatibility
-          price: retailPrice || 0,
-          stock: stockQuantity || 0
+          status: 'active'
         }])
         .select()
         .single();
@@ -92,15 +89,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (sku) updateData.sku = sku;
       if (category) updateData.category = category;
       if (costPrice !== undefined) updateData.cost_price = costPrice;
-      if (retailPrice !== undefined) {
-        updateData.retail_price = retailPrice;
-        updateData.price = retailPrice; // Backward compatibility
-      }
+      if (retailPrice !== undefined) updateData.retail_price = retailPrice;
       if (wholesalePrice !== undefined) updateData.wholesale_price = wholesalePrice;
-      if (stockQuantity !== undefined) {
-        updateData.stock_quantity = stockQuantity;
-        updateData.stock = stockQuantity; // Backward compatibility
-      }
+      if (stockQuantity !== undefined) updateData.stock_quantity = stockQuantity;
       if (minimumStockLevel !== undefined) updateData.minimum_stock_level = minimumStockLevel;
       if (variantOf !== undefined) updateData.variant_of = variantOf;
       if (imageUrl !== undefined) updateData.image_url = imageUrl;
