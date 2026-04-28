@@ -97,11 +97,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         customer_id: customerId || null,
         customer_name: customerName || 'Walk-in Customer',
         customer_phone: customerPhone || null,
-        user_id: cashierId || null,
         total_amount: total,
         payment_method: paymentMethod,
         payment_status: 'completed',
-        notes: notes || null
+        notes: notes || null,
+        created_by: cashierName || null
       })
       .select()
       .single();
