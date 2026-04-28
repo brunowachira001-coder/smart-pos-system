@@ -93,7 +93,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { data: transaction, error: transactionError } = await supabase
       .from('transactions')
       .insert({
-        transaction_number: transactionNumber,
+        transaction_id: transactionNumber,
         customer_id: customerId || null,
         customer_name: customerName || 'Walk-in Customer',
         customer_phone: customerPhone || null,
@@ -112,11 +112,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Create transaction items in transaction_items table
     const transactionItems = cartItems.map(item => ({
-      transaction_id: transaction.id,
+      transaction_id: transaction.transaction_id,
       product_id: item.product_id,
+      product_name: item.product_name || 'Unknown Product',
       quantity: item.quantity,
       unit_price: item.unit_price,
-      subtotal: item.subtotal
+      total_price: item.subtotal
     }));
 
     const { error: itemsError } = await supabase
@@ -151,7 +152,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
 
       if (debtError) {
-        await supabase.from('transaction_items').delete().eq('transaction_id', transaction.id);
+        await supabase.from('transaction_items').delete().eq('transaction_id', transaction.transaction_id);
         await supabase.from('transactions').delete().eq('id', transaction.id);
         return res.status(500).json({ error: `Debt error: ${debtError.message}` });
       }
