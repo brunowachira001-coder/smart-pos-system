@@ -175,23 +175,26 @@ class SMSService {
   // Update customer communication preferences
   private async updateCustomerPreferences(customerId: number): Promise<void> {
     try {
-      const { error } = await supabase.rpc('upsert_customer_prefs', {
-        p_customer_id: customerId
-      });
+      // First, get current preferences
+      const { data: currentPrefs } = await supabase
+        .from('customer_communication_prefs')
+        .select('total_messages_sent')
+        .eq('customer_id', customerId)
+        .single();
 
-      if (error) {
-        // If function doesn't exist, do manual upsert
-        await supabase
-          .from('customer_communication_prefs')
-          .upsert({
-            customer_id: customerId,
-            last_contacted_at: new Date().toISOString(),
-            total_messages_sent: supabase.raw('total_messages_sent + 1'),
-            updated_at: new Date().toISOString()
-          }, {
-            onConflict: 'customer_id'
-          });
-      }
+      const currentCount = currentPrefs?.total_messages_sent || 0;
+
+      // Upsert with incremented count
+      await supabase
+        .from('customer_communication_prefs')
+        .upsert({
+          customer_id: customerId,
+          last_contacted_at: new Date().toISOString(),
+          total_messages_sent: currentCount + 1,
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'customer_id'
+        });
     } catch (error) {
       console.error('Error updating customer preferences:', error);
     }
