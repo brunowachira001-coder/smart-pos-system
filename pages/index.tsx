@@ -3,11 +3,12 @@ import { useRouter } from 'next/router';
 import Head from 'next/head';
 
 interface ShopSettings {
-  shop_name: string;
-  shop_logo?: string;
-  phone?: string;
-  email?: string;
-  address?: string;
+  shop_name?: string;
+  business_name?: string;
+  logo_url?: string;
+  business_phone?: string;
+  business_email?: string;
+  business_address?: string;
 }
 
 export default function LandingPage() {
@@ -34,8 +35,8 @@ export default function LandingPage() {
         console.log('Shop settings loaded:', data);
         if (data.settings) {
           setShopSettings(data.settings);
-          console.log('Shop logo URL:', data.settings.shop_logo);
-          console.log('Shop name:', data.settings.shop_name);
+          console.log('Shop logo URL:', data.settings.logo_url);
+          console.log('Shop name:', data.settings.business_name);
         } else {
           console.log('No shop settings found, using defaults');
         }
@@ -61,8 +62,8 @@ export default function LandingPage() {
     setDeferredPrompt(null);
   };
 
-  const shopName = shopSettings?.shop_name || 'Nyla Wigs';
-  const shopLogo = shopSettings?.shop_logo;
+  const shopName = shopSettings?.business_name || shopSettings?.shop_name || 'Nyla Wigs';
+  const shopLogo = shopSettings?.logo_url;
 
   return (
     <>
@@ -213,10 +214,10 @@ export default function LandingPage() {
           <p className="text-sm text-gray-500">
             © 2024 {shopName} Inventory. All rights reserved.
           </p>
-          {shopSettings?.phone || shopSettings?.email ? (
+          {shopSettings?.business_phone || shopSettings?.business_email ? (
             <div className="flex items-center justify-center gap-4 mt-2 text-xs text-gray-600">
-              {shopSettings.phone && <span>{shopSettings.phone}</span>}
-              {shopSettings.email && <span>{shopSettings.email}</span>}
+              {shopSettings.business_phone && <span>{shopSettings.business_phone}</span>}
+              {shopSettings.business_email && <span>{shopSettings.business_email}</span>}
             </div>
           ) : null}
           <div className="flex items-center justify-center gap-4 mt-4">
