@@ -105,11 +105,17 @@ export default function LandingPage() {
             <div className="flex justify-center mb-8 mt-12">
               <div className="relative">
                 <div className="absolute inset-0 bg-indigo-600 rounded-full blur-3xl opacity-50 animate-pulse"></div>
-                <div className="relative w-24 h-24 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center shadow-2xl">
-                  <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                  </svg>
-                </div>
+                {shopLogo ? (
+                  <div className="relative w-24 h-24 rounded-full overflow-hidden shadow-2xl bg-white p-2">
+                    <img src={shopLogo} alt={shopName} className="w-full h-full object-contain" />
+                  </div>
+                ) : (
+                  <div className="relative w-24 h-24 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center shadow-2xl">
+                    <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                    </svg>
+                  </div>
+                )}
               </div>
             </div>
 
