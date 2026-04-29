@@ -28,8 +28,10 @@ export default function LandingPage() {
     fetch('/api/shop-settings')
       .then(res => res.json())
       .then(data => {
+        console.log('Shop settings loaded:', data);
         if (data.settings) {
           setShopSettings(data.settings);
+          console.log('Shop logo URL:', data.settings.shop_logo);
         }
       })
       .catch(err => console.error('Failed to load shop settings:', err));
