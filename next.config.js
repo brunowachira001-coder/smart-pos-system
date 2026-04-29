@@ -9,7 +9,7 @@ const nextConfig = {
   experimental: {
     isrMemoryCacheSize: 0,
   },
-  // Add headers to prevent caching
+  // Add headers to prevent caching and allow public access to PWA files
   async headers() {
     return [
       {
@@ -18,6 +18,32 @@ const nextConfig = {
           {
             key: 'Cache-Control',
             value: 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+          },
+        ],
+      },
+      {
+        source: '/manifest.json',
+        headers: [
+          {
+            key: 'Access-Control-Allow-Origin',
+            value: '*',
+          },
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=3600',
+          },
+        ],
+      },
+      {
+        source: '/sw.js',
+        headers: [
+          {
+            key: 'Content-Type',
+            value: 'application/javascript; charset=utf-8',
+          },
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=0, must-revalidate',
           },
         ],
       },

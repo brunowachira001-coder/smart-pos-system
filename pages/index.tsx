@@ -26,12 +26,18 @@ export default function LandingPage() {
 
     // Fetch shop settings
     fetch('/api/shop-settings')
-      .then(res => res.json())
+      .then(res => {
+        console.log('Shop settings response status:', res.status);
+        return res.json();
+      })
       .then(data => {
         console.log('Shop settings loaded:', data);
         if (data.settings) {
           setShopSettings(data.settings);
           console.log('Shop logo URL:', data.settings.shop_logo);
+          console.log('Shop name:', data.settings.shop_name);
+        } else {
+          console.log('No shop settings found, using defaults');
         }
       })
       .catch(err => console.error('Failed to load shop settings:', err));
