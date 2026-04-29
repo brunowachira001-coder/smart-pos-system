@@ -18,7 +18,7 @@ const queryClient = new QueryClient({
 
 export default function App({ Component, pageProps }: AppProps) {
   const router = useRouter();
-  const isPublicPage = ['/login', '/', '/404', '/_error'].includes(router.pathname);
+  const isPublicPage = ['/login', '/landing', '/', '/404', '/_error'].includes(router.pathname);
 
   useEffect(() => {
     // Initialize theme on app load

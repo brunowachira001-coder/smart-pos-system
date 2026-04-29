@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Install Smart Traders Inventory</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+      color: white;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+    .subtitle {
+      text-align: center;
+      color: #94a3b8;
+      margin-bottom: 3rem;
+    }
+    .platform {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 1rem;
+      padding: 2rem;
+      margin-bottom: 2rem;
+    }
+    .platform h2 {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+      color: #818cf8;
+    }
+    .steps {
+      list-style: none;
+      counter-reset: step-counter;
+    }
+    .steps li {
+      counter-increment: step-counter;
+      margin-bottom: 1rem;
+      padding-left: 3rem;
+      position: relative;
+    }
+    .steps li::before {
+      content: counter(step-counter);
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 2rem;
+      height: 2rem;
+      background: #4f46e5;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+    }
+    .back-btn {
+      display: inline-block;
+      padding: 0.75rem 1.5rem;
+      background: #4f46e5;
+      color: white;
+      text-decoration: none;
+      border-radius: 0.5rem;
+      margin-top: 2rem;
+      transition: background 0.2s;
+    }
+    .back-btn:hover {
+      background: #4338ca;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📱 Install Smart Traders Inventory</h1>
+    <p class="subtitle">Follow these steps to install the app on your device</p>
+
+    <div class="platform">
+      <h2>🖥️ Desktop (Chrome/Edge)</h2>
+      <ul class="steps">
+        <li>Visit the website in Chrome or Edge browser</li>
+        <li>Look for the install icon (⊕) in the address bar</li>
+        <li>Click the icon and select "Install"</li>
+        <li>The app will be added to your desktop and start menu</li>
+      </ul>
+    </div>
+
+    <div class="platform">
+      <h2>📱 Android (Chrome)</h2>
+      <ul class="steps">
+        <li>Open the website in Chrome browser</li>
+        <li>Tap the menu (⋮) in the top right</li>
+        <li>Select "Install app" or "Add to Home screen"</li>
+        <li>Tap "Install" in the popup</li>
+        <li>The app icon will appear on your home screen</li>
+      </ul>
+    </div>
+
+    <div class="platform">
+      <h2>🍎 iPhone/iPad (Safari)</h2>
+      <ul class="steps">
+        <li>Open the website in Safari browser</li>
+        <li>Tap the Share button (□↑) at the bottom</li>
+        <li>Scroll down and tap "Add to Home Screen"</li>
+        <li>Tap "Add" in the top right</li>
+        <li>The app icon will appear on your home screen</li>
+      </ul>
+    </div>
+
+    <div style="text-align: center;">
+      <a href="/" class="back-btn">← Back to Home</a>
+    </div>
+  </div>
+</body>
+</html>
