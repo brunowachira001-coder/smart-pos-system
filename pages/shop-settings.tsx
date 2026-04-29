@@ -13,7 +13,10 @@ export default function ShopSettingsPage() {
     logo_url: '',
     primary_color: '#10b981',
     currency: 'KES',
-    currency_symbol: 'KSh'
+    currency_symbol: 'KSh',
+    tiktok_url: '',
+    instagram_url: '',
+    facebook_url: ''
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -304,6 +307,55 @@ export default function ShopSettingsPage() {
                   onChange={(e) => setSettings({ ...settings, currency_symbol: e.target.value })}
                   className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-4 py-3 text-base text-[var(--text-primary)] focus:ring-2 focus:ring-emerald-500"
                   placeholder="KSh"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Social Media Links */}
+          <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-4 md:p-6">
+            <h2 className="text-xl md:text-lg font-semibold text-[var(--text-primary)] mb-4">Social Media Links</h2>
+            <p className="text-sm text-[var(--text-secondary)] mb-4">
+              Add your social media profile URLs. These will appear on your landing page.
+            </p>
+            
+            <div className="grid grid-cols-1 gap-4">
+              <div>
+                <label className="block text-base md:text-sm font-medium text-[var(--text-primary)] mb-2">
+                  TikTok URL
+                </label>
+                <input
+                  type="url"
+                  value={settings.tiktok_url}
+                  onChange={(e) => setSettings({ ...settings, tiktok_url: e.target.value })}
+                  className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-4 py-3 text-base text-[var(--text-primary)] focus:ring-2 focus:ring-emerald-500"
+                  placeholder="https://www.tiktok.com/@yourusername"
+                />
+              </div>
+
+              <div>
+                <label className="block text-base md:text-sm font-medium text-[var(--text-primary)] mb-2">
+                  Instagram URL
+                </label>
+                <input
+                  type="url"
+                  value={settings.instagram_url}
+                  onChange={(e) => setSettings({ ...settings, instagram_url: e.target.value })}
+                  className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-4 py-3 text-base text-[var(--text-primary)] focus:ring-2 focus:ring-emerald-500"
+                  placeholder="https://www.instagram.com/yourusername"
+                />
+              </div>
+
+              <div>
+                <label className="block text-base md:text-sm font-medium text-[var(--text-primary)] mb-2">
+                  Facebook URL
+                </label>
+                <input
+                  type="url"
+                  value={settings.facebook_url}
+                  onChange={(e) => setSettings({ ...settings, facebook_url: e.target.value })}
+                  className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-4 py-3 text-base text-[var(--text-primary)] focus:ring-2 focus:ring-emerald-500"
+                  placeholder="https://www.facebook.com/yourpage"
                 />
               </div>
             </div>
