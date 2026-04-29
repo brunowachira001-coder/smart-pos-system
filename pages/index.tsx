@@ -27,6 +27,17 @@ export default function LandingPage() {
       return;
     }
 
+    // Clear old service worker cache on load
+    if ('caches' in window) {
+      caches.keys().then((names) => {
+        names.forEach((name) => {
+          if (name.includes('nyla-wigs') && !name.includes('v3')) {
+            caches.delete(name);
+          }
+        });
+      });
+    }
+
     // Fetch shop settings
     fetch('/api/shop-settings')
       .then(res => res.json())
@@ -64,6 +75,9 @@ export default function LandingPage() {
       <Head>
         <title>{shopName} Inventory - Streamline Your Business</title>
         <meta name="description" content="Powerful inventory management system for modern businesses" />
+        <meta httpEquiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+        <meta httpEquiv="Pragma" content="no-cache" />
+        <meta httpEquiv="Expires" content="0" />
       </Head>
 
       <div className="h-screen overflow-hidden bg-black text-white flex flex-col">
