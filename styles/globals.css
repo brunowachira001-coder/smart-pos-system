@@ -38,6 +38,16 @@
   box-sizing: border-box;
 }
 
+/* Ensure consistent rendering across all browsers and devices */
+html {
+  -webkit-text-size-adjust: 100%; /* Prevent font scaling in landscape on iOS */
+  -moz-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 html,
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -47,9 +57,43 @@ body {
   -moz-osx-font-smoothing: grayscale;
   font-size: 16px;
   line-height: 1.6;
+  width: 100%;
+  height: 100%;
+  overflow-x: hidden; /* Prevent horizontal scroll */
+}
+
+/* Ensure body takes full viewport */
+body {
+  min-height: 100vh;
+  min-height: -webkit-fill-available; /* iOS Safari fix */
 }
 
 /* Mobile Responsive Font Sizes - Larger for better readability */
+/* Extra Small Phones (320px - 374px) */
+@media (max-width: 374px) {
+  html {
+    font-size: 15px; /* Slightly smaller for very small screens */
+  }
+  
+  body {
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+}
+
+/* Small to Medium Phones (375px - 767px) */
+@media (min-width: 375px) and (max-width: 767px) {
+  html {
+    font-size: 16px; /* Standard mobile size */
+  }
+  
+  body {
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+}
+
+/* All Mobile Devices (up to 768px) */
 @media (max-width: 768px) {
   html {
     font-size: 16px; /* Larger base font size for mobile */
@@ -379,6 +423,45 @@ body {
   /* Show mobile-only elements */
   .mobile-only {
     display: block !important;
+  }
+  
+  /* Fix for iOS Safari viewport height */
+  .h-screen {
+    height: 100vh;
+    height: -webkit-fill-available;
+  }
+  
+  /* Prevent zoom on input focus (iOS) */
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="password"],
+  input[type="number"],
+  select,
+  textarea {
+    font-size: 16px !important; /* Prevents iOS zoom */
+  }
+  
+  /* Ensure consistent button sizing */
+  button,
+  .btn,
+  a[role="button"] {
+    min-height: 44px !important; /* Apple's recommended touch target */
+    min-width: 44px !important;
+  }
+  
+  /* Fix flexbox issues on older Android */
+  .flex {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+  }
+  
+  /* Ensure images don't overflow */
+  img {
+    max-width: 100%;
+    height: auto;
   }
 }
 
