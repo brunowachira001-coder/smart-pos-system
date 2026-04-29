@@ -1,5 +1,5 @@
-// Service Worker for Smart Traders Inventory PWA
-const CACHE_NAME = 'smart-traders-v1';
+// Service Worker for Nyla Wigs Inventory PWA
+const CACHE_NAME = 'nyla-wigs-v1';
 const urlsToCache = [
   '/',
   '/login',
