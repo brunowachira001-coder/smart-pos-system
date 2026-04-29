@@ -1,0 +1,77 @@
+═══════════════════════════════════════════════════════════════
+  📱 UPLOAD YOUR PWA ICONS - SUPER SIMPLE GUIDE
+═══════════════════════════════════════════════════════════════
+
+YOU HAVE: 4 icon files on your computer ✅
+YOU NEED: Upload them to GitHub → Vercel auto-deploys → Logo appears!
+
+═══════════════════════════════════════════════════════════════
+  STEP 1: GO TO GITHUB
+═══════════════════════════════════════════════════════════════
+
+1. Open your browser
+2. Go to: github.com
+3. Sign in to your account
+4. Find your project repository (the one with this code)
+
+═══════════════════════════════════════════════════════════════
+  STEP 2: NAVIGATE TO PUBLIC FOLDER
+═══════════════════════════════════════════════════════════════
+
+1. Click on "public" folder in the file list
+2. You'll see files like: manifest.json, sw.js, etc.
+
+═══════════════════════════════════════════════════════════════
+  STEP 3: UPLOAD YOUR 4 ICONS
+═══════════════════════════════════════════════════════════════
+
+1. Click "Add file" button (top right corner)
+2. Click "Upload files"
+3. Drag and drop your 4 icon files:
+   
+   📁 pwa-icon-192.png
+   📁 pwa-icon-512.png
+   📁 pwa-icon-maskable-192.png
+   📁 pwa-icon-maskable-512.png
+
+4. Type commit message: "Add PWA icons"
+5. Click "Commit changes" (green button)
+
+═══════════════════════════════════════════════════════════════
+  STEP 4: WAIT FOR VERCEL
+═══════════════════════════════════════════════════════════════
+
+⏱️  Wait 1-2 minutes for Vercel to automatically deploy
+✅ You'll see a notification when it's done
+
+═══════════════════════════════════════════════════════════════
+  STEP 5: TEST ON YOUR PHONE
+═══════════════════════════════════════════════════════════════
+
+1. Open your website on mobile
+2. Clear browser cache (Settings → Privacy → Clear data)
+3. Delete the old app from home screen (long-press → remove)
+4. Go back to website → Click "Install App"
+5. Check home screen → LOGO SHOULD APPEAR! 🎉
+
+═══════════════════════════════════════════════════════════════
+  QUICK CHECK: Are Icons Uploaded?
+═══════════════════════════════════════════════════════════════
+
+Visit these URLs in your browser:
+→ your-site.vercel.app/pwa-icon-192.png
+→ your-site.vercel.app/pwa-icon-512.png
+
+If you see the icons, they're uploaded! ✅
+
+═══════════════════════════════════════════════════════════════
+  NEED HELP?
+═══════════════════════════════════════════════════════════════
+
+Just ask me:
+- "How do I find my GitHub repository?"
+- "Where is the public folder?"
+- "How do I upload files to GitHub?"
+- "Icons still not showing, what do I do?"
+
+═══════════════════════════════════════════════════════════════

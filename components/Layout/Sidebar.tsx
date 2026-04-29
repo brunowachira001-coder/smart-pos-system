@@ -58,6 +58,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
     { label: 'Inventory', href: '/inventory', icon: '📦' },
     { label: 'Customers', href: '/customers', icon: '👥' },
     { label: 'Debts', href: '/debts', icon: '💰' },
+    { label: 'Customer Messages', href: '/customer-messages', icon: '💬' },
     { label: 'Sales Analytics', href: '/sales-analytics', icon: '📈' },
     { label: 'Inventory Analytics', href: '/inventory-analytics', icon: '📊' },
     { label: 'Product Performance', href: '/product-performance', icon: '🎯' },
