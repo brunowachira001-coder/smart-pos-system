@@ -75,11 +75,12 @@ class AutomationService {
       }
 
       // Update rule stats
+      const currentTriggered = rule.total_triggered || 0;
       await supabase
         .from('automation_rules')
         .update({
           last_run_at: new Date().toISOString(),
-          total_triggered: supabase.raw('total_triggered + ' + customers.length)
+          total_triggered: currentTriggered + customers.length
         })
         .eq('id', rule.id);
 
