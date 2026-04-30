@@ -1,5 +1,5 @@
 // Service Worker for Nyla Wigs Inventory PWA
-const CACHE_NAME = 'nyla-wigs-v3'; // Updated version for new deployment
+const CACHE_NAME = 'nyla-wigs-v4'; // Updated version - API routes fix
 const urlsToCache = [
   '/',
   '/login',
@@ -21,6 +21,11 @@ self.addEventListener('install', (event) => {
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
+  
+  // CRITICAL: Skip Service Worker for ALL API routes - let them go directly to server
+  if (url.pathname.startsWith('/api/')) {
+    return; // Don't intercept API calls
+  }
   
   // For HTML pages, always try network first
   if (request.headers.get('accept').includes('text/html')) {
