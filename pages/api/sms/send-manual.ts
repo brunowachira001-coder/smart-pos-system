@@ -14,6 +14,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
+    console.log('Send manual SMS request:', req.body);
     const { customerIds, message } = req.body;
 
     if (!message || !message.trim()) {
