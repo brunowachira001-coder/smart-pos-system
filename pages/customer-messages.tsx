@@ -23,11 +23,18 @@ export default function CustomerMessages() {
   const [messageText, setMessageText] = useState('');
   const [sending, setSending] = useState(false);
   const [sendResult, setSendResult] = useState<any>(null);
+  
+  // Templates State
+  const [templates, setTemplates] = useState<any[]>([]);
+  const [loadingTemplates, setLoadingTemplates] = useState(false);
 
   useEffect(() => {
     fetchStats();
     fetchCustomers();
-  }, []);
+    if (activeTab === 'templates') {
+      fetchTemplates();
+    }
+  }, [activeTab]);
 
   const fetchStats = async () => {
     try {
@@ -54,6 +61,22 @@ export default function CustomerMessages() {
       }
     } catch (error) {
       console.error('Error fetching customers:', error);
+    }
+  };
+
+  const fetchTemplates = async () => {
+    setLoadingTemplates(true);
+    try {
+      const response = await fetch('/api/sms/templates');
+      const data = await response.json();
+      
+      if (response.ok) {
+        setTemplates(data.data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching templates:', error);
+    } finally {
+      setLoadingTemplates(false);
     }
   };
 
@@ -293,11 +316,49 @@ export default function CustomerMessages() {
         )}
 
         {activeTab === 'templates' && (
-          <div className="text-center py-8">
-            <p className="text-[var(--text-secondary)]">Template management coming soon...</p>
-            <p className="text-sm text-[var(--text-secondary)] mt-2">
-              Use the API endpoint /api/sms/templates to manage templates
-            </p>
+          <div className="space-y-4">
+            {loadingTemplates ? (
+              <p className="text-center text-[var(--text-secondary)] py-8">Loading templates...</p>
+            ) : templates.length === 0 ? (
+              <p className="text-center text-[var(--text-secondary)] py-8">No templates found</p>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {templates.map((template) => (
+                  <div
+                    key={template.id}
+                    className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-lg p-4"
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <div>
+                        <h3 className="font-semibold text-[var(--text-primary)]">{template.name}</h3>
+                        <span className="text-xs px-2 py-1 bg-blue-500/20 text-blue-400 rounded mt-1 inline-block">
+                          {template.category}
+                        </span>
+                      </div>
+                      <span className={`text-xs px-2 py-1 rounded ${
+                        template.is_active 
+                          ? 'bg-green-500/20 text-green-400' 
+                          : 'bg-gray-500/20 text-gray-400'
+                      }`}>
+                        {template.is_active ? 'Active' : 'Inactive'}
+                      </span>
+                    </div>
+                    
+                    <p className="text-sm text-[var(--text-secondary)] mt-3 whitespace-pre-wrap">
+                      {template.message_text}
+                    </p>
+                    
+                    <div className="flex items-center gap-4 mt-3 text-xs text-[var(--text-secondary)]">
+                      <span>Language: {template.language?.toUpperCase() || 'EN'}</span>
+                      <span>AI: {template.ai_personalization ? 'Yes' : 'No'}</span>
+                      {template.total_sent > 0 && (
+                        <span>Sent: {template.total_sent}</span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
