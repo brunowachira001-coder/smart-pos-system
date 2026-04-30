@@ -1,8 +1,3 @@
-# 🚨 RUN THIS SQL NOW TO FIX TEMPLATES
-
-## Copy and paste this into Supabase SQL Editor:
-
-```sql
 -- Step 1: Delete ALL existing templates (clean slate)
 DELETE FROM message_templates;
 
@@ -41,14 +36,3 @@ SELECT
   is_active
 FROM message_templates
 ORDER BY category, language;
-```
-
-## After running, you should see:
-- ✅ Templates Fixed!
-- total: 14
-- active: 14
-
-## Then test:
-1. Go to Customer Messages page
-2. Click "Templates" tab
-3. You should see all 14 templates with full message text

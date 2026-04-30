@@ -1,12 +1,29 @@
-# 🚨 RUN THIS SQL NOW TO FIX TEMPLATES
+-- Check and Fix Message Templates
+-- Run this in Supabase SQL Editor
 
-## Copy and paste this into Supabase SQL Editor:
+-- Step 1: Check if templates exist
+SELECT 
+  'Current Templates' as status,
+  COUNT(*) as total,
+  COUNT(CASE WHEN is_active THEN 1 END) as active
+FROM message_templates;
 
-```sql
--- Step 1: Delete ALL existing templates (clean slate)
-DELETE FROM message_templates;
+-- Step 2: Show all templates (if any)
+SELECT 
+  id,
+  name,
+  category,
+  language,
+  LEFT(message_text, 50) as message_preview,
+  is_active,
+  ai_personalization
+FROM message_templates
+ORDER BY category, language;
 
--- Step 2: Add fresh templates
+-- Step 3: If templates exist but message_text is empty, delete them
+DELETE FROM message_templates WHERE message_text IS NULL OR message_text = '';
+
+-- Step 4: Add templates if none exist or if we just deleted empty ones
 INSERT INTO message_templates (name, message_text, category, language, is_active, ai_personalization)
 VALUES
   ('Thank You After Purchase', 'Hi {customer_name}! Thank you for shopping at {shop_name}. We appreciate your business! For any questions, call us at {shop_phone}.', 'thank_you', 'en', true, true),
@@ -22,16 +39,19 @@ VALUES
   ('Loyal Customer Appreciation', 'Hi {customer_name}! You are a valued customer at {shop_name}. Thank you for your continued support! Enjoy {discount}% off your next purchase. Call {shop_phone}.', 'thank_you', 'en', true, true),
   ('Order Ready for Pickup', 'Hi {customer_name}! Your order is ready for pickup at {shop_name}. Please collect it at your convenience. Call {shop_phone} for any questions.', 'notification', 'en', true, false),
   ('Welcome New Customer', 'Welcome to {shop_name}, {customer_name}! We are excited to serve you. Enjoy {discount}% off your first purchase! Call {shop_phone} for assistance.', 'welcome', 'en', true, true),
-  ('Karibu Mteja Mpya', 'Karibu {shop_name}, {customer_name}! Tunafurahi kukuhudumia. Furahia punguzo la {discount}% kwa ununuzi wako wa kwanza! Piga {shop_phone}.', 'welcome', 'sw', true, true);
+  ('Karibu Mteja Mpya', 'Karibu {shop_name}, {customer_name}! Tunafurahi kukuhudumia. Furahia punguzo la {discount}% kwa ununuzi wako wa kwanza! Piga {shop_phone}.', 'welcome', 'sw', true, true)
+ON CONFLICT (name) DO NOTHING;
 
--- Step 3: Verify templates were added
+-- Step 5: Verify templates were added
 SELECT 
   '✅ Templates Fixed!' as status,
   COUNT(*) as total,
+  COUNT(CASE WHEN language = 'en' THEN 1 END) as english,
+  COUNT(CASE WHEN language = 'sw' THEN 1 END) as swahili,
   COUNT(CASE WHEN is_active THEN 1 END) as active
 FROM message_templates;
 
--- Step 4: Show all templates
+-- Step 6: Show all templates
 SELECT 
   id,
   name,
@@ -41,14 +61,3 @@ SELECT
   is_active
 FROM message_templates
 ORDER BY category, language;
-```
-
-## After running, you should see:
-- ✅ Templates Fixed!
-- total: 14
-- active: 14
-
-## Then test:
-1. Go to Customer Messages page
-2. Click "Templates" tab
-3. You should see all 14 templates with full message text
