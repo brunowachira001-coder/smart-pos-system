@@ -49,7 +49,7 @@ async function getCustomer(req: NextApiRequest, res: NextApiResponse) {
 }
 
 async function createCustomer(req: NextApiRequest, res: NextApiResponse) {
-  const { firstName, lastName, name, email, phone, address, notes, customerType, debtLimit } = req.body;
+  const { firstName, lastName, name, email, phone, address, notes, customerType } = req.body;
 
   // Support both new format (firstName + lastName) and old format (name)
   const fullName = name || `${firstName || ''} ${lastName || ''}`.trim();
@@ -67,7 +67,6 @@ async function createCustomer(req: NextApiRequest, res: NextApiResponse) {
       address: address || null,
       notes: notes || null,
       customer_type: customerType || 'retail',
-      debt_limit: debtLimit ? parseFloat(debtLimit) : null,
       status: 'active'
     })
     .select()
@@ -81,7 +80,7 @@ async function createCustomer(req: NextApiRequest, res: NextApiResponse) {
 }
 
 async function updateCustomer(req: NextApiRequest, res: NextApiResponse) {
-  const { id, name, email, phone, address, city, country, notes, customerType, status, debtLimit } = req.body;
+  const { id, name, email, phone, address, city, country, notes, customerType, status } = req.body;
 
   if (!id) {
     return res.status(400).json({ error: 'Customer ID is required' });
@@ -100,7 +99,6 @@ async function updateCustomer(req: NextApiRequest, res: NextApiResponse) {
   if (notes !== undefined) updateData.notes = notes;
   if (customerType !== undefined) updateData.customer_type = customerType;
   if (status !== undefined) updateData.status = status;
-  if (debtLimit !== undefined) updateData.debt_limit = debtLimit ? parseFloat(debtLimit) : null;
 
   const { data, error } = await supabase
     .from('customers')
