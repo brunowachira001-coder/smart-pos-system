@@ -1,0 +1,104 @@
+═══════════════════════════════════════════════════════════════
+  📱 SMS NOT SENDING - QUICK FIX (3 STEPS)
+═══════════════════════════════════════════════════════════════
+
+🔑 YOUR API KEY:
+atsk_98bf2d1a31d7a183d16b303c35d337e7c0266d6f8591cd7e501d4388021e6ff44af2cd78
+
+═══════════════════════════════════════════════════════════════
+
+⚠️  IMPORTANT: You are in SANDBOX MODE (test only)
+    Real customers will NOT receive messages!
+    
+    To send REAL SMS:
+    1. Login to Africa's Talking
+    2. Get your production username (not "sandbox")
+    3. Update AFRICASTALKING_USERNAME in Vercel
+
+═══════════════════════════════════════════════════════════════
+
+✅ STEP 1: ADD TO VERCEL (REQUIRED!)
+───────────────────────────────────────────────────────────────
+
+1. Go to: https://vercel.com/dashboard
+2. Select your project
+3. Click: Settings → Environment Variables
+4. Add these 4 variables:
+
+   Name: AFRICASTALKING_API_KEY
+   Value: atsk_98bf2d1a31d7a183d16b303c35d337e7c0266d6f8591cd7e501d4388021e6ff44af2cd78
+   
+   Name: AFRICASTALKING_USERNAME
+   Value: sandbox
+   
+   Name: AFRICASTALKING_SENDER_ID
+   Value: NYLAWIGS
+   
+   Name: CRON_SECRET
+   Value: sms_automation_secret_2026
+
+5. Select: Production, Preview, Development (all 3)
+6. Click "Save" for each
+
+═══════════════════════════════════════════════════════════════
+
+✅ STEP 2: REDEPLOY
+───────────────────────────────────────────────────────────────
+
+1. Go to: Deployments tab
+2. Click ⋯ (3 dots) on latest deployment
+3. Click "Redeploy"
+4. Wait for green checkmark ✓
+
+═══════════════════════════════════════════════════════════════
+
+✅ STEP 3: TEST
+───────────────────────────────────────────────────────────────
+
+1. Open your app
+2. Go to: Customer Messages
+3. Click: "Send Message" button
+4. Type: Hi {name}! Test from Nyla Wigs
+5. Select a customer
+6. Click: "Send"
+
+═══════════════════════════════════════════════════════════════
+
+🔍 CHECK IF IT WORKED
+───────────────────────────────────────────────────────────────
+
+Run this SQL in Supabase:
+
+SELECT 
+  phone_number,
+  message_text,
+  status,
+  error_message,
+  created_at
+FROM message_queue
+ORDER BY created_at DESC
+LIMIT 5;
+
+Look for:
+✅ status = 'sent' → SUCCESS!
+❌ status = 'failed' → Check error_message
+
+═══════════════════════════════════════════════════════════════
+
+⚠️  STILL NOT WORKING?
+───────────────────────────────────────────────────────────────
+
+Problem: Using sandbox mode
+Solution: Get production username from Africa's Talking
+
+Problem: No SMS credits
+Solution: Buy credits in Africa's Talking dashboard
+
+Problem: Invalid phone number
+Solution: Check customer phone is like: 0712345678
+
+═══════════════════════════════════════════════════════════════
+
+📚 FULL GUIDE: See SMS_TROUBLESHOOTING_GUIDE.md
+
+═══════════════════════════════════════════════════════════════
