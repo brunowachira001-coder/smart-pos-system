@@ -279,34 +279,79 @@ export default function POSPage() {
   };
 
   const addToCart = async (product: Product, selectedPriceType?: 'retail' | 'wholesale') => {
-    setLoading(true);
-    try {
-      // If priceMode is 'all', use the selectedPriceType, otherwise use priceMode
-      const priceType = selectedPriceType || (priceMode === 'all' ? 'retail' : priceMode);
-      const unitPrice = priceType === 'retail' ? product.retail_price : product.wholesale_price;
-      
-      const response = await fetch('/api/pos/cart', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          sessionId,
-          productId: product.id,
-          productName: product.name,
-          sku: product.sku,
-          quantity: 1,
-          unitPrice,
-          priceType
-        })
-      });
-
-      if (response.ok) {
-        await fetchCart();
-      }
-    } catch (error) {
-      console.error('Error adding to cart:', error);
-    } finally {
-      setLoading(false);
+    // Check stock first
+    if (product.stock_quantity <= 0) {
+      showToast(`${product.name} is out of stock!`, 'error');
+      return;
     }
+
+    // If priceMode is 'all', use the selectedPriceType, otherwise use priceMode
+    const priceType = selectedPriceType || (priceMode === 'all' ? 'retail' : priceMode);
+    const unitPrice = priceType === 'retail' ? product.retail_price : product.wholesale_price;
+    
+    // OPTIMISTIC UPDATE - Update UI immediately
+    const tempId = `temp-${Date.now()}`;
+    const newItem: CartItem = {
+      id: tempId,
+      product_id: product.id,
+      product_name: product.name,
+      sku: product.sku,
+      quantity: 1,
+      unit_price: unitPrice,
+      price_type: priceType,
+      subtotal: unitPrice
+    };
+
+    // Check if item already exists
+    const existingItemIndex = cart.findIndex(
+      item => item.product_id === product.id && item.price_type === priceType
+    );
+
+    if (existingItemIndex >= 0) {
+      // Update existing item quantity
+      const updatedCart = [...cart];
+      updatedCart[existingItemIndex] = {
+        ...updatedCart[existingItemIndex],
+        quantity: updatedCart[existingItemIndex].quantity + 1,
+        subtotal: (updatedCart[existingItemIndex].quantity + 1) * unitPrice
+      };
+      setCart(updatedCart);
+      setCartTotal(updatedCart.reduce((sum, item) => sum + item.subtotal, 0));
+    } else {
+      // Add new item
+      const updatedCart = [...cart, newItem];
+      setCart(updatedCart);
+      setCartTotal(updatedCart.reduce((sum, item) => sum + item.subtotal, 0));
+    }
+
+    // Show instant feedback
+    showToast(`✓ ${product.name} added`, 'success');
+
+    // Make API call in background (don't await)
+    fetch('/api/pos/cart', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sessionId,
+        productId: product.id,
+        productName: product.name,
+        sku: product.sku,
+        quantity: 1,
+        unitPrice,
+        priceType
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      // Sync with server response
+      fetchCart();
+    })
+    .catch(error => {
+      console.error('Error adding to cart:', error);
+      // Revert optimistic update on error
+      fetchCart();
+      showToast('Failed to sync cart', 'error');
+    });
   };
 
   const updateCartQuantity = async (itemId: string, newQuantity: number) => {
@@ -618,7 +663,8 @@ export default function POSPage() {
                           e.stopPropagation();
                           addToCart(product, 'retail');
                         }}
-                        className="bg-blue-600 hover:bg-blue-700 text-white text-xs py-2 rounded-lg transition-colors flex items-center justify-center gap-1"
+                        disabled={product.stock_quantity <= 0}
+                        className="bg-blue-600 hover:bg-blue-700 active:scale-95 disabled:bg-gray-600 disabled:cursor-not-allowed text-white text-xs py-2 rounded-lg transition-all flex items-center justify-center gap-1"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -630,7 +676,8 @@ export default function POSPage() {
                           e.stopPropagation();
                           addToCart(product, 'wholesale');
                         }}
-                        className="bg-green-600 hover:bg-green-700 text-white text-xs py-2 rounded-lg transition-colors flex items-center justify-center gap-1"
+                        disabled={product.stock_quantity <= 0}
+                        className="bg-green-600 hover:bg-green-700 active:scale-95 disabled:bg-gray-600 disabled:cursor-not-allowed text-white text-xs py-2 rounded-lg transition-all flex items-center justify-center gap-1"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -641,7 +688,8 @@ export default function POSPage() {
                   ) : (
                     <button 
                       onClick={() => addToCart(product)}
-                      className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm py-2 rounded-lg transition-colors flex items-center justify-center"
+                      disabled={product.stock_quantity <= 0}
+                      className="w-full bg-blue-600 hover:bg-blue-700 active:scale-95 disabled:bg-gray-600 disabled:cursor-not-allowed text-white text-sm py-2 rounded-lg transition-all flex items-center justify-center"
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
