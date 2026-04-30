@@ -56,7 +56,7 @@ class SMSService {
     try {
       // Get API key from environment variable
       const apiKey = process.env.AFRICASTALKING_API_KEY;
-      const username = process.env.AFRICASTALKING_USERNAME || 'sandbox';
+      const username = process.env.AFRICASTALKING_USERNAME || 'NYLAWIGS';
       
       if (!apiKey) {
         console.error('AFRICASTALKING_API_KEY not set in environment variables');
@@ -97,38 +97,51 @@ class SMSService {
       }
 
       // Real SMS sending via Africa's Talking
+      console.log('Initializing Africa\'s Talking with:', {
+        username,
+        hasApiKey: !!apiKey,
+        apiKeyLength: apiKey?.length
+      });
+
       let AfricasTalking;
       try {
         AfricasTalking = require('africastalking')({
           apiKey: apiKey,
           username: username
         });
-      } catch (error) {
-        console.error('africastalking package not installed, using test mode');
-        // Queue message in database as test
+      } catch (error: any) {
+        console.error('CRITICAL: africastalking package failed to initialize:', error);
+        
+        // Queue failed message
         await this.queueMessage({
           ...params,
           phoneNumber: formattedPhone,
-          status: 'sent',
-          cost: 0.80
+          status: 'failed',
+          error: `africastalking initialization failed: ${error.message}`
         });
 
         return {
-          success: true,
-          messageId: 'TEST-' + Date.now(),
-          status: 'Success',
-          cost: 0.80
+          success: false,
+          error: `SMS service initialization failed: ${error.message}`
         };
       }
 
       const sms = AfricasTalking.SMS;
       const senderId = process.env.AFRICASTALKING_SENDER_ID || 'NYLAWIGS';
 
+      console.log('Sending SMS via Africa\'s Talking:', {
+        to: formattedPhone,
+        from: senderId,
+        messageLength: params.message.length
+      });
+
       const result = await sms.send({
         to: [formattedPhone],
         message: params.message,
         from: senderId
       });
+
+      console.log('Africa\'s Talking response:', JSON.stringify(result, null, 2));
 
       const recipient = result.SMSMessageData.Recipients[0];
 
