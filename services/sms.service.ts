@@ -18,7 +18,7 @@ interface SMSConfig {
 interface SendSMSParams {
   phoneNumber: string;
   message: string;
-  customerId?: number;
+  customerId?: string; // Changed from number to string for UUID
   messageType: string;
   priority?: number;
 }
@@ -53,23 +53,26 @@ class SMSService {
   // Send SMS via Africa's Talking
   async sendSMS(params: SendSMSParams): Promise<SMSResult> {
     try {
-      // Ensure config is loaded
-      if (!this.config) {
-        await this.initialize();
-      }
-
-      if (!this.config || !this.config.is_active) {
+      // Get API key from environment variable
+      const apiKey = process.env.AFRICASTALKING_API_KEY;
+      const username = process.env.AFRICASTALKING_USERNAME || 'sandbox';
+      
+      if (!apiKey) {
+        console.error('AFRICASTALKING_API_KEY not set in environment variables');
         return {
           success: false,
-          error: 'SMS service not configured or inactive'
+          error: 'SMS service not configured - API key missing'
         };
       }
 
       // Format phone number (ensure it starts with +254 for Kenya)
       const formattedPhone = this.formatPhoneNumber(params.phoneNumber);
 
+      // Check if in test mode (from env or config)
+      const testMode = process.env.SMS_TEST_MODE === 'true';
+
       // In test mode, just log and return success
-      if (this.config.test_mode) {
+      if (testMode) {
         console.log('TEST MODE - Would send SMS:', {
           to: formattedPhone,
           message: params.message,
@@ -94,16 +97,17 @@ class SMSService {
 
       // Real SMS sending via Africa's Talking
       const AfricasTalking = require('africastalking')({
-        apiKey: this.config.api_key,
-        username: this.config.username
+        apiKey: apiKey,
+        username: username
       });
 
       const sms = AfricasTalking.SMS;
+      const senderId = process.env.AFRICASTALKING_SENDER_ID || 'NYLAWIGS';
 
       const result = await sms.send({
         to: [formattedPhone],
         message: params.message,
-        from: this.config.sender_id || undefined
+        from: senderId
       });
 
       const recipient = result.SMSMessageData.Recipients[0];
@@ -173,7 +177,7 @@ class SMSService {
   }
 
   // Update customer communication preferences
-  private async updateCustomerPreferences(customerId: number): Promise<void> {
+  private async updateCustomerPreferences(customerId: string): Promise<void> {
     try {
       // First, get current preferences
       const { data: currentPrefs } = await supabase
