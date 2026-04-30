@@ -3,9 +3,11 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import smsService from '../../../services/sms.service';
 import { createClient } from '@supabase/supabase-js';
 
+// Check if service key exists, otherwise use anon key (less secure but works)
+const supabaseKey = process.env.SUPABASE_SERVICE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_KEY!
+  supabaseKey
 );
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -15,6 +17,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     console.log('Send manual SMS request:', req.body);
+    
+    // Check if Supabase is configured
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+      return res.status(500).json({ error: 'Supabase URL not configured' });
+    }
+    
     const { customerIds, message } = req.body;
 
     if (!message || !message.trim()) {
