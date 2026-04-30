@@ -49,7 +49,7 @@ async function getCustomer(req: NextApiRequest, res: NextApiResponse) {
 }
 
 async function createCustomer(req: NextApiRequest, res: NextApiResponse) {
-  const { firstName, lastName, name, email, phone, address, city, country, notes, customerType, debtLimit } = req.body;
+  const { firstName, lastName, name, email, phone, address, notes, customerType, debtLimit } = req.body;
 
   // Support both new format (firstName + lastName) and old format (name)
   const fullName = name || `${firstName || ''} ${lastName || ''}`.trim();
@@ -65,8 +65,6 @@ async function createCustomer(req: NextApiRequest, res: NextApiResponse) {
       email: email || null,
       phone: phone || null,
       address: address || null,
-      city: city || null,
-      country: country || 'Kenya',
       notes: notes || null,
       customer_type: customerType || 'retail',
       debt_limit: debtLimit ? parseFloat(debtLimit) : null,
