@@ -91,11 +91,11 @@ class AutomationService {
 
   // Get customers who made a purchase recently
   private async getCustomersAfterPurchase(condition: any): Promise<any[]> {
-    const hoursAgo = condition.hours_after || 1;
+    const minutesAgo = condition.minutes_after || 10; // Changed to 10 minutes
     const startTime = new Date();
-    startTime.setHours(startTime.getHours() - hoursAgo);
+    startTime.setMinutes(startTime.getMinutes() - minutesAgo);
     const endTime = new Date();
-    endTime.setHours(endTime.getHours() - (hoursAgo - 1));
+    endTime.setMinutes(endTime.getMinutes() - (minutesAgo - 1));
 
     const { data, error } = await supabase
       .from('transactions')

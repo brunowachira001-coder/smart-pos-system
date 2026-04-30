@@ -15,9 +15,18 @@ export default function CustomerMessages() {
   const [activeTab, setActiveTab] = useState('overview');
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
+  
+  // Send Message State
+  const [showSendModal, setShowSendModal] = useState(false);
+  const [customers, setCustomers] = useState<any[]>([]);
+  const [selectedCustomers, setSelectedCustomers] = useState<string[]>([]);
+  const [messageText, setMessageText] = useState('');
+  const [sending, setSending] = useState(false);
+  const [sendResult, setSendResult] = useState<any>(null);
 
   useEffect(() => {
     fetchStats();
+    fetchCustomers();
   }, []);
 
   const fetchStats = async () => {
@@ -35,6 +44,87 @@ export default function CustomerMessages() {
     }
   };
 
+  const fetchCustomers = async () => {
+    try {
+      const response = await fetch('/api/customers/list?limit=1000');
+      const data = await response.json();
+      
+      if (response.ok) {
+        setCustomers(data.customers || []);
+      }
+    } catch (error) {
+      console.error('Error fetching customers:', error);
+    }
+  };
+
+  const handleSendMessage = async () => {
+    if (!messageText.trim()) {
+      alert('Please enter a message');
+      return;
+    }
+
+    if (selectedCustomers.length === 0) {
+      alert('Please select at least one customer');
+      return;
+    }
+
+    setSending(true);
+    setSendResult(null);
+
+    try {
+      const response = await fetch('/api/sms/send-manual', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customerIds: selectedCustomers,
+          message: messageText
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setSendResult({
+          success: true,
+          sent: data.sent,
+          failed: data.failed,
+          total: data.total
+        });
+        setMessageText('');
+        setSelectedCustomers([]);
+        fetchStats(); // Refresh stats
+      } else {
+        setSendResult({
+          success: false,
+          error: data.error || 'Failed to send messages'
+        });
+      }
+    } catch (error: any) {
+      setSendResult({
+        success: false,
+        error: error.message || 'Network error'
+      });
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const toggleCustomerSelection = (customerId: string) => {
+    setSelectedCustomers(prev => 
+      prev.includes(customerId)
+        ? prev.filter(id => id !== customerId)
+        : [...prev, customerId]
+    );
+  };
+
+  const selectAllCustomers = () => {
+    if (selectedCustomers.length === customers.length) {
+      setSelectedCustomers([]);
+    } else {
+      setSelectedCustomers(customers.map(c => c.id));
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -46,7 +136,7 @@ export default function CustomerMessages() {
           </p>
         </div>
         <button
-          onClick={() => setActiveTab('send')}
+          onClick={() => setShowSendModal(true)}
           className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 font-semibold"
         >
           Send Message
@@ -238,6 +328,130 @@ export default function CustomerMessages() {
           </div>
         )}
       </div>
+
+      {/* Send Message Modal */}
+      {showSendModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+          <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-6 max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-[var(--text-primary)]">Send Message</h2>
+              <button
+                onClick={() => {
+                  setShowSendModal(false);
+                  setSendResult(null);
+                }}
+                className="text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Send Result */}
+            {sendResult && (
+              <div className={`mb-4 p-4 rounded-lg ${
+                sendResult.success 
+                  ? 'bg-green-500/20 border border-green-500/30 text-green-400'
+                  : 'bg-red-500/20 border border-red-500/30 text-red-400'
+              }`}>
+                {sendResult.success ? (
+                  <div>
+                    <p className="font-semibold">✅ Messages Sent Successfully!</p>
+                    <p className="text-sm mt-1">
+                      Sent: {sendResult.sent} | Failed: {sendResult.failed} | Total: {sendResult.total}
+                    </p>
+                  </div>
+                ) : (
+                  <div>
+                    <p className="font-semibold">❌ Error</p>
+                    <p className="text-sm mt-1">{sendResult.error}</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Message Text */}
+            <div className="mb-4">
+              <label className="block text-[var(--text-primary)] font-semibold mb-2">
+                Message Text
+              </label>
+              <textarea
+                value={messageText}
+                onChange={(e) => setMessageText(e.target.value)}
+                placeholder="Type your message here... (e.g., Hi {name}! Thank you for shopping at Nyla Wigs!)"
+                className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-4 py-3 text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:ring-2 focus:ring-emerald-500 min-h-[120px]"
+                disabled={sending}
+              />
+              <p className="text-xs text-[var(--text-secondary)] mt-1">
+                Use {'{name}'} to personalize with customer name
+              </p>
+            </div>
+
+            {/* Customer Selection */}
+            <div className="mb-4">
+              <div className="flex justify-between items-center mb-2">
+                <label className="block text-[var(--text-primary)] font-semibold">
+                  Select Customers ({selectedCustomers.length} selected)
+                </label>
+                <button
+                  onClick={selectAllCustomers}
+                  className="text-sm text-emerald-500 hover:text-emerald-400"
+                  disabled={sending}
+                >
+                  {selectedCustomers.length === customers.length ? 'Deselect All' : 'Select All'}
+                </button>
+              </div>
+
+              <div className="bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg max-h-60 overflow-y-auto">
+                {customers.length === 0 ? (
+                  <p className="text-center text-[var(--text-secondary)] py-8">No customers found</p>
+                ) : (
+                  customers.map((customer) => (
+                    <label
+                      key={customer.id}
+                      className="flex items-center gap-3 p-3 hover:bg-[var(--bg-tertiary)] cursor-pointer border-b border-[var(--border-color)] last:border-b-0"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedCustomers.includes(customer.id)}
+                        onChange={() => toggleCustomerSelection(customer.id)}
+                        className="w-4 h-4"
+                        disabled={sending}
+                      />
+                      <div className="flex-1">
+                        <p className="font-semibold text-[var(--text-primary)]">{customer.name}</p>
+                        <p className="text-sm text-[var(--text-secondary)]">{customer.phone}</p>
+                      </div>
+                    </label>
+                  ))
+                )}
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-3">
+              <button
+                onClick={handleSendMessage}
+                disabled={sending || !messageText.trim() || selectedCustomers.length === 0}
+                className="flex-1 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white py-3 rounded-lg font-semibold transition-colors"
+              >
+                {sending ? 'Sending...' : `Send to ${selectedCustomers.length} Customer${selectedCustomers.length !== 1 ? 's' : ''}`}
+              </button>
+              <button
+                onClick={() => {
+                  setShowSendModal(false);
+                  setSendResult(null);
+                }}
+                disabled={sending}
+                className="px-6 bg-[var(--bg-primary)] hover:bg-[var(--bg-secondary)] border border-[var(--border-color)] text-[var(--text-primary)] py-3 rounded-lg font-semibold transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
