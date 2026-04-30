@@ -263,7 +263,15 @@ export default function POSPage() {
   const fetchCart = async () => {
     try {
       const response = await fetch(`/api/pos/cart?sessionId=${sessionId}`);
+      
+      if (!response.ok) {
+        console.error('Failed to fetch cart:', response.status, response.statusText);
+        return;
+      }
+      
       const data = await response.json();
+      console.log('Cart fetched:', data); // Debug log
+      
       setCart(data.items || []);
       setCartTotal(data.total || 0);
       
@@ -289,69 +297,38 @@ export default function POSPage() {
     const priceType = selectedPriceType || (priceMode === 'all' ? 'retail' : priceMode);
     const unitPrice = priceType === 'retail' ? product.retail_price : product.wholesale_price;
     
-    // OPTIMISTIC UPDATE - Update UI immediately
-    const tempId = `temp-${Date.now()}`;
-    const newItem: CartItem = {
-      id: tempId,
-      product_id: product.id,
-      product_name: product.name,
-      sku: product.sku,
-      quantity: 1,
-      unit_price: unitPrice,
-      price_type: priceType,
-      subtotal: unitPrice
-    };
-
-    // Check if item already exists
-    const existingItemIndex = cart.findIndex(
-      item => item.product_id === product.id && item.price_type === priceType
-    );
-
-    if (existingItemIndex >= 0) {
-      // Update existing item quantity
-      const updatedCart = [...cart];
-      updatedCart[existingItemIndex] = {
-        ...updatedCart[existingItemIndex],
-        quantity: updatedCart[existingItemIndex].quantity + 1,
-        subtotal: (updatedCart[existingItemIndex].quantity + 1) * unitPrice
-      };
-      setCart(updatedCart);
-      setCartTotal(updatedCart.reduce((sum, item) => sum + item.subtotal, 0));
-    } else {
-      // Add new item
-      const updatedCart = [...cart, newItem];
-      setCart(updatedCart);
-      setCartTotal(updatedCart.reduce((sum, item) => sum + item.subtotal, 0));
-    }
-
     // Show instant feedback
     showToast(`✓ ${product.name} added`, 'success');
 
-    // Make API call in background (don't await)
-    fetch('/api/pos/cart', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        sessionId,
-        productId: product.id,
-        productName: product.name,
-        sku: product.sku,
-        quantity: 1,
-        unitPrice,
-        priceType
-      })
-    })
-    .then(response => response.json())
-    .then(data => {
-      // Sync with server response
-      fetchCart();
-    })
-    .catch(error => {
+    // Make API call and wait for response
+    try {
+      const response = await fetch('/api/pos/cart', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sessionId,
+          productId: product.id,
+          productName: product.name,
+          sku: product.sku,
+          quantity: 1,
+          unitPrice,
+          priceType
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Update cart from server response
+        await fetchCart();
+      } else {
+        console.error('Cart API error:', data);
+        showToast(`Error: ${data.error || 'Failed to add to cart'}`, 'error');
+      }
+    } catch (error) {
       console.error('Error adding to cart:', error);
-      // Revert optimistic update on error
-      fetchCart();
-      showToast('Failed to sync cart', 'error');
-    });
+      showToast('Failed to add to cart', 'error');
+    }
   };
 
   const updateCartQuantity = async (itemId: string, newQuantity: number) => {

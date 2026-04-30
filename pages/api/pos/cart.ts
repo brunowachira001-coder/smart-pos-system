@@ -31,6 +31,8 @@ async function getCart(req: NextApiRequest, res: NextApiResponse) {
     return res.status(400).json({ error: 'Session ID is required' });
   }
 
+  console.log('Fetching cart for session:', sessionId); // Debug log
+
   const { data, error } = await supabase
     .from('cart_items')
     .select('*')
@@ -38,8 +40,11 @@ async function getCart(req: NextApiRequest, res: NextApiResponse) {
     .order('created_at', { ascending: true });
 
   if (error) {
+    console.error('Supabase error fetching cart:', error); // Debug log
     return res.status(500).json({ error: error.message });
   }
+
+  console.log('Cart items found:', data?.length || 0); // Debug log
 
   const total = data.reduce((sum, item) => sum + parseFloat(item.subtotal), 0);
 
@@ -53,6 +58,8 @@ async function getCart(req: NextApiRequest, res: NextApiResponse) {
 async function addToCart(req: NextApiRequest, res: NextApiResponse) {
   const { sessionId, productId, productName, sku, quantity, unitPrice, priceType } = req.body;
 
+  console.log('Adding to cart:', { sessionId, productId, productName, quantity, unitPrice, priceType }); // Debug log
+
   if (!sessionId || !productId || !productName || !quantity || !unitPrice) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
@@ -60,7 +67,7 @@ async function addToCart(req: NextApiRequest, res: NextApiResponse) {
   const subtotal = quantity * unitPrice;
 
   // Check if item already exists in cart
-  const { data: existing } = await supabase
+  const { data: existing, error: existingError } = await supabase
     .from('cart_items')
     .select('*')
     .eq('session_id', sessionId)
@@ -68,10 +75,17 @@ async function addToCart(req: NextApiRequest, res: NextApiResponse) {
     .eq('price_type', priceType || 'retail')
     .single();
 
+  if (existingError && existingError.code !== 'PGRST116') {
+    console.error('Error checking existing cart item:', existingError); // Debug log
+    return res.status(500).json({ error: existingError.message });
+  }
+
   if (existing) {
     // Update existing item
     const newQuantity = existing.quantity + quantity;
     const newSubtotal = newQuantity * unitPrice;
+
+    console.log('Updating existing cart item:', existing.id, 'new quantity:', newQuantity); // Debug log
 
     const { data, error } = await supabase
       .from('cart_items')
@@ -85,13 +99,17 @@ async function addToCart(req: NextApiRequest, res: NextApiResponse) {
       .single();
 
     if (error) {
+      console.error('Error updating cart item:', error); // Debug log
       return res.status(500).json({ error: error.message });
     }
 
+    console.log('Cart item updated successfully'); // Debug log
     return res.status(200).json({ item: data, message: 'Cart updated' });
   }
 
   // Add new item
+  console.log('Adding new cart item'); // Debug log
+  
   const { data, error } = await supabase
     .from('cart_items')
     .insert({
@@ -108,9 +126,11 @@ async function addToCart(req: NextApiRequest, res: NextApiResponse) {
     .single();
 
   if (error) {
+    console.error('Error adding cart item:', error); // Debug log
     return res.status(500).json({ error: error.message });
   }
 
+  console.log('Cart item added successfully:', data.id); // Debug log
   return res.status(201).json({ item: data, message: 'Item added to cart' });
 }
 
