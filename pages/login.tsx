@@ -68,26 +68,26 @@ export default function Login() {
                 <img 
                   src={settings.logo_url} 
                   alt={settings.business_name}
-                  className="w-20 h-20 object-contain rounded-xl bg-white/5 p-2"
+                  className="w-20 h-20 object-contain rounded-full bg-white p-2 border-4 border-white/20"
                   onError={(e) => {
                     e.currentTarget.style.display = 'none';
                     const fallback = e.currentTarget.nextElementSibling as HTMLElement;
                     if (fallback) fallback.style.display = 'flex';
                   }}
                 />
-                <div className="w-20 h-20 bg-white/10 backdrop-blur-sm rounded-xl items-center justify-center hidden">
-                  <span className="text-4xl font-bold text-white">{settings.business_name.charAt(0)}</span>
+                <div className="w-20 h-20 bg-white/10 backdrop-blur-sm rounded-full items-center justify-center hidden border-4 border-white/20">
+                  <span className="text-4xl font-bold text-indigo-100">{settings.business_name.charAt(0)}</span>
                 </div>
               </>
             ) : (
-              <div className="w-20 h-20 bg-white/10 backdrop-blur-sm rounded-xl flex items-center justify-center">
-                <span className="text-4xl font-bold text-white">{settings.business_name.charAt(0)}</span>
+              <div className="w-20 h-20 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center border-4 border-white/20">
+                <span className="text-4xl font-bold text-indigo-100">{settings.business_name.charAt(0)}</span>
               </div>
             )}
             <div>
-              <span className="text-white text-3xl font-bold block">{settings.business_name}</span>
+              <span className="text-indigo-100 text-3xl font-bold block">{settings.business_name}</span>
               {settings.business_tagline && (
-                <span className="text-white/80 text-base">{settings.business_tagline}</span>
+                <span className="text-purple-200 text-base">{settings.business_tagline}</span>
               )}
             </div>
           </div>
@@ -153,54 +153,57 @@ export default function Login() {
                   <line x1="35" y1="5" x2="35" y2="20" stroke="#ef4444" strokeWidth="2" opacity="1"/>
                 </g>
                 
-                {/* People figures - Business owners */}
+                {/* People figures - Business owners - More Visible */}
                 <g opacity="1">
                   {/* Person 1 */}
-                  <circle cx="120" cy="220" r="12" fill="#f3f4f6"/>
-                  <rect x="114" y="232" width="12" height="28" rx="3" fill="#f97316"/>
-                  <path d="M114 245 L108 260 M126 245 L132 260" stroke="#f97316" strokeWidth="3" strokeLinecap="round"/>
+                  <circle cx="120" cy="220" r="14" fill="#e0e7ff"/>
+                  <rect x="113" y="234" width="14" height="30" rx="3" fill="#f97316"/>
+                  <path d="M113 248 L106 264 M127 248 L134 264" stroke="#f97316" strokeWidth="4" strokeLinecap="round"/>
                   
                   {/* Person 2 */}
-                  <circle cx="280" cy="220" r="12" fill="#f3f4f6"/>
-                  <rect x="274" y="232" width="12" height="28" rx="3" fill="#3b82f6"/>
-                  <path d="M274 245 L268 260 M286 245 L292 260" stroke="#3b82f6" strokeWidth="3" strokeLinecap="round"/>
+                  <circle cx="280" cy="220" r="14" fill="#e0e7ff"/>
+                  <rect x="273" y="234" width="14" height="30" rx="3" fill="#6366f1"/>
+                  <path d="M273 248 L266 264 M287 248 L294 264" stroke="#6366f1" strokeWidth="4" strokeLinecap="round"/>
                 </g>
                 
-                {/* Floating Analytics Icons */}
+                {/* Floating Analytics Icons - More Visible */}
                 <g opacity="1">
-                  {/* Chart icon */}
-                  <rect x="50" y="100" width="30" height="30" rx="3" fill="#10b981" opacity="0.3"/>
-                  <path d="M55 120 L60 115 L65 118 L70 110 L75 112" stroke="#10b981" strokeWidth="2" fill="none" opacity="1"/>
+                  {/* Chart icon - Blue/Purple */}
+                  <rect x="50" y="100" width="35" height="35" rx="5" fill="#6366f1" opacity="0.9"/>
+                  <path d="M55 120 L60 115 L65 118 L70 110 L75 112" stroke="#ffffff" strokeWidth="3" fill="none" opacity="1"/>
+                  <circle cx="60" cy="115" r="2" fill="#ffffff"/>
+                  <circle cx="65" cy="118" r="2" fill="#ffffff"/>
+                  <circle cx="70" cy="110" r="2" fill="#ffffff"/>
                   
-                  {/* Dollar sign */}
-                  <circle cx="350" cy="120" r="15" fill="#fbbf24" opacity="0.3"/>
-                  <text x="345" y="128" fill="#fbbf24" fontSize="20" fontWeight="bold" opacity="1">$</text>
+                  {/* Dollar sign - Purple */}
+                  <circle cx="350" cy="120" r="18" fill="#a855f7" opacity="0.9"/>
+                  <text x="343" y="130" fill="#ffffff" fontSize="24" fontWeight="bold" opacity="1">$</text>
                 </g>
               </svg>
             </div>
           </div>
         </div>
 
-        <div className="text-white space-y-4">
-          <h2 className="text-2xl font-bold">Business Management System</h2>
-          <p className="text-white/90 leading-relaxed">
+        <div className="space-y-4">
+          <h2 className="text-2xl font-bold text-indigo-100">Business Management System</h2>
+          <p className="text-purple-200 leading-relaxed">
             {settings.business_tagline || 'Manage your inventory, track sales, and grow your business with our comprehensive POS system.'}
           </p>
-          <div className="space-y-2 text-white/90">
+          <div className="space-y-2 text-indigo-100">
             <div className="flex items-center gap-2">
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+              <svg className="w-5 h-5 text-purple-300" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
               </svg>
               <span>Real-time inventory tracking</span>
             </div>
             <div className="flex items-center gap-2">
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+              <svg className="w-5 h-5 text-purple-300" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
               </svg>
               <span>Customer management & SMS notifications</span>
             </div>
             <div className="flex items-center gap-2">
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+              <svg className="w-5 h-5 text-purple-300" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
               </svg>
               <span>Sales analytics & reports</span>
@@ -220,7 +223,7 @@ export default function Login() {
                   <img 
                     src={settings.logo_url} 
                     alt={settings.business_name}
-                    className="w-16 h-16 object-contain rounded-xl bg-white/5 p-2"
+                    className="w-16 h-16 object-contain rounded-full bg-white p-2 border-4 border-slate-700"
                     onError={(e) => {
                       e.currentTarget.style.display = 'none';
                       const fallback = e.currentTarget.nextElementSibling as HTMLElement;
@@ -228,18 +231,18 @@ export default function Login() {
                     }}
                   />
                   <div 
-                    className="w-16 h-16 rounded-xl items-center justify-center hidden"
+                    className="w-16 h-16 rounded-full items-center justify-center hidden border-4 border-slate-700"
                     style={{ backgroundColor: settings.primary_color + '20' }}
                   >
-                    <span className="text-2xl font-bold text-white">{settings.business_name.charAt(0)}</span>
+                    <span className="text-2xl font-bold text-indigo-100">{settings.business_name.charAt(0)}</span>
                   </div>
                 </>
               ) : (
                 <div 
-                  className="w-16 h-16 rounded-xl flex items-center justify-center"
+                  className="w-16 h-16 rounded-full flex items-center justify-center border-4 border-slate-700"
                   style={{ backgroundColor: settings.primary_color + '20' }}
                 >
-                  <span className="text-2xl font-bold text-white">{settings.business_name.charAt(0)}</span>
+                  <span className="text-2xl font-bold text-indigo-100">{settings.business_name.charAt(0)}</span>
                 </div>
               )}
               <div>
