@@ -63,15 +63,22 @@ export default function Login() {
       >
         <div>
           <div className="flex items-center gap-4 mb-2">
-            {settings.logo_url && settings.logo_url !== '/nyla-logo.png' ? (
-              <img 
-                src={settings.logo_url} 
-                alt={settings.business_name}
-                className="w-20 h-20 object-contain rounded-xl bg-white/5 p-2"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                }}
-              />
+            {settings.logo_url ? (
+              <>
+                <img 
+                  src={settings.logo_url} 
+                  alt={settings.business_name}
+                  className="w-20 h-20 object-contain rounded-xl bg-white/5 p-2"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                    const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                    if (fallback) fallback.style.display = 'flex';
+                  }}
+                />
+                <div className="w-20 h-20 bg-white/10 backdrop-blur-sm rounded-xl items-center justify-center hidden">
+                  <span className="text-4xl font-bold text-white">{settings.business_name.charAt(0)}</span>
+                </div>
+              </>
             ) : (
               <div className="w-20 h-20 bg-white/10 backdrop-blur-sm rounded-xl flex items-center justify-center">
                 <span className="text-4xl font-bold text-white">{settings.business_name.charAt(0)}</span>
@@ -208,15 +215,25 @@ export default function Login() {
           {/* Mobile Logo */}
           <div className="lg:hidden flex flex-col items-center mb-8">
             <div className="flex items-center gap-4 mb-2">
-              {settings.logo_url && settings.logo_url !== '/nyla-logo.png' ? (
-                <img 
-                  src={settings.logo_url} 
-                  alt={settings.business_name}
-                  className="w-16 h-16 object-contain rounded-xl bg-white/5 p-2"
-                  onError={(e) => {
-                    e.currentTarget.style.display = 'none';
-                  }}
-                />
+              {settings.logo_url ? (
+                <>
+                  <img 
+                    src={settings.logo_url} 
+                    alt={settings.business_name}
+                    className="w-16 h-16 object-contain rounded-xl bg-white/5 p-2"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                      const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                      if (fallback) fallback.style.display = 'flex';
+                    }}
+                  />
+                  <div 
+                    className="w-16 h-16 rounded-xl items-center justify-center hidden"
+                    style={{ backgroundColor: settings.primary_color + '20' }}
+                  >
+                    <span className="text-2xl font-bold text-white">{settings.business_name.charAt(0)}</span>
+                  </div>
+                </>
               ) : (
                 <div 
                   className="w-16 h-16 rounded-xl flex items-center justify-center"
