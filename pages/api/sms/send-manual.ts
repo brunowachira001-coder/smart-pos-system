@@ -1,6 +1,6 @@
 // API: Send Manual SMS to Selected Customers
 import type { NextApiRequest, NextApiResponse } from 'next';
-import smsService from '../../../services/sms.service';
+import mobitechSMSService from '../../../services/mobitech-sms.service';
 import { createClient } from '@supabase/supabase-js';
 
 // Check if service key exists, otherwise use anon key (less secure but works)
@@ -61,7 +61,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const personalizedMessage = message.replace(/{name}/g, customer.name);
 
         // Send SMS
-        await smsService.sendSMS({
+        await mobitechSMSService.sendSMS({
           phoneNumber: customer.phone,
           message: personalizedMessage,
           customerId: customer.id,
