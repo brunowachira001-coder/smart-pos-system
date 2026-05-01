@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
+import { useShopSettings } from '../hooks/useShopSettings';
 
 export default function Login() {
   const router = useRouter();
+  const { settings, loading: settingsLoading } = useShopSettings();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -52,46 +54,54 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex">
-      {/* Left Panel - Green with Illustration */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-emerald-600 to-emerald-700 p-12 flex-col justify-between">
+      {/* Left Panel - Branded with Shop Colors */}
+      <div 
+        className="hidden lg:flex lg:w-1/2 p-12 flex-col justify-between"
+        style={{ 
+          background: `linear-gradient(135deg, ${settings.primary_color} 0%, ${settings.secondary_color || settings.primary_color} 100%)`
+        }}
+      >
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
-            <span className="text-2xl">💇</span>
+          {settings.logo_url ? (
+            <img 
+              src={settings.logo_url} 
+              alt={settings.business_name}
+              className="w-12 h-12 object-cover rounded-lg bg-white/10 p-1"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+                e.currentTarget.nextElementSibling!.classList.remove('hidden');
+              }}
+            />
+          ) : null}
+          <div className={settings.logo_url ? 'hidden' : 'w-10 h-10 bg-white rounded-lg flex items-center justify-center'}>
+            <span className="text-2xl">🏪</span>
           </div>
-          <span className="text-white text-2xl font-bold">Nyla Wigs</span>
+          <span className="text-white text-2xl font-bold">{settings.business_name}</span>
         </div>
 
         <div className="flex-1 flex items-center justify-center">
           <div className="relative">
-            {/* Isometric illustration placeholder */}
+            {/* Isometric illustration */}
             <div className="w-80 h-80 relative">
               <svg viewBox="0 0 300 300" className="w-full h-full">
-                {/* Platform base */}
                 <path d="M150 180 L220 140 L220 160 L150 200 L80 160 L80 140 Z" fill="#ffffff" opacity="0.9"/>
-                
-                {/* Boxes/Products */}
                 <g>
                   <path d="M120 120 L140 110 L140 140 L120 150 Z" fill="#34d399" opacity="0.8"/>
                   <path d="M140 110 L160 120 L160 150 L140 140 Z" fill="#10b981" opacity="0.8"/>
                   <path d="M120 150 L140 140 L160 150 L140 160 Z" fill="#059669" opacity="0.8"/>
                 </g>
-                
                 <g transform="translate(40, 0)">
                   <path d="M120 120 L140 110 L140 140 L120 150 Z" fill="#fbbf24" opacity="0.8"/>
                   <path d="M140 110 L160 120 L160 150 L140 140 Z" fill="#f59e0b" opacity="0.8"/>
                   <path d="M120 150 L140 140 L160 150 L140 160 Z" fill="#d97706" opacity="0.8"/>
                 </g>
-                
                 <g transform="translate(-40, 0)">
                   <path d="M120 120 L140 110 L140 140 L120 150 Z" fill="#60a5fa" opacity="0.8"/>
                   <path d="M140 110 L160 120 L160 150 L140 140 Z" fill="#3b82f6" opacity="0.8"/>
                   <path d="M120 150 L140 140 L160 150 L140 160 Z" fill="#2563eb" opacity="0.8"/>
                 </g>
-                
-                {/* People figures */}
                 <circle cx="100" cy="170" r="8" fill="#1f2937"/>
                 <rect x="96" y="178" width="8" height="20" rx="2" fill="#f97316"/>
-                
                 <circle cx="200" cy="170" r="8" fill="#1f2937"/>
                 <rect x="196" y="178" width="8" height="20" rx="2" fill="#3b82f6"/>
               </svg>
@@ -100,11 +110,11 @@ export default function Login() {
         </div>
 
         <div className="text-white space-y-4">
-          <h2 className="text-2xl font-bold">Inventory Management</h2>
-          <p className="text-emerald-100 leading-relaxed">
-            Manage your wig inventory, track sales, and grow your business with our comprehensive POS system.
+          <h2 className="text-2xl font-bold">Business Management System</h2>
+          <p className="text-white/90 leading-relaxed">
+            {settings.business_tagline || 'Manage your inventory, track sales, and grow your business with our comprehensive POS system.'}
           </p>
-          <div className="space-y-2 text-emerald-100">
+          <div className="space-y-2 text-white/90">
             <div className="flex items-center gap-2">
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
@@ -131,11 +141,25 @@ export default function Login() {
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-white">
         <div className="w-full max-w-md">
           {/* Mobile Logo */}
-          <div className="lg:hidden flex items-center gap-3 mb-8">
-            <div className="w-10 h-10 bg-emerald-600 rounded-lg flex items-center justify-center">
-              <span className="text-2xl">💇</span>
+          <div className="lg:hidden flex items-center gap-3 mb-8 justify-center">
+            {settings.logo_url ? (
+              <img 
+                src={settings.logo_url} 
+                alt={settings.business_name}
+                className="w-12 h-12 object-cover rounded-lg"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                  e.currentTarget.nextElementSibling!.classList.remove('hidden');
+                }}
+              />
+            ) : null}
+            <div 
+              className={settings.logo_url ? 'hidden' : 'w-10 h-10 rounded-lg flex items-center justify-center'}
+              style={{ backgroundColor: settings.primary_color }}
+            >
+              <span className="text-2xl">🏪</span>
             </div>
-            <span className="text-gray-900 text-2xl font-bold">Nyla Wigs</span>
+            <span className="text-gray-900 text-2xl font-bold">{settings.business_name}</span>
           </div>
 
           <div className="mb-8">
@@ -151,7 +175,10 @@ export default function Login() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 text-gray-900 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all"
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 text-gray-900 rounded-lg focus:ring-2 focus:border-transparent outline-none transition-all"
+                style={{ 
+                  '--tw-ring-color': settings.primary_color 
+                } as React.CSSProperties}
                 placeholder="Email address"
               />
             </div>
@@ -162,7 +189,10 @@ export default function Login() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 text-gray-900 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all"
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 text-gray-900 rounded-lg focus:ring-2 focus:border-transparent outline-none transition-all"
+                style={{ 
+                  '--tw-ring-color': settings.primary_color 
+                } as React.CSSProperties}
                 placeholder="Password"
               />
             </div>
@@ -176,14 +206,30 @@ export default function Login() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-400 text-white font-semibold py-3 rounded-lg transition-all duration-200"
+              className="w-full text-white font-semibold py-3 rounded-lg transition-all duration-200 disabled:opacity-50"
+              style={{ 
+                backgroundColor: settings.primary_color,
+                opacity: loading ? 0.5 : 1
+              }}
+              onMouseEnter={(e) => {
+                if (!loading) {
+                  e.currentTarget.style.backgroundColor = settings.secondary_color || settings.primary_color;
+                }
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = settings.primary_color;
+              }}
             >
               {loading ? 'Logging in...' : 'Log In'}
             </button>
           </form>
 
           <div className="mt-6 text-center space-y-3">
-            <a href="#" className="text-sm text-emerald-600 hover:text-emerald-700">
+            <a 
+              href="#" 
+              className="text-sm hover:underline"
+              style={{ color: settings.primary_color }}
+            >
               Forgot your password?
             </a>
           </div>

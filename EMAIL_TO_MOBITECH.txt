@@ -1,0 +1,40 @@
+To: support@mobitechtechnologies.com
+Subject: Activate API Access for Account MT6896 - Error 1006
+
+---
+
+Hello Mobitech Support Team,
+
+I need to activate API access for my account to start sending SMS messages.
+
+ACCOUNT DETAILS:
+- Account Number: MT6896
+- Email: brunowachira001@gmail.com
+- Phone: 254743794815
+- Business Name: Nyla Wigs
+
+ISSUE:
+I have successfully topped up KSH 50 to my account, but when I try to send SMS via your API, I receive error 1006 "Invalid credentials".
+
+API DETAILS:
+- API Key: 5d684e0aebbcf9e829e9bbac4f6b0e875c00a90bd0ac83a682f6ef0a406a9695
+- Sender ID: NYLAWIGS
+- API Endpoint: https://api.mobitechtechnologies.com/sms/sendsms
+
+ERROR RESPONSE:
+{
+  "status_code": "1006",
+  "status_desc": "Invalid credentials",
+  "message_id": "0"
+}
+
+REQUEST:
+Please activate my account for API access so I can start sending SMS messages to my customers. My business needs this urgently.
+
+Thank you for your assistance.
+
+Best regards,
+Bruno Wachira
+Nyla Wigs
+254743794815
+brunowachira001@gmail.com
