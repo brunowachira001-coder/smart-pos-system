@@ -90,29 +90,87 @@ export default function Login() {
 
         <div className="flex-1 flex items-center justify-center">
           <div className="relative">
-            {/* Isometric illustration */}
-            <div className="w-80 h-80 relative">
-              <svg viewBox="0 0 300 300" className="w-full h-full">
-                <path d="M150 180 L220 140 L220 160 L150 200 L80 160 L80 140 Z" fill="#ffffff" opacity="0.9"/>
+            {/* Professional Isometric Inventory/POS Illustration */}
+            <div className="w-96 h-96 relative">
+              <svg viewBox="0 0 400 400" className="w-full h-full drop-shadow-2xl">
+                {/* Base Platform - Larger */}
+                <path d="M200 240 L320 180 L320 200 L200 260 L80 200 L80 180 Z" fill="#ffffff" opacity="0.95"/>
+                
+                {/* Stack of Inventory Boxes - More detailed */}
                 <g>
-                  <path d="M120 120 L140 110 L140 140 L120 150 Z" fill="#34d399" opacity="0.8"/>
-                  <path d="M140 110 L160 120 L160 150 L140 140 Z" fill="#10b981" opacity="0.8"/>
-                  <path d="M120 150 L140 140 L160 150 L140 160 Z" fill="#059669" opacity="0.8"/>
+                  {/* Blue Box Stack */}
+                  <path d="M140 140 L170 125 L170 165 L140 180 Z" fill="#60a5fa" opacity="0.9"/>
+                  <path d="M170 125 L200 140 L200 180 L170 165 Z" fill="#3b82f6" opacity="0.9"/>
+                  <path d="M140 180 L170 165 L200 180 L170 195 Z" fill="#2563eb" opacity="0.9"/>
+                  
+                  {/* Green Box Stack */}
+                  <path d="M200 140 L230 125 L230 165 L200 180 Z" fill="#34d399" opacity="0.9"/>
+                  <path d="M230 125 L260 140 L260 180 L230 165 Z" fill="#10b981" opacity="0.9"/>
+                  <path d="M200 180 L230 165 L260 180 L230 195 Z" fill="#059669" opacity="0.9"/>
+                  
+                  {/* Orange Box Stack */}
+                  <path d="M260 140 L290 125 L290 165 L260 180 Z" fill="#fb923c" opacity="0.9"/>
+                  <path d="M290 125 L320 140 L320 180 L290 165 Z" fill="#f97316" opacity="0.9"/>
+                  <path d="M260 180 L290 165 L320 180 L290 195 Z" fill="#ea580c" opacity="0.9"/>
                 </g>
-                <g transform="translate(40, 0)">
-                  <path d="M120 120 L140 110 L140 140 L120 150 Z" fill="#fbbf24" opacity="0.8"/>
-                  <path d="M140 110 L160 120 L160 150 L140 140 Z" fill="#f59e0b" opacity="0.8"/>
-                  <path d="M120 150 L140 140 L160 150 L140 160 Z" fill="#d97706" opacity="0.8"/>
+                
+                {/* POS Terminal/Screen */}
+                <g transform="translate(150, 100)">
+                  <rect x="0" y="0" width="100" height="70" rx="4" fill="#1e293b" opacity="0.95"/>
+                  <rect x="5" y="5" width="90" height="50" rx="2" fill="#0ea5e9" opacity="0.3"/>
+                  {/* Screen content lines */}
+                  <line x1="10" y1="15" x2="50" y2="15" stroke="#ffffff" strokeWidth="2" opacity="0.8"/>
+                  <line x1="10" y1="25" x2="70" y2="25" stroke="#ffffff" strokeWidth="2" opacity="0.8"/>
+                  <line x1="10" y1="35" x2="60" y2="35" stroke="#ffffff" strokeWidth="2" opacity="0.8"/>
+                  <line x1="10" y1="45" x2="40" y2="45" stroke="#ffffff" strokeWidth="2" opacity="0.8"/>
+                  {/* Buttons */}
+                  <circle cx="75" cy="20" r="6" fill="#10b981" opacity="0.9"/>
+                  <circle cx="75" cy="35" r="6" fill="#f59e0b" opacity="0.9"/>
                 </g>
-                <g transform="translate(-40, 0)">
-                  <path d="M120 120 L140 110 L140 140 L120 150 Z" fill="#60a5fa" opacity="0.8"/>
-                  <path d="M140 110 L160 120 L160 150 L140 140 Z" fill="#3b82f6" opacity="0.8"/>
-                  <path d="M120 150 L140 140 L160 150 L140 160 Z" fill="#2563eb" opacity="0.8"/>
+                
+                {/* Shopping Cart Icon */}
+                <g transform="translate(80, 200)">
+                  <path d="M5 5 L10 5 L15 25 L35 25" stroke="#ffffff" strokeWidth="3" fill="none" strokeLinecap="round"/>
+                  <circle cx="18" cy="30" r="3" fill="#ffffff"/>
+                  <circle cx="32" cy="30" r="3" fill="#ffffff"/>
+                  <path d="M15 10 L35 10 L33 20 L17 20 Z" fill="#ffffff" opacity="0.9"/>
                 </g>
-                <circle cx="100" cy="170" r="8" fill="#1f2937"/>
-                <rect x="96" y="178" width="8" height="20" rx="2" fill="#f97316"/>
-                <circle cx="200" cy="170" r="8" fill="#1f2937"/>
-                <rect x="196" y="178" width="8" height="20" rx="2" fill="#3b82f6"/>
+                
+                {/* Barcode Scanner */}
+                <g transform="translate(280, 200)">
+                  <rect x="0" y="0" width="40" height="25" rx="3" fill="#1e293b" opacity="0.95"/>
+                  <line x1="5" y1="5" x2="5" y2="20" stroke="#ef4444" strokeWidth="1.5"/>
+                  <line x1="10" y1="5" x2="10" y2="20" stroke="#ef4444" strokeWidth="2"/>
+                  <line x1="15" y1="5" x2="15" y2="20" stroke="#ef4444" strokeWidth="1"/>
+                  <line x1="20" y1="5" x2="20" y2="20" stroke="#ef4444" strokeWidth="2.5"/>
+                  <line x1="25" y1="5" x2="25" y2="20" stroke="#ef4444" strokeWidth="1.5"/>
+                  <line x1="30" y1="5" x2="30" y2="20" stroke="#ef4444" strokeWidth="1"/>
+                  <line x1="35" y1="5" x2="35" y2="20" stroke="#ef4444" strokeWidth="2"/>
+                </g>
+                
+                {/* People figures - Business owners */}
+                <g>
+                  {/* Person 1 */}
+                  <circle cx="120" cy="220" r="12" fill="#1f2937"/>
+                  <rect x="114" y="232" width="12" height="28" rx="3" fill="#f97316"/>
+                  <path d="M114 245 L108 260 M126 245 L132 260" stroke="#f97316" strokeWidth="3" strokeLinecap="round"/>
+                  
+                  {/* Person 2 */}
+                  <circle cx="280" cy="220" r="12" fill="#1f2937"/>
+                  <rect x="274" y="232" width="12" height="28" rx="3" fill="#3b82f6"/>
+                  <path d="M274 245 L268 260 M286 245 L292 260" stroke="#3b82f6" strokeWidth="3" strokeLinecap="round"/>
+                </g>
+                
+                {/* Floating Analytics Icons */}
+                <g opacity="0.8">
+                  {/* Chart icon */}
+                  <rect x="50" y="100" width="30" height="30" rx="3" fill="#10b981" opacity="0.2"/>
+                  <path d="M55 120 L60 115 L65 118 L70 110 L75 112" stroke="#10b981" strokeWidth="2" fill="none"/>
+                  
+                  {/* Dollar sign */}
+                  <circle cx="350" cy="120" r="15" fill="#fbbf24" opacity="0.2"/>
+                  <text x="345" y="128" fill="#fbbf24" fontSize="20" fontWeight="bold">$</text>
+                </g>
               </svg>
             </div>
           </div>

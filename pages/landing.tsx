@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
+import { useShopSettings } from '../hooks/useShopSettings';
 
 export default function Landing() {
   const router = useRouter();
+  const { settings } = useShopSettings();
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
 
@@ -52,8 +54,8 @@ export default function Landing() {
   return (
     <>
       <Head>
-        <title>Smart Traders Inventory - Streamline Your Business</title>
-        <meta name="description" content="Powerful inventory management system for modern businesses" />
+        <title>{settings.business_name} - Streamline Your Business</title>
+        <meta name="description" content={`${settings.business_tagline || 'Powerful inventory management system for modern businesses'}`} />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
 
@@ -63,18 +65,41 @@ export default function Landing() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-16">
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
+                {settings.logo_url ? (
+                  <img 
+                    src={settings.logo_url} 
+                    alt={settings.business_name}
+                    className="w-10 h-10 object-cover rounded-lg"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                      e.currentTarget.nextElementSibling!.classList.remove('hidden');
+                    }}
+                  />
+                ) : null}
+                <div 
+                  className={settings.logo_url ? 'hidden w-10 h-10 rounded-lg flex items-center justify-center' : 'w-10 h-10 rounded-lg flex items-center justify-center'}
+                  style={{ 
+                    background: `linear-gradient(135deg, ${settings.primary_color} 0%, ${settings.secondary_color || settings.primary_color} 100%)`
+                  }}
+                >
                   <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                   </svg>
                 </div>
-                <span className="text-xl font-bold text-white">Smart Traders Inventory</span>
+                <span className="text-xl font-bold text-white">{settings.business_name}</span>
               </div>
               
               <div className="flex items-center space-x-4">
                 <button
                   onClick={handleLoginClick}
-                  className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition-all duration-200 transform hover:scale-105"
+                  className="px-6 py-2 text-white font-semibold rounded-lg transition-all duration-200 transform hover:scale-105"
+                  style={{ backgroundColor: settings.primary_color }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = settings.secondary_color || settings.primary_color;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = settings.primary_color;
+                  }}
                 >
                   Login to Dashboard
                 </button>
@@ -87,9 +112,29 @@ export default function Landing() {
         <div className="pt-32 pb-20 px-4 sm:px-6 lg:px-8">
           <div className="max-w-7xl mx-auto">
             <div className="text-center">
-              {/* Icon */}
+              {/* Icon/Logo */}
               <div className="flex justify-center mb-8">
-                <div className="w-20 h-20 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-2xl shadow-indigo-500/50 animate-pulse">
+                {settings.logo_url ? (
+                  <img 
+                    src={settings.logo_url} 
+                    alt={settings.business_name}
+                    className="w-32 h-32 object-cover rounded-2xl shadow-2xl animate-pulse"
+                    style={{ 
+                      boxShadow: `0 25px 50px -12px ${settings.primary_color}80`
+                    }}
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                      e.currentTarget.nextElementSibling!.classList.remove('hidden');
+                    }}
+                  />
+                ) : null}
+                <div 
+                  className={settings.logo_url ? 'hidden w-20 h-20 rounded-2xl flex items-center justify-center shadow-2xl animate-pulse' : 'w-20 h-20 rounded-2xl flex items-center justify-center shadow-2xl animate-pulse'}
+                  style={{ 
+                    background: `linear-gradient(135deg, ${settings.primary_color} 0%, ${settings.secondary_color || settings.primary_color} 100%)`,
+                    boxShadow: `0 25px 50px -12px ${settings.primary_color}80`
+                  }}
+                >
                   <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                   </svg>
@@ -98,18 +143,28 @@ export default function Landing() {
 
               {/* Heading */}
               <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold text-white mb-6 leading-tight">
-                Smart Traders Inventory
+                {settings.business_name}
               </h1>
               
               <p className="text-xl sm:text-2xl text-slate-300 mb-12 max-w-3xl mx-auto">
-                Streamline your stock, sales, and returns with our powerful and intuitive dashboard.
+                {settings.business_tagline || 'Streamline your stock, sales, and returns with our powerful and intuitive dashboard.'}
               </p>
 
               {/* CTA Buttons */}
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                 <button
                   onClick={handleLoginClick}
-                  className="px-8 py-4 bg-indigo-600 hover:bg-indigo-700 text-white text-lg font-semibold rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg shadow-indigo-500/50 w-full sm:w-auto"
+                  className="px-8 py-4 text-white text-lg font-semibold rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg w-full sm:w-auto"
+                  style={{ 
+                    backgroundColor: settings.primary_color,
+                    boxShadow: `0 10px 15px -3px ${settings.primary_color}50`
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = settings.secondary_color || settings.primary_color;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = settings.primary_color;
+                  }}
                 >
                   Login to Dashboard
                 </button>
@@ -137,8 +192,18 @@ export default function Landing() {
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {/* Feature 1 */}
-              <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 hover:border-indigo-500 transition-all duration-200 transform hover:scale-105">
-                <div className="w-12 h-12 bg-indigo-600 rounded-lg flex items-center justify-center mb-4">
+              <div 
+                className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 transition-all duration-200 transform hover:scale-105"
+                style={{ 
+                  '--hover-border': settings.primary_color 
+                } as React.CSSProperties}
+                onMouseEnter={(e) => e.currentTarget.style.borderColor = settings.primary_color}
+                onMouseLeave={(e) => e.currentTarget.style.borderColor = 'rgb(51 65 85)'}
+              >
+                <div 
+                  className="w-12 h-12 rounded-lg flex items-center justify-center mb-4"
+                  style={{ backgroundColor: settings.primary_color }}
+                >
                   <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                   </svg>
@@ -148,8 +213,15 @@ export default function Landing() {
               </div>
 
               {/* Feature 2 */}
-              <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 hover:border-purple-500 transition-all duration-200 transform hover:scale-105">
-                <div className="w-12 h-12 bg-purple-600 rounded-lg flex items-center justify-center mb-4">
+              <div 
+                className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 transition-all duration-200 transform hover:scale-105"
+                onMouseEnter={(e) => e.currentTarget.style.borderColor = settings.primary_color}
+                onMouseLeave={(e) => e.currentTarget.style.borderColor = 'rgb(51 65 85)'}
+              >
+                <div 
+                  className="w-12 h-12 rounded-lg flex items-center justify-center mb-4"
+                  style={{ backgroundColor: settings.secondary_color || settings.primary_color }}
+                >
                   <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                   </svg>
@@ -159,8 +231,15 @@ export default function Landing() {
               </div>
 
               {/* Feature 3 */}
-              <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 hover:border-pink-500 transition-all duration-200 transform hover:scale-105">
-                <div className="w-12 h-12 bg-pink-600 rounded-lg flex items-center justify-center mb-4">
+              <div 
+                className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 transition-all duration-200 transform hover:scale-105"
+                onMouseEnter={(e) => e.currentTarget.style.borderColor = settings.primary_color}
+                onMouseLeave={(e) => e.currentTarget.style.borderColor = 'rgb(51 65 85)'}
+              >
+                <div 
+                  className="w-12 h-12 rounded-lg flex items-center justify-center mb-4"
+                  style={{ backgroundColor: settings.primary_color }}
+                >
                   <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                   </svg>
@@ -170,8 +249,15 @@ export default function Landing() {
               </div>
 
               {/* Feature 4 */}
-              <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 hover:border-emerald-500 transition-all duration-200 transform hover:scale-105">
-                <div className="w-12 h-12 bg-emerald-600 rounded-lg flex items-center justify-center mb-4">
+              <div 
+                className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 transition-all duration-200 transform hover:scale-105"
+                onMouseEnter={(e) => e.currentTarget.style.borderColor = settings.primary_color}
+                onMouseLeave={(e) => e.currentTarget.style.borderColor = 'rgb(51 65 85)'}
+              >
+                <div 
+                  className="w-12 h-12 rounded-lg flex items-center justify-center mb-4"
+                  style={{ backgroundColor: settings.secondary_color || settings.primary_color }}
+                >
                   <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
                   </svg>
@@ -181,8 +267,15 @@ export default function Landing() {
               </div>
 
               {/* Feature 5 */}
-              <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 hover:border-blue-500 transition-all duration-200 transform hover:scale-105">
-                <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center mb-4">
+              <div 
+                className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 transition-all duration-200 transform hover:scale-105"
+                onMouseEnter={(e) => e.currentTarget.style.borderColor = settings.primary_color}
+                onMouseLeave={(e) => e.currentTarget.style.borderColor = 'rgb(51 65 85)'}
+              >
+                <div 
+                  className="w-12 h-12 rounded-lg flex items-center justify-center mb-4"
+                  style={{ backgroundColor: settings.primary_color }}
+                >
                   <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                   </svg>
@@ -192,8 +285,15 @@ export default function Landing() {
               </div>
 
               {/* Feature 6 */}
-              <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 hover:border-orange-500 transition-all duration-200 transform hover:scale-105">
-                <div className="w-12 h-12 bg-orange-600 rounded-lg flex items-center justify-center mb-4">
+              <div 
+                className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 transition-all duration-200 transform hover:scale-105"
+                onMouseEnter={(e) => e.currentTarget.style.borderColor = settings.primary_color}
+                onMouseLeave={(e) => e.currentTarget.style.borderColor = 'rgb(51 65 85)'}
+              >
+                <div 
+                  className="w-12 h-12 rounded-lg flex items-center justify-center mb-4"
+                  style={{ backgroundColor: settings.secondary_color || settings.primary_color }}
+                >
                   <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 15v-1a4 4 0 00-4-4H8m0 0l3 3m-3-3l3-3m9 14V5a2 2 0 00-2-2H6a2 2 0 00-2 2v16l4-2 4 2 4-2 4 2z" />
                   </svg>
@@ -218,21 +318,30 @@ export default function Landing() {
             <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-8">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 <div className="text-center">
-                  <div className="w-16 h-16 bg-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <div 
+                    className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
+                    style={{ backgroundColor: settings.primary_color }}
+                  >
                     <span className="text-2xl font-bold text-white">1</span>
                   </div>
                   <p className="text-slate-300">Click "Install App" button</p>
                 </div>
                 
                 <div className="text-center">
-                  <div className="w-16 h-16 bg-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <div 
+                    className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
+                    style={{ backgroundColor: settings.secondary_color || settings.primary_color }}
+                  >
                     <span className="text-2xl font-bold text-white">2</span>
                   </div>
                   <p className="text-slate-300">Follow browser prompts</p>
                 </div>
                 
                 <div className="text-center">
-                  <div className="w-16 h-16 bg-pink-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <div 
+                    className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
+                    style={{ backgroundColor: settings.primary_color }}
+                  >
                     <span className="text-2xl font-bold text-white">3</span>
                   </div>
                   <p className="text-slate-300">Access from home screen</p>
@@ -241,7 +350,11 @@ export default function Landing() {
               
               <button
                 onClick={handleInstallClick}
-                className="px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-lg font-semibold rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg shadow-indigo-500/50"
+                className="px-8 py-4 text-white text-lg font-semibold rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg"
+                style={{ 
+                  background: `linear-gradient(135deg, ${settings.primary_color} 0%, ${settings.secondary_color || settings.primary_color} 100%)`,
+                  boxShadow: `0 10px 15px -3px ${settings.primary_color}50`
+                }}
               >
                 Install App Now
               </button>
@@ -253,7 +366,7 @@ export default function Landing() {
         <footer className="py-8 px-4 sm:px-6 lg:px-8 border-t border-slate-700">
           <div className="max-w-7xl mx-auto text-center">
             <p className="text-slate-400">
-              © 2026 Smart Traders Inventory. Built with Next.js and Supabase.
+              © 2026 {settings.business_name}. Built with Next.js and Supabase.
             </p>
           </div>
         </footer>
