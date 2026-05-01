@@ -62,25 +62,27 @@ export default function Login() {
         }}
       >
         <div>
-          <div className="flex items-center gap-3 mb-2">
+          <div className="flex items-center gap-4 mb-2">
             {settings.logo_url ? (
               <img 
                 src={settings.logo_url} 
                 alt={settings.business_name}
-                className="w-12 h-12 object-cover rounded-lg bg-white/10 p-1"
+                className="w-16 h-16 object-cover rounded-xl bg-white/10 p-2"
                 onError={(e) => {
                   e.currentTarget.style.display = 'none';
                   e.currentTarget.nextElementSibling!.classList.remove('hidden');
                 }}
               />
             ) : null}
-            <div className={settings.logo_url ? 'hidden' : 'w-10 h-10 bg-white rounded-lg flex items-center justify-center'}>
-              <span className="text-2xl">🏪</span>
+            <div className={settings.logo_url ? 'hidden' : 'w-16 h-16 bg-white/10 backdrop-blur-sm rounded-xl flex items-center justify-center'}>
+              <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
             </div>
             <div>
-              <span className="text-white text-2xl font-bold block">{settings.business_name}</span>
+              <span className="text-white text-3xl font-bold block">{settings.business_name}</span>
               {settings.business_tagline && (
-                <span className="text-white/80 text-sm">{settings.business_tagline}</span>
+                <span className="text-white/80 text-base">{settings.business_tagline}</span>
               )}
             </div>
           </div>
@@ -149,12 +151,12 @@ export default function Login() {
         <div className="w-full max-w-md">
           {/* Mobile Logo */}
           <div className="lg:hidden flex flex-col items-center mb-8">
-            <div className="flex items-center gap-3 mb-2">
+            <div className="flex items-center gap-4 mb-2">
               {settings.logo_url ? (
                 <img 
                   src={settings.logo_url} 
                   alt={settings.business_name}
-                  className="w-12 h-12 object-cover rounded-lg"
+                  className="w-16 h-16 object-cover rounded-xl"
                   onError={(e) => {
                     e.currentTarget.style.display = 'none';
                     e.currentTarget.nextElementSibling!.classList.remove('hidden');
@@ -162,15 +164,17 @@ export default function Login() {
                 />
               ) : null}
               <div 
-                className={settings.logo_url ? 'hidden' : 'w-10 h-10 rounded-lg flex items-center justify-center'}
-                style={{ backgroundColor: settings.primary_color }}
+                className={settings.logo_url ? 'hidden' : 'w-16 h-16 rounded-xl flex items-center justify-center'}
+                style={{ backgroundColor: settings.primary_color + '20' }}
               >
-                <span className="text-2xl">🏪</span>
+                <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
               </div>
               <div>
-                <span className="text-white text-2xl font-bold block">{settings.business_name}</span>
+                <span className="text-white text-3xl font-bold block">{settings.business_name}</span>
                 {settings.business_tagline && (
-                  <span className="text-slate-400 text-sm">{settings.business_tagline}</span>
+                  <span className="text-slate-400 text-base">{settings.business_tagline}</span>
                 )}
               </div>
             </div>
