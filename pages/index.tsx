@@ -189,9 +189,9 @@ export default function LandingPage() {
             </a>
           </div>
           
-          {/* Security message - matching login page */}
-          <p className="text-purple-300 text-sm">
-            Protected by enterprise-grade security
+          {/* Copyright */}
+          <p className="text-sm text-gray-500">
+            © 2026 {shopName}. All rights reserved.
           </p>
         </footer>
       </div>
