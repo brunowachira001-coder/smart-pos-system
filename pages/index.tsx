@@ -82,22 +82,22 @@ export default function LandingPage() {
 
       <div className="h-screen overflow-hidden bg-gradient-to-br from-black via-gray-900 to-black text-white flex flex-col">
         {/* Main Content - Centered */}
-        <main className="flex-1 flex items-center justify-center px-6 py-12">
-          <div className="max-w-4xl w-full text-center">
-            {/* Logo - Enlarged */}
+        <main className="flex-1 flex items-center justify-center px-4 py-8">
+          <div className="max-w-3xl w-full text-center">
+            {/* Logo - Moderately Enlarged */}
             {shopLogo && (
-              <div className="flex justify-center mb-12 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+              <div className="flex justify-center mb-8 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
                 <div className="relative">
-                  <div className="absolute inset-0 bg-indigo-600 rounded-full blur-3xl opacity-50 animate-pulse-slow"></div>
-                  <div className="relative w-40 h-40 md:w-48 md:h-48 rounded-full overflow-hidden shadow-2xl bg-white p-4 animate-float">
+                  <div className="absolute inset-0 bg-indigo-600 rounded-full blur-2xl opacity-40 animate-pulse-slow"></div>
+                  <div className="relative w-28 h-28 md:w-32 md:h-32 rounded-full overflow-hidden shadow-2xl bg-white p-3 animate-float">
                     <img src={shopLogo} alt={shopName} className="w-full h-full object-contain" />
                   </div>
                 </div>
               </div>
             )}
 
-            {/* Title - Enlarged */}
-            <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold mb-8 leading-tight animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+            {/* Title - Moderately Enlarged */}
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
               {shopName}
               <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400">
@@ -105,18 +105,18 @@ export default function LandingPage() {
               </span>
             </h1>
 
-            {/* Subtitle - Enlarged */}
-            <p className="text-xl md:text-2xl lg:text-3xl text-gray-400 mb-16 max-w-3xl mx-auto animate-fade-in-up leading-relaxed" style={{ animationDelay: '0.3s' }}>
+            {/* Subtitle - Moderately Enlarged */}
+            <p className="text-lg md:text-xl text-gray-400 mb-10 max-w-2xl mx-auto animate-fade-in-up leading-relaxed" style={{ animationDelay: '0.3s' }}>
               Manage your wig business with ease. Track sales, inventory, and customers.
             </p>
 
-            {/* CTA Buttons - Enlarged */}
-            <div className="flex flex-col sm:flex-row gap-6 justify-center mb-16 animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
+            {/* CTA Buttons - Moderately Enlarged */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-10 animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
               <button
                 onClick={() => router.push('/login')}
-                className="group px-12 py-6 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white font-semibold rounded-2xl transition-all duration-300 flex items-center justify-center gap-3 text-xl shadow-2xl hover:shadow-indigo-500/50 hover:scale-105 hover:-translate-y-1"
+                className="group px-10 py-5 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white font-semibold rounded-xl transition-all duration-300 flex items-center justify-center gap-2 text-lg shadow-lg hover:shadow-indigo-500/50 hover:scale-105 hover:-translate-y-0.5"
               >
-                <svg className="w-7 h-7 group-hover:rotate-12 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-6 h-6 group-hover:rotate-12 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
                 </svg>
                 Login to Dashboard
@@ -124,18 +124,18 @@ export default function LandingPage() {
 
               <button
                 onClick={handleInstall}
-                className="group px-12 py-6 bg-gray-800 hover:bg-gray-700 text-white font-semibold rounded-2xl border-2 border-gray-700 hover:border-indigo-500 transition-all duration-300 flex items-center justify-center gap-3 text-xl hover:scale-105 hover:-translate-y-1"
+                className="group px-10 py-5 bg-gray-800 hover:bg-gray-700 text-white font-semibold rounded-xl border-2 border-gray-700 hover:border-indigo-500 transition-all duration-300 flex items-center justify-center gap-2 text-lg hover:scale-105 hover:-translate-y-0.5"
               >
-                <svg className="w-7 h-7 group-hover:translate-y-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-6 h-6 group-hover:translate-y-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
                 Install App
               </button>
             </div>
 
-            {/* Trust Badge - Enlarged */}
-            <div className="flex items-center justify-center gap-3 text-base md:text-lg text-gray-500 animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
-              <svg className="w-6 h-6 text-indigo-500" fill="currentColor" viewBox="0 0 20 20">
+            {/* Trust Badge */}
+            <div className="flex items-center justify-center gap-2 text-sm text-gray-500 animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
+              <svg className="w-5 h-5 text-indigo-500" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
               </svg>
               <span>Trusted by wig businesses in Kenya</span>
@@ -144,7 +144,7 @@ export default function LandingPage() {
         </main>
 
         {/* Footer - Minimal, matching login page */}
-        <footer className="py-4 px-4 text-center animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
+        <footer className="py-5 px-4 text-center animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
           {/* Phone Number */}
           {shopSettings?.business_phone && (
             <p className="text-sm text-purple-300 mb-3">
@@ -153,12 +153,12 @@ export default function LandingPage() {
           )}
           
           {/* Social Media Links */}
-          <div className="flex items-center justify-center gap-6 mb-3">
+          <div className="flex items-center justify-center gap-5 mb-3">
             <a 
               href={shopSettings?.tiktok_url || "https://www.tiktok.com"} 
               target="_blank" 
               rel="noopener noreferrer"
-              className="text-gray-500 hover:text-pink-500 transition-all duration-300 hover:scale-125 hover:-translate-y-1" 
+              className="text-gray-500 hover:text-pink-500 transition-all duration-300 hover:scale-110 hover:-translate-y-0.5" 
               aria-label="TikTok"
             >
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -169,7 +169,7 @@ export default function LandingPage() {
               href={shopSettings?.instagram_url || "https://www.instagram.com"} 
               target="_blank" 
               rel="noopener noreferrer"
-              className="text-gray-500 hover:text-pink-500 transition-all duration-300 hover:scale-125 hover:-translate-y-1" 
+              className="text-gray-500 hover:text-pink-500 transition-all duration-300 hover:scale-110 hover:-translate-y-0.5" 
               aria-label="Instagram"
             >
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -180,7 +180,7 @@ export default function LandingPage() {
               href={shopSettings?.facebook_url || "https://www.facebook.com"} 
               target="_blank" 
               rel="noopener noreferrer"
-              className="text-gray-500 hover:text-blue-500 transition-all duration-300 hover:scale-125 hover:-translate-y-1" 
+              className="text-gray-500 hover:text-blue-500 transition-all duration-300 hover:scale-110 hover:-translate-y-0.5" 
               aria-label="Facebook"
             >
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
