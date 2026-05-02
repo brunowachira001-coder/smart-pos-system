@@ -92,9 +92,9 @@ export default function Login() {
               </div>
             )}
             <div>
-              <h1 className="text-white text-3xl font-bold">{settings.business_name}</h1>
+              <h1 className="text-indigo-100 text-3xl font-bold">{settings.business_name}</h1>
               {settings.business_tagline && (
-                <p className="text-gray-300 text-sm">{settings.business_tagline}</p>
+                <p className="text-purple-200 text-sm">{settings.business_tagline}</p>
               )}
             </div>
           </div>
@@ -112,14 +112,14 @@ export default function Login() {
                 </svg>
               </div>
             </div>
-            <h2 className="text-2xl font-bold text-white">Business Management System</h2>
-            <p className="text-gray-300 max-w-md mx-auto">
+            <h2 className="text-2xl font-bold text-indigo-100">Business Management System</h2>
+            <p className="text-purple-200 max-w-md mx-auto">
               Streamline your inventory, boost sales, and grow your business with our modern POS solution
             </p>
           </div>
         </div>
 
-        <div className="relative z-10 space-y-3 text-gray-300">
+        <div className="relative z-10 space-y-3 text-indigo-200">
           <div className="flex items-center gap-3 transition-transform duration-200 hover:translate-x-2">
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center shadow-lg">
               <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -165,37 +165,37 @@ export default function Login() {
                 <span className="text-2xl font-bold text-white">{settings.business_name.charAt(0)}</span>
               </div>
             )}
-            <h1 className="text-white text-2xl font-bold">{settings.business_name}</h1>
+            <h1 className="text-indigo-100 text-2xl font-bold">{settings.business_name}</h1>
           </div>
 
           {/* Login Card */}
           <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-8 shadow-2xl border border-white/10 transition-all duration-300 hover:shadow-blue-500/20">
             <div className="mb-8">
-              <h2 className="text-3xl font-bold text-white mb-2">Welcome back</h2>
-              <p className="text-gray-400">Sign in to your account to continue</p>
+              <h2 className="text-3xl font-bold text-indigo-100 mb-2">Welcome back</h2>
+              <p className="text-purple-200">Sign in to your account to continue</p>
             </div>
 
             <form onSubmit={handleLogin} className="space-y-5">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Email</label>
+                <label className="block text-sm font-medium text-indigo-200 mb-2">Email</label>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 text-white rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 placeholder-gray-500 hover:bg-white/10"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 text-indigo-100 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 placeholder-gray-500 hover:bg-white/10"
                   placeholder="Enter your email"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Password</label>
+                <label className="block text-sm font-medium text-indigo-200 mb-2">Password</label>
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 text-white rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 placeholder-gray-500 hover:bg-white/10"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 text-indigo-100 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200 placeholder-gray-500 hover:bg-white/10"
                   placeholder="Enter your password"
                 />
               </div>
@@ -229,7 +229,7 @@ export default function Login() {
             </div>
           </div>
 
-          <p className="text-center text-gray-400 text-sm mt-6">
+          <p className="text-center text-purple-300 text-sm mt-6">
             Protected by enterprise-grade security
           </p>
         </div>

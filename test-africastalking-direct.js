@@ -5,7 +5,7 @@ const AfricasTalking = require('africastalking');
 
 // Your credentials
 const credentials = {
-  apiKey: 'atsk_98bf2d1a31d7a183d16b303c35d337e7c0266d6f8591cd7e501d4388021e6ff44af2cd78',
+  apiKey: 'atsk_fa3ea5db7a76234bff145826ab22a26fe58522171f0fb8cc18b8f690844b09e24d92e990',
   username: 'NYLAWIGS'
 };
 
@@ -20,8 +20,8 @@ console.log('Credentials:', {
 const africastalking = AfricasTalking(credentials);
 const sms = africastalking.SMS;
 
-// Test phone number (replace with your actual test number)
-const testPhoneNumber = '+254712345678'; // REPLACE THIS WITH YOUR ACTUAL PHONE NUMBER
+// Test phone number - using a different number since +254743794815 is blacklisted
+const testPhoneNumber = '+254114098267';
 
 async function testSMS() {
   try {
@@ -31,8 +31,8 @@ async function testSMS() {
     
     const result = await sms.send({
       to: [testPhoneNumber],
-      message: 'Test message from Nyla Wigs POS system',
-      from: 'NYLAWIGS'
+      message: 'Test message from Nyla Wigs POS system'
+      // No 'from' - use default sender until NYLAWIGS sender ID is approved
     });
 
     console.log('\n✅ SUCCESS! Response from Africa\'s Talking:');
