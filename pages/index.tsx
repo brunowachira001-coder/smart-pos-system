@@ -101,7 +101,7 @@ export default function LandingPage() {
               {shopName}
               <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400">
-                Inventory System
+                Business Management System
               </span>
             </h1>
 
