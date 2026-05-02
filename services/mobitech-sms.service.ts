@@ -85,7 +85,7 @@ class MobitechSMSService {
         body: JSON.stringify({
           mobile: formattedPhone,
           response_type: 'json',
-          sender_name: 'NYLAWIGS',
+          sender_name: 'FULL_CIRCLE', // Custom sender name
           service_id: 0,
           message: params.message,
           apikey: this.apiKey
