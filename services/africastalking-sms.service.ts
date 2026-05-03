@@ -81,8 +81,9 @@ class AfricasTalkingSMSService {
         body: new URLSearchParams({
           username: this.username,
           to: formattedPhone,
-          message: params.message,
-          from: 'NYLAWIGS'
+          message: params.message
+          // Note: Sender ID removed - must be registered in Africa's Talking dashboard first
+          // To add: Go to SMS → Sender IDs → Request "NYLAWIGS"
         })
       });
 
