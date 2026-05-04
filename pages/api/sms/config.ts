@@ -6,9 +6,9 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_KEY!
 );
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
+import { secureRoute, SecureRequest, getAdminDb } from '../../lib/secure-route';
+
+export default secureRoute(async function handler(req: SecureRequest, res: NextApiResponse
 ) {
   try {
     if (req.method === 'GET') {
@@ -83,4 +83,4 @@ export default async function handler(
       error: error.message || 'Internal server error'
     });
   }
-}
+});

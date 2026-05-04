@@ -1,9 +1,9 @@
 import type { NextApiResponse } from 'next';
-import { supabaseAdmin } from '../../../lib/supabase-client';
-import { withAuth, AuthenticatedRequest } from '../../../lib/auth-middleware';
+import { secureRoute, SecureRequest, getAdminDb } from '../../../lib/secure-route';
 
-async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
-  const { tenantId } = req.auth;
+async function handler(req: SecureRequest, res: NextApiResponse) {
+  const { tenantId } = req;
+  const db = getAdminDb();
 
   if (req.method === 'GET') {
     try {
@@ -12,7 +12,7 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
       const limitNum = parseInt(limit as string);
       const offset = (pageNum - 1) * limitNum;
 
-      let query = supabaseAdmin
+      let query = db
         .from('debts')
         .select('*', { count: 'exact' })
         .eq('tenant_id', tenantId);
@@ -29,7 +29,7 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
       const customerIds = [...new Set(debts?.map(d => d.customer_id) || [])];
       let customerMap: any = {};
       if (customerIds.length > 0) {
-        const { data: customers } = await supabaseAdmin
+        const { data: customers } = await db
           .from('customers').select('id, name').eq('tenant_id', tenantId).in('id', customerIds);
         customerMap = customers?.reduce((acc: any, c: any) => { acc[c.id] = c.name; return acc; }, {}) || {};
       }
@@ -60,7 +60,7 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
     try {
       const { customer_id, customer_name, sale_id, total_amount, due_date, notes } = req.body;
 
-      const { data: debt, error } = await supabaseAdmin
+      const { data: debt, error } = await db
         .from('debts')
         .insert([{ customer_id, customer_name, sale_id, total_amount, amount_paid: 0,
           amount_remaining: total_amount, status: 'Outstanding', due_date, notes, tenant_id: tenantId }])
@@ -76,4 +76,4 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   return res.status(405).json({ error: 'Method not allowed' });
 }
 
-export default withAuth(handler);
+export default secureRoute(handler);

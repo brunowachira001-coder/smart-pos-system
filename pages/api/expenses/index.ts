@@ -1,8 +1,9 @@
 import type { NextApiResponse } from 'next';
-import { supabaseAdmin } from '../../../lib/supabase-client';
-import { withAuth, AuthenticatedRequest } from '../../../lib/auth-middleware';
+;
+import { secureRoute, SecureRequest, getAdminDb } from '../../../lib/secure-route';
 
-async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
+async function handler(req: SecureRequest, res: NextApiResponse) {
+  const db = getAdminDb();
   const { tenantId } = req.auth;
 
   if (req.method === 'GET') {
@@ -12,7 +13,7 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
       const limitNum = parseInt(limit as string);
       const offset = (pageNum - 1) * limitNum;
 
-      let query = supabaseAdmin
+      let query = getAdminDb()
         .from('expenses')
         .select('*', { count: 'exact' })
         .eq('tenant_id', tenantId);
@@ -42,7 +43,7 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
       const { category, subcategory, amount, description, payment_method, vendor_name, receipt_number, expense_date, notes, created_by } = req.body;
       const expenseId = `EXP-${Math.floor(Math.random() * 999999 + 1).toString().padStart(6, '0')}`;
 
-      const { data: expense, error } = await supabaseAdmin
+      const { data: expense, error } = await getAdminDb()
         .from('expenses')
         .insert([{
           expense_id: expenseId, category, subcategory, amount, description,
@@ -63,4 +64,4 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   return res.status(405).json({ error: 'Method not allowed' });
 }
 
-export default withAuth(handler);
+export default secureRoute(handler);

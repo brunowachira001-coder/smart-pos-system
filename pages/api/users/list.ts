@@ -1,13 +1,12 @@
 import type { NextApiResponse } from 'next';
-import { supabaseAdmin } from '../../../lib/supabase-client';
-import { withAuth, AuthenticatedRequest } from '../../../lib/auth-middleware';
+import { secureRoute, SecureRequest, getAdminDb } from '../../../lib/secure-route';
 
-async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
+async function handler(req: SecureRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { tenantId } = req.auth;
+  const { tenantId } = req;
 
   try {
     const { search, role, page = '1', limit = '50' } = req.query;
@@ -15,7 +14,8 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
     const limitNum = parseInt(limit as string);
     const from = (pageNum - 1) * limitNum;
 
-    let query = supabaseAdmin
+    const db = getAdminDb();
+    let query = db
       .from('users')
       .select('id, full_name, email, role, phone, is_active, created_at', { count: 'exact' })
       .eq('tenant_id', tenantId)
@@ -46,4 +46,4 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   }
 }
 
-export default withAuth(handler);
+export default secureRoute(handler);

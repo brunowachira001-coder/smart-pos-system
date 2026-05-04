@@ -6,7 +6,11 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+import { secureRoute, SecureRequest, getAdminDb } from '../../lib/secure-route';
+
+export default secureRoute(async function handler(req: SecureRequest, res: NextApiResponse) {
+  const { tenantId } = req;
+  const db = getAdminDb();
   if (req.method !== 'GET') {
     res.setHeader('Allow', ['GET']);
     return res.status(405).json({ error: `Method ${req.method} Not Allowed` });
@@ -58,4 +62,4 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.error('Error fetching customer credit:', error);
     return res.status(500).json({ error: error.message || 'Failed to fetch customer credit' });
   }
-}
+});

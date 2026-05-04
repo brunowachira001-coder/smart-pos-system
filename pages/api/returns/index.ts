@@ -1,8 +1,9 @@
 import type { NextApiResponse } from 'next';
-import { supabaseAdmin } from '../../../lib/supabase-client';
-import { withAuth, AuthenticatedRequest } from '../../../lib/auth-middleware';
+;
+import { secureRoute, SecureRequest, getAdminDb } from '../../../lib/secure-route';
 
-async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
+async function handler(req: SecureRequest, res: NextApiResponse) {
+  const db = getAdminDb();
   const { tenantId } = req.auth;
 
   if (req.method === 'GET') {
@@ -12,7 +13,7 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
       const limitNum = parseInt(limit as string);
       const offset = (pageNum - 1) * limitNum;
 
-      let query = supabaseAdmin
+      let query = getAdminDb()
         .from('returns')
         .select('*', { count: 'exact' })
         .eq('tenant_id', tenantId);
@@ -40,7 +41,7 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
     try {
       const { transaction_id, customer_id, customer_name, product_id, product_name, quantity, amount, reason, notes } = req.body;
 
-      const { data: returnRecord, error } = await supabaseAdmin
+      const { data: returnRecord, error } = await getAdminDb()
         .from('returns')
         .insert([{
           transaction_id, customer_id, customer_name, product_id, product_name,
@@ -59,4 +60,4 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   return res.status(405).json({ error: 'Method not allowed' });
 }
 
-export default withAuth(handler);
+export default secureRoute(handler);

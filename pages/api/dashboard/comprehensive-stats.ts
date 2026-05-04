@@ -1,6 +1,5 @@
 import type { NextApiResponse } from 'next';
-import { supabaseAdmin } from '../../../lib/supabase-client';
-import { withAuth, AuthenticatedRequest } from '../../../lib/auth-middleware';
+import { secureRoute, SecureRequest, getAdminDb } from '../../../lib/secure-route';
 
 function getDateRange(range: string): { startDate: Date | null; endDate: Date | null } {
   const now = new Date();
@@ -29,14 +28,18 @@ function getDateRange(range: string): { startDate: Date | null; endDate: Date | 
   }
 }
 
-export default withAuth(async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
+export default secureRoute(async function handler(req: SecureRequest, res: NextApiResponse) {
+  const db = getAdminDb();
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
 
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { tenantId } = req.auth;
+  const { tenantId } = req;
+  const range = (req.query.range as string) || 'today';
+
+  try {
     const priceType = (req.query.priceType as string) || 'all'; // all, retail, wholesale
     const clientDate = req.query.clientDate as string;
     
@@ -75,7 +78,7 @@ export default withAuth(async function handler(req: AuthenticatedRequest, res: N
     console.log('Tomorrow (UTC for query):', tomorrowUTC);
 
     // Fetch all products for inventory calculations — scoped to tenant
-    const { data: products, error: productsError } = await supabaseAdmin
+    const { data: products, error: productsError } = await getAdminDb()
       .from('products')
       .select('*')
       .eq('tenant_id', tenantId);
@@ -110,7 +113,7 @@ export default withAuth(async function handler(req: AuthenticatedRequest, res: N
     const potentialProfit = inventoryValueSelling - inventoryValueCost;
 
     // Fetch all transactions for all-time profit (or filtered by date range)
-    let allTransactionsQuery = supabaseAdmin.from('transactions').select('*').eq('tenant_id', tenantId);
+    let allTransactionsQuery = db.from('transactions').select('*').eq('tenant_id', tenantId);
     
     if (startDate && endDate) {
       allTransactionsQuery = allTransactionsQuery
@@ -136,7 +139,7 @@ export default withAuth(async function handler(req: AuthenticatedRequest, res: N
       const transactionIds = allTransactions.map(t => t.transaction_id);
       
       // Fetch all transaction items for these transactions
-      const { data: transactionItems, error: itemsError } = await supabaseAdmin
+      const { data: transactionItems, error: itemsError } = await getAdminDb()
         .from('transaction_items')
         .select('product_id, quantity, unit_price, transaction_id')
         .eq('tenant_id', tenantId)
@@ -219,7 +222,7 @@ export default withAuth(async function handler(req: AuthenticatedRequest, res: N
     // Fetch transactions for the selected date range (not just today)
     // This will be used for "Today's Net Revenue" or "Yesterday's Net Revenue" etc.
     let rangeTransactions;
-    let rangeTransactionsQuery = supabaseAdmin.from('transactions').select('*').eq('tenant_id', tenantId);
+    let rangeTransactionsQuery = db.from('transactions').select('*').eq('tenant_id', tenantId);
     
     if (startDate && endDate) {
       // Use the selected date range
@@ -243,7 +246,7 @@ export default withAuth(async function handler(req: AuthenticatedRequest, res: N
     }, 0) || 0;
     
     // ALWAYS fetch today's transactions for the Net Revenue breakdown
-    const { data: todayTransactionsData, error: todayTxnError } = await supabaseAdmin
+    const { data: todayTransactionsData, error: todayTxnError } = await getAdminDb()
       .from('transactions')
       .select('*')
       .eq('tenant_id', tenantId)
@@ -621,4 +624,4 @@ export default withAuth(async function handler(req: AuthenticatedRequest, res: N
       }
     });
   }
-}
+});

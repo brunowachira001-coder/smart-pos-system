@@ -1,127 +1,40 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-import { createClient } from '@supabase/supabase-js';
+import type { NextApiResponse } from 'next';
+import { secureRoute, SecureRequest, getAdminDb } from '../../../lib/secure-route';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+export default secureRoute(async (req: SecureRequest, res: NextApiResponse) => {
+  const db = getAdminDb();
+  const { userId, tenantId } = req;
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  try {
-    switch (req.method) {
-      case 'GET':
-        return await getProfile(req, res);
-      case 'PUT':
-        return await updateProfile(req, res);
-      default:
-        return res.status(405).json({ error: 'Method not allowed' });
-    }
-  } catch (error: any) {
-    console.error('Profile API error:', error);
-    res.status(500).json({ error: error.message || 'Internal server error' });
-  }
-}
+  if (req.method === 'GET') {
+    const { data, error } = await db
+      .from('users')
+      .select('id, full_name, email, role, phone, avatar_url, is_active, created_at')
+      .eq('id', userId)
+      .eq('tenant_id', tenantId)
+      .single();
 
-async function getProfile(req: NextApiRequest, res: NextApiResponse) {
-  const { email, id } = req.query;
-
-  if (!email && !id) {
-    return res.status(400).json({ error: 'Email or ID is required' });
+    if (error || !data) return res.status(404).json({ error: 'Profile not found' });
+    return res.status(200).json({ profile: data });
   }
 
-  let query = supabase.from('users').select('*');
-  
-  // Always prefer email over ID for querying to avoid confusion
-  if (email && typeof email === 'string') {
-    query = query.eq('email', email);
-  } else if (id && typeof id === 'string' && id !== '1') {
-    query = query.eq('id', id);
-  } else {
-    return res.status(400).json({ error: 'Valid email or UUID is required' });
-  }
+  if (req.method === 'PUT') {
+    const { full_name, phone, avatar_url } = req.body;
+    const updates: any = { updated_at: new Date().toISOString() };
+    if (full_name !== undefined) updates.full_name = full_name;
+    if (phone !== undefined) updates.phone = phone;
+    if (avatar_url !== undefined) updates.avatar_url = avatar_url;
 
-  const { data, error } = await query.single();
-
-  if (error) {
-    console.error('Error fetching profile:', error);
-    return res.status(404).json({ error: 'User not found', details: error.message });
-  }
-
-  res.status(200).json({ profile: data });
-}
-
-async function updateProfile(req: NextApiRequest, res: NextApiResponse) {
-  const { id, full_name, email, phone, avatar_url, original_email } = req.body;
-
-  // We need either the current email or original_email to identify the user
-  const userEmail = original_email || email;
-  
-  if (!userEmail) {
-    return res.status(400).json({ error: 'Email is required to identify user' });
-  }
-
-  // Build updates object
-  const updates: any = {};
-  if (full_name !== undefined) updates.full_name = full_name;
-  if (email !== undefined && email !== userEmail) updates.email = email; // Only update email if it changed
-  if (phone !== undefined) updates.phone = phone;
-  if (avatar_url !== undefined) updates.avatar_url = avatar_url;
-  updates.updated_at = new Date().toISOString();
-
-  // Check if user exists first
-  const { data: existingUsers, error: checkError } = await supabase
-    .from('users')
-    .select('*')
-    .eq('email', userEmail);
-
-  if (checkError) {
-    console.error('Error checking for existing user:', checkError);
-    return res.status(500).json({ error: checkError.message });
-  }
-
-  let data, error;
-
-  if (existingUsers && existingUsers.length > 0) {
-    // Update existing user
-    console.log('Updating existing user:', userEmail);
-    const result = await supabase
+    const { data, error } = await db
       .from('users')
       .update(updates)
-      .eq('email', userEmail)
-      .select()
+      .eq('id', userId)
+      .eq('tenant_id', tenantId)
+      .select('id, full_name, email, role, phone, avatar_url')
       .single();
-    
-    data = result.data;
-    error = result.error;
-  } else {
-    // Create new user if doesn't exist
-    console.log('Creating new user:', userEmail);
-    const newUser = {
-      email: email || userEmail,
-      full_name: full_name || 'Admin User',
-      phone: phone || '',
-      role: 'Admin',
-      is_active: true
-    };
 
-    const result = await supabase
-      .from('users')
-      .insert([newUser])
-      .select()
-      .single();
-    
-    data = result.data;
-    error = result.error;
+    if (error) return res.status(500).json({ error: error.message });
+    return res.status(200).json({ profile: data });
   }
 
-  if (error) {
-    console.error('Error updating/creating profile:', error);
-    return res.status(500).json({ error: error.message });
-  }
-
-  if (!data) {
-    return res.status(404).json({ error: 'Failed to update or create user' });
-  }
-
-  res.status(200).json({ profile: data });
-}
+  return res.status(405).json({ error: 'Method not allowed' });
+});

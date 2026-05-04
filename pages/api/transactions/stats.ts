@@ -1,84 +1,41 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-import { createClient } from '@supabase/supabase-js';
-import { getTodayStartInKenyaTime, getTodayEndInKenyaTime } from '../../../lib/timezone';
+import type { NextApiResponse } from 'next';
+import { secureRoute, SecureRequest, getAdminDb } from '../../../lib/secure-route';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+export default secureRoute(async (req: SecureRequest, res: NextApiResponse) => {
+  if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'GET') {
-    res.setHeader('Allow', ['GET']);
-    return res.status(405).json({ error: `Method ${req.method} Not Allowed` });
-  }
+  const { tenantId } = req;
+  const db = getAdminDb();
 
   try {
-    const { startDate, endDate, priceType } = req.query;
+    const { startDate, endDate } = req.query;
 
-    let query = supabase
-      .from('sales_transactions')
-      .select('*', { count: 'exact' });
+    let query = db.from('transactions').select('total_amount, payment_method, payment_status').eq('tenant_id', tenantId);
+    if (startDate) query = query.gte('created_at', startDate);
+    if (endDate) query = query.lte('created_at', endDate);
 
-    if (startDate) {
-      query = query.gte('created_at', startDate);
-    } else {
-      // Default to today in Kenyan timezone
-      const todayStart = getTodayStartInKenyaTime();
-      query = query.gte('created_at', todayStart.toISOString());
-    }
+    const { data: transactions, error } = await query;
+    if (error) throw error;
 
-    if (endDate) {
-      query = query.lte('created_at', endDate);
-    } else if (!startDate) {
-      // Default to today in Kenyan timezone
-      const todayEnd = getTodayEndInKenyaTime();
-      query = query.lte('created_at', todayEnd.toISOString());
-    }
+    const txns = transactions || [];
+    const totalRevenue = txns.reduce((s, t) => s + parseFloat(t.total_amount || 0), 0);
+    const totalTransactions = txns.length;
 
-    const { data: transactions, error, count } = await query;
-
-    if (error) {
-      return res.status(500).json({ error: error.message });
-    }
-
-    // Calculate statistics
-    const totalRevenue = transactions?.reduce((sum, t) => sum + parseFloat(t.total), 0) || 0;
-    const totalTransactions = count || 0;
-    const averageTransaction = totalTransactions > 0 ? totalRevenue / totalTransactions : 0;
-
-    // Get transactions by payment method
-    const paymentMethods = transactions?.reduce((acc: any, t) => {
-      const method = t.payment_method || 'unknown';
-      if (!acc[method]) {
-        acc[method] = { count: 0, total: 0 };
-      }
-      acc[method].count++;
-      acc[method].total += parseFloat(t.total);
-      return acc;
-    }, {});
-
-    // Get transactions by status
-    const statusBreakdown = transactions?.reduce((acc: any, t) => {
-      const status = t.status || 'unknown';
-      if (!acc[status]) {
-        acc[status] = { count: 0, total: 0 };
-      }
-      acc[status].count++;
-      acc[status].total += parseFloat(t.total);
+    const paymentMethods = txns.reduce((acc: any, t) => {
+      const m = t.payment_method || 'unknown';
+      acc[m] = acc[m] || { count: 0, total: 0 };
+      acc[m].count++;
+      acc[m].total += parseFloat(t.total_amount || 0);
       return acc;
     }, {});
 
     return res.status(200).json({
       totalRevenue,
       totalTransactions,
-      averageTransaction,
+      averageTransaction: totalTransactions > 0 ? totalRevenue / totalTransactions : 0,
       paymentMethods,
-      statusBreakdown
     });
-
   } catch (error: any) {
-    console.error('Transaction Stats Error:', error);
-    return res.status(500).json({ error: error.message || 'Internal server error' });
+    return res.status(500).json({ error: error.message });
   }
-}
+});

@@ -1,7 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { supabase } from '../../../lib/supabase';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+import { secureRoute, SecureRequest, getAdminDb } from '../../lib/secure-route';
+
+export default secureRoute(async function handler(req: SecureRequest, res: NextApiResponse) {
+  const { tenantId } = req;
+  const db = getAdminDb();
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -19,4 +23,4 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   } catch (error: any) {
     return res.status(500).json({ error: error.message });
   }
-}
+});

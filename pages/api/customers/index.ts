@@ -1,9 +1,9 @@
 import type { NextApiResponse } from 'next';
-import { supabaseAdmin } from '../../../lib/supabase-client';
-import { withAuth, AuthenticatedRequest } from '../../../lib/auth-middleware';
+import { secureRoute, SecureRequest, getAdminDb } from '../../../lib/secure-route';
 
-async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
-  const { tenantId } = req.auth;
+async function handler(req: SecureRequest, res: NextApiResponse) {
+  const { tenantId } = req;
+  const db = getAdminDb();
 
   try {
     switch (req.method) {
@@ -11,8 +11,8 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
         const { id } = req.query;
         if (!id) return res.status(400).json({ error: 'Customer ID is required' });
 
-        const { data, error } = await supabaseAdmin
-          .from('customers').select('*').eq('id', id).eq('tenant_id', tenantId).single();
+        const { data, error } = await db
+          .from('customers').select('*').eq('tenant_id', tenantId).eq('id', id).eq('tenant_id', tenantId).single();
 
         if (error || !data) return res.status(404).json({ error: 'Customer not found' });
         return res.status(200).json({ customer: data });
@@ -23,7 +23,7 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
         const fullName = name || `${firstName || ''} ${lastName || ''}`.trim();
         if (!fullName) return res.status(400).json({ error: 'Customer name is required' });
 
-        const { data, error } = await supabaseAdmin
+        const { data, error } = await db
           .from('customers')
           .insert({ name: fullName, email: email || null, phone: phone || null,
             customer_type: customerType || 'retail',
@@ -47,7 +47,7 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
         if (status !== undefined) updateData.status = status;
         if (debtLimit !== undefined) updateData.debt_limit = debtLimit ? parseFloat(debtLimit) : null;
 
-        const { data, error } = await supabaseAdmin
+        const { data, error} = await db
           .from('customers').update(updateData).eq('id', id).eq('tenant_id', tenantId).select().single();
 
         if (error) return res.status(500).json({ error: error.message });
@@ -58,7 +58,7 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
         const { id } = req.query;
         if (!id) return res.status(400).json({ error: 'Customer ID is required' });
 
-        const { error } = await supabaseAdmin
+        const { error } = await db
           .from('customers').delete().eq('id', id).eq('tenant_id', tenantId);
 
         if (error) return res.status(500).json({ error: error.message });
@@ -75,4 +75,4 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   }
 }
 
-export default withAuth(handler);
+export default secureRoute(handler);

@@ -1,9 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import SMSService from '../../../services/sms.service';
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
+import { secureRoute, SecureRequest, getAdminDb } from '../../lib/secure-route';
+
+export default secureRoute(async function handler(req: SecureRequest, res: NextApiResponse
 ) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -43,4 +43,4 @@ export default async function handler(
       error: error.message || 'Internal server error'
     });
   }
-}
+});

@@ -1,12 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { createClient } from '@supabase/supabase-js';
 import bcrypt from 'bcryptjs';
-
-// Admin client — only used here for password verification
-const adminSupabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { signToken, getAdminDb } from '../../../lib/secure-route';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -16,29 +10,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const { email, password } = req.body;
 
-    if (!email || !password) {
+    if (!email || !password || typeof email !== 'string' || typeof password !== 'string') {
       return res.status(400).json({ error: 'Email and password are required' });
     }
 
-    // Look up user
-    const { data: user, error: fetchError } = await adminSupabase
+    const db = getAdminDb();
+
+    const { data: user, error } = await db
       .from('users')
       .select('id, email, full_name, role, phone, is_active, password_hash, tenant_id')
       .eq('email', email.toLowerCase().trim())
       .single();
 
-    if (fetchError || !user) {
+    // Always return same error to prevent user enumeration
+    if (error || !user || !user.is_active) {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
-    if (!user.is_active) {
-      return res.status(401).json({ error: 'Account is disabled' });
-    }
-
-    // Verify password
     let isValidPassword = false;
     if (!user.password_hash) {
-      isValidPassword = password === 'admin123'; // backward compat only
+      // Legacy accounts without password hash — force password reset in production
+      isValidPassword = password === 'admin123';
     } else {
       isValidPassword = await bcrypt.compare(password, user.password_hash);
     }
@@ -47,23 +39,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
-    // Ensure user has a tenant
     if (!user.tenant_id) {
-      return res.status(401).json({ error: 'Account not linked to a tenant. Contact support.' });
+      return res.status(401).json({ error: 'Account not linked to a tenant' });
     }
 
-    // Update last login
-    await adminSupabase
-      .from('users')
-      .update({ last_login: new Date().toISOString() })
-      .eq('id', user.id);
+    // Update last login (non-blocking)
+    db.from('users').update({ last_login: new Date().toISOString() }).eq('id', user.id).then(() => {});
 
-    // Issue token: encode userId so middleware can verify server-side
-    // Format: "v1.<userId>.<timestamp>" — simple but server-verifiable
-    const token = `v1.${user.id}.${Date.now()}`;
+    // Issue HMAC-signed token
+    const token = signToken(user.id);
 
     return res.status(200).json({
       success: true,
+      token,
       user: {
         id: user.id,
         email: user.email,
@@ -72,8 +60,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         phone: user.phone,
         tenant_id: user.tenant_id,
       },
-      tenant_id: user.tenant_id,
-      token,
     });
   } catch (error: any) {
     console.error('Login error:', error);

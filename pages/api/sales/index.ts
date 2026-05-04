@@ -1,7 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { supabase } from '@/lib/supabase';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+import { secureRoute, SecureRequest, getAdminDb } from '../../lib/secure-route';
+
+export default secureRoute(async function handler(req: SecureRequest, res: NextApiResponse) {
+  const { tenantId } = req;
+  const db = getAdminDb();
   if (req.method === 'GET') {
     const { data, error } = await supabase
       .from('sales')
@@ -19,7 +23,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     
     const { data, error } = await supabase
       .from('sales')
-      .insert([{
+      .insert([{ tenant_id: tenantId, 
         order_id,
         customer_name,
         amount,
@@ -35,4 +39,4 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   return res.status(405).json({ error: 'Method not allowed' });
-}
+});

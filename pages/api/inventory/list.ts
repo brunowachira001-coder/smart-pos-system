@@ -6,7 +6,11 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+import { secureRoute, SecureRequest, getAdminDb } from '../../lib/secure-route';
+
+export default secureRoute(async function handler(req: SecureRequest, res: NextApiResponse) {
+  const { tenantId } = req;
+  const db = getAdminDb();
   if (req.method !== 'GET') {
     res.setHeader('Allow', ['GET']);
     return res.status(405).json({ error: `Method ${req.method} Not Allowed` });
@@ -28,7 +32,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const offset = (pageNum - 1) * limitNum;
 
     // Build query
-    let query = supabase.from('products').select('*', { count: 'exact' });
+    let query = db.from('products').select('*', { count: 'exact' }).eq('tenant_id', tenantId);
 
     // Apply filters
     if (filter === 'parent') {
@@ -82,4 +86,4 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.error('Error fetching inventory:', error);
     return res.status(500).json({ error: error.message || 'Failed to fetch inventory' });
   }
-}
+});

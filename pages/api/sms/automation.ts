@@ -7,7 +7,11 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_KEY!
 );
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+import { secureRoute, SecureRequest, getAdminDb } from '../../lib/secure-route';
+
+export default secureRoute(async function handler(req: SecureRequest, res: NextApiResponse) {
+  const { tenantId } = req;
+  const db = getAdminDb();
   try {
     if (req.method === 'GET') {
       // Get all automation rules
@@ -55,4 +59,4 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.error('Automation API error:', error);
     res.status(500).json({ error: error.message });
   }
-}
+});

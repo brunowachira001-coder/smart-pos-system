@@ -8,11 +8,9 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 // Public client — uses anon key, respects RLS
+// Use this in API routes alongside explicit tenant_id filters
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-// Admin client — service role, bypasses RLS
-// ONLY use in server-side admin utilities, never in request handlers
-export const supabaseAdmin = createClient(
-  supabaseUrl,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+// NOTE: supabaseAdmin has been removed from exports.
+// Use getAdminDb() from lib/secure-route.ts in auth-only contexts (login, onboard).
+// All other routes must use secureRoute() which handles DB access internally.

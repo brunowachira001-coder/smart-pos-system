@@ -7,7 +7,11 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+import { secureRoute, SecureRequest, getAdminDb } from '../../lib/secure-route';
+
+export default secureRoute(async function handler(req: SecureRequest, res: NextApiResponse) {
+  const { tenantId } = req;
+  const db = getAdminDb();
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -34,4 +38,4 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.error('Product search error:', error);
     res.status(500).json({ error: 'Failed to search products', products: [] });
   }
-}
+});

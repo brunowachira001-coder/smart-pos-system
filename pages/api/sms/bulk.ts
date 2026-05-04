@@ -1,51 +1,25 @@
-// API: Send Bulk SMS
-import type { NextApiRequest, NextApiResponse } from 'next';
-import smsService from '../../../services/sms.service';
-import { createClient } from '@supabase/supabase-js';
+import type { NextApiResponse } from 'next';
+import { secureRoute, SecureRequest, getAdminDb } from '../../../lib/secure-route';
+import smsService from '../../../services/africastalking-sms.service';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_KEY!
-);
+export default secureRoute(async (req: SecureRequest, res: NextApiResponse) => {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
+  const { tenantId } = req;
+  const { templateId, customerIds, context } = req.body;
 
-  try {
-    const { templateId, customerIds, context } = req.body;
+  if (!templateId) return res.status(400).json({ error: 'Template ID required' });
 
-    if (!templateId) {
-      return res.status(400).json({ error: 'Template ID is required' });
-    }
+  const db = getAdminDb();
 
-    // Get customers
-    let query = supabase.from('customers').select('*');
-    
-    if (customerIds && customerIds.length > 0) {
-      query = query.in('id', customerIds);
-    }
+  let query = db.from('customers').select('id, name, phone').eq('tenant_id', tenantId);
+  if (customerIds?.length) query = query.in('id', customerIds);
 
-    const { data: customers, error } = await query;
+  const { data: customers, error } = await query;
+  if (error) return res.status(500).json({ error: error.message });
+  if (!customers?.length) return res.status(400).json({ error: 'No customers found' });
 
-    if (error) throw error;
+  const result = await smsService.sendBulkSMS(customers, templateId, tenantId, context || {});
 
-    if (!customers || customers.length === 0) {
-      return res.status(400).json({ error: 'No customers found' });
-    }
-
-    // Send bulk SMS
-    const result = await smsService.sendBulkSMS(customers, templateId, context);
-
-    res.status(200).json({
-      success: true,
-      sent: result.sent,
-      failed: result.failed,
-      total: customers.length
-    });
-  } catch (error: any) {
-    console.error('Bulk SMS error:', error);
-    res.status(500).json({ error: error.message });
-  }
-}
+  return res.status(200).json({ success: true, ...result, total: customers.length });
+});

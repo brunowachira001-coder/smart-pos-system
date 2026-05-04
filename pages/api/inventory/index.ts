@@ -1,8 +1,9 @@
 import type { NextApiResponse } from 'next';
-import { supabaseAdmin } from '../../../lib/supabase-client';
-import { withAuth, AuthenticatedRequest } from '../../../lib/auth-middleware';
+;
+import { secureRoute, SecureRequest, getAdminDb } from '../../../lib/secure-route';
 
-async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
+async function handler(req: SecureRequest, res: NextApiResponse) {
+  const db = getAdminDb();
   const { tenantId } = req.auth;
 
   if (req.method === 'POST') {
@@ -13,7 +14,7 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
         return res.status(400).json({ error: 'Name, SKU, and category are required' });
       }
 
-      const { data, error } = await supabaseAdmin
+      const { data, error } = await getAdminDb()
         .from('products')
         .insert([{
           name, sku, category,
@@ -53,7 +54,7 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
       if (barcode !== undefined) updateData.barcode = barcode;
       if (status) updateData.status = status;
 
-      const { data, error } = await supabaseAdmin
+      const { data, error } = await getAdminDb()
         .from('products').update(updateData).eq('id', id).eq('tenant_id', tenantId).select().single();
 
       if (error) return res.status(500).json({ error: error.message });
@@ -68,7 +69,7 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
       const { id } = req.query;
       if (!id) return res.status(400).json({ error: 'Product ID is required' });
 
-      const { error } = await supabaseAdmin
+      const { error } = await getAdminDb()
         .from('products').delete().eq('id', id).eq('tenant_id', tenantId);
 
       if (error) return res.status(500).json({ error: error.message });
@@ -82,4 +83,4 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   return res.status(405).json({ error: `Method ${req.method} Not Allowed` });
 }
 
-export default withAuth(handler);
+export default secureRoute(handler);

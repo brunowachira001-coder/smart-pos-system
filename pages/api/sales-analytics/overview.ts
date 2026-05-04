@@ -1,8 +1,9 @@
 import type { NextApiResponse } from 'next';
-import { supabaseAdmin } from '../../../lib/supabase-client';
-import { withAuth, AuthenticatedRequest } from '../../../lib/auth-middleware';
+;
+import { secureRoute, SecureRequest, getAdminDb } from '../../../lib/secure-route';
 
-async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
+async function handler(req: SecureRequest, res: NextApiResponse) {
+  const db = getAdminDb();
   if (req.method !== 'GET') {
     res.setHeader('Allow', ['GET']);
     return res.status(405).json({ error: `Method ${req.method} Not Allowed` });
@@ -13,7 +14,7 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   try {
     const { startDate, endDate } = req.query;
 
-    let query = supabaseAdmin
+    let query = getAdminDb()
       .from('transactions')
       .select('transaction_id, total_amount, payment_method, created_at')
       .eq('tenant_id', tenantId);
@@ -32,7 +33,7 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
     let retailRevenue = 0;
 
     if (transactionIds.length > 0) {
-      const { data: items } = await supabaseAdmin
+      const { data: items } = await getAdminDb()
         .from('transaction_items')
         .select('unit_price, quantity, total_price')
         .eq('tenant_id', tenantId)
@@ -74,4 +75,4 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   }
 }
 
-export default withAuth(handler);
+export default secureRoute(handler);

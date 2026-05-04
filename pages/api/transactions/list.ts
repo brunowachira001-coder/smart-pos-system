@@ -1,8 +1,9 @@
 import type { NextApiResponse } from 'next';
-import { supabaseAdmin } from '../../../lib/supabase-client';
-import { withAuth, AuthenticatedRequest } from '../../../lib/auth-middleware';
+;
+import { secureRoute, SecureRequest, getAdminDb } from '../../../lib/secure-route';
 
-async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
+async function handler(req: SecureRequest, res: NextApiResponse) {
+  const db = getAdminDb();
   if (req.method !== 'GET') {
     res.setHeader('Allow', ['GET']);
     return res.status(405).json({ error: `Method ${req.method} Not Allowed` });
@@ -16,7 +17,7 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
     const limitNum = parseInt(limit as string);
     const offset = (pageNum - 1) * limitNum;
 
-    let query = supabaseAdmin
+    let query = getAdminDb()
       .from('transactions')
       .select('*', { count: 'exact' })
       .eq('tenant_id', tenantId);
@@ -38,13 +39,13 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
         let customerPhone = transaction.customer_phone || '';
 
         if (transaction.customer_id && !transaction.customer_name) {
-          const { data: customer } = await supabaseAdmin
-            .from('customers').select('name, phone').eq('id', transaction.customer_id).eq('tenant_id', tenantId).single();
+          const { data: customer } = await getAdminDb()
+            .from('customers').select('name, phone').eq('tenant_id', tenantId).eq('id', transaction.customer_id).eq('tenant_id', tenantId).single();
           if (customer) { customerName = customer.name; customerPhone = customer.phone || ''; }
         }
 
-        const { data: items } = await supabaseAdmin
-          .from('transaction_items').select('*').eq('transaction_id', transaction.transaction_id).eq('tenant_id', tenantId);
+        const { data: items } = await getAdminDb()
+          .from('transaction_items').select('*').eq('tenant_id', tenantId).eq('transaction_id', transaction.transaction_id).eq('tenant_id', tenantId);
 
         return {
           id: transaction.id,
@@ -70,4 +71,4 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   }
 }
 
-export default withAuth(handler);
+export default secureRoute(handler);

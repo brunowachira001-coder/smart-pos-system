@@ -1,70 +1,42 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-import { supabase } from '../../../lib/supabase';
-import { getTodayStartInKenyaTime, getTodayEndInKenyaTime } from '../../../lib/timezone';
+import type { NextApiResponse } from 'next';
+import { secureRoute, SecureRequest, getAdminDb } from '../../../lib/secure-route';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'GET') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
+export default secureRoute(async (req: SecureRequest, res: NextApiResponse) => {
+  if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
+
+  const { tenantId } = req;
+  const db = getAdminDb();
 
   try {
     const { startDate, endDate } = req.query;
 
-    // Get debts with optional date filtering
-    let debtsQuery = supabase.from('debts').select('*');
-    
+    let debtsQuery = db.from('debts').select('*').eq('tenant_id', tenantId);
     if (startDate && endDate) {
-      debtsQuery = debtsQuery
-        .gte('created_at', startDate)
-        .lte('created_at', endDate);
+      debtsQuery = debtsQuery.gte('created_at', startDate).lte('created_at', endDate);
     }
 
-    const { data: debts, error: debtsError } = await debtsQuery;
+    const [debtsRes, customersRes] = await Promise.all([
+      debtsQuery,
+      db.from('customers').select('debt_limit').eq('tenant_id', tenantId),
+    ]);
 
-    if (debtsError) throw debtsError;
+    const debts = debtsRes.data || [];
+    const customers = customersRes.data || [];
 
-    // Get customers for credit limit info
-    const { data: customers, error: customersError } = await supabase
-      .from('customers')
-      .select('*');
-
-    if (customersError) throw customersError;
-
-    // Calculate stats using Kenyan time (EAT/UTC+3)
-    const totalOutstanding = debts?.reduce((sum, debt) => {
-      const remaining = parseFloat(debt.amount_remaining || 0);
-      return sum + (remaining > 0 ? remaining : 0); // Only count positive balances
-    }, 0) || 0;
-    
-    // Get today's date range in Kenyan timezone
-    const todayStart = getTodayStartInKenyaTime();
-    const todayEnd = getTodayEndInKenyaTime();
-    
-    const todayDebts = debts?.filter(d => {
-      const debtDate = new Date(d.created_at);
-      return debtDate >= todayStart && debtDate <= todayEnd;
-    }) || [];
-    
-    const todayDebtAmount = todayDebts.reduce((sum, debt) => {
-      const remaining = parseFloat(debt.amount_remaining || 0);
-      return sum + (remaining > 0 ? remaining : 0);
-    }, 0);
-    
-    const totalCreditLimit = customers?.reduce((sum, c) => sum + parseFloat(c.debt_limit || 0), 0) || 0;
-    const activeDebts = debts?.filter(d => d.status !== 'Paid' && parseFloat(d.amount_remaining || 0) > 0).length || 0;
-    const paidDebts = debts?.filter(d => d.status === 'Paid' || parseFloat(d.amount_remaining || 0) <= 0).length || 0;
-    const utilizationPercent = totalCreditLimit > 0 ? Math.round((totalOutstanding / totalCreditLimit) * 100) : 0;
+    const totalOutstanding = debts.reduce((s, d) => s + Math.max(0, parseFloat(d.amount_remaining || 0)), 0);
+    const totalCreditLimit = customers.reduce((s, c) => s + parseFloat(c.debt_limit || 0), 0);
+    const activeDebts = debts.filter(d => d.status !== 'Paid' && parseFloat(d.amount_remaining || 0) > 0).length;
+    const paidDebts = debts.filter(d => d.status === 'Paid' || parseFloat(d.amount_remaining || 0) <= 0).length;
 
     return res.status(200).json({
       totalOutstanding,
-      todayDebt: todayDebtAmount,
       totalCreditLimit,
-      utilizationPercent,
+      utilizationPercent: totalCreditLimit > 0 ? Math.round((totalOutstanding / totalCreditLimit) * 100) : 0,
       activeDebts,
       paidDebts,
-      debts: debts || [],
+      debts,
     });
   } catch (error: any) {
     return res.status(500).json({ error: error.message });
   }
-}
+});

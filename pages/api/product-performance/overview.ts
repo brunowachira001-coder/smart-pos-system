@@ -1,130 +1,55 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-import { supabase } from '../../../lib/supabase-client';
+import type { NextApiResponse } from 'next';
+import { secureRoute, SecureRequest, getAdminDb } from '../../../lib/secure-route';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'GET') {
-    res.setHeader('Allow', ['GET']);
-    return res.status(405).json({ error: `Method ${req.method} Not Allowed` });
-  }
+export default secureRoute(async (req: SecureRequest, res: NextApiResponse) => {
+  if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
+
+  const { tenantId } = req;
+  const db = getAdminDb();
 
   try {
     const { startDate, endDate, search = '' } = req.query;
 
-    // Get all products
-    const { data: products, error: productsError } = await supabase
-      .from('products')
-      .select('*');
+    let txnQuery = db.from('transactions').select('transaction_id').eq('tenant_id', tenantId);
+    if (startDate) txnQuery = txnQuery.gte('created_at', startDate);
+    if (endDate) txnQuery = txnQuery.lte('created_at', endDate);
 
-    if (productsError) {
-      return res.status(500).json({ error: productsError.message });
-    }
+    const [productsRes, txnRes] = await Promise.all([
+      db.from('products').select('*').eq('tenant_id', tenantId),
+      txnQuery,
+    ]);
 
-    // Get all transactions in date range
-    let transactionsQuery = supabase
-      .from('transactions')
-      .select('id, transaction_id, created_at, payment_status');
+    const products = productsRes.data || [];
+    const txnIds = (txnRes.data || []).map(t => t.transaction_id).filter(Boolean);
 
-    if (startDate) {
-      transactionsQuery = transactionsQuery.gte('created_at', startDate);
-    }
-    if (endDate) {
-      transactionsQuery = transactionsQuery.lte('created_at', endDate);
-    }
-
-    const { data: transactions, error: transactionsError } = await transactionsQuery;
-
-    if (transactionsError) {
-      console.error('Transactions query error:', transactionsError);
-      return res.status(500).json({ error: transactionsError.message });
-    }
-
-    // Use transaction_id (TEXT) not id (UUID) for joining with transaction_items
-    const transactionIds = transactions?.map(t => t.transaction_id).filter(Boolean) || [];
-
-    // Get all transaction items for these transactions
     let salesItems: any[] = [];
-    if (transactionIds.length > 0) {
-      const { data: items, error: itemsError } = await supabase
-        .from('transaction_items')
-        .select('*')
-        .in('transaction_id', transactionIds);
-
-      if (itemsError) {
-        console.error('Sales items query error:', itemsError);
-      } else {
-        salesItems = items || [];
-      }
+    if (txnIds.length > 0) {
+      const { data } = await db.from('transaction_items').select('*').eq('tenant_id', tenantId).in('transaction_id', txnIds);
+      salesItems = data || [];
     }
 
-    // Get returns data in date range
-    let returnsQuery = supabase
-      .from('returns')
-      .select('*')
-      .in('status', ['Approved', 'approved', 'Completed', 'completed']);
-
-    if (startDate) {
-      returnsQuery = returnsQuery.gte('created_at', startDate);
-    }
-    if (endDate) {
-      returnsQuery = returnsQuery.lte('created_at', endDate);
-    }
-
-    const { data: returns } = await returnsQuery;
-
-    // Calculate performance metrics for each product
-    const performanceData = products?.map(product => {
-      // Calculate sales metrics from transaction items
-      const productSales = salesItems.filter(item => item.product_id === product.id);
-      const unitsSold = productSales.reduce((sum, item) => sum + (item.quantity || 0), 0);
-      const netRevenue = productSales.reduce((sum, item) => 
-        sum + (parseFloat(item.total_price || item.unit_price || 0) * (item.total_price ? 1 : (item.quantity || 0))), 0
-      );
-
-      // Calculate cost
-      const costPrice = parseFloat(product.cost_price) || 0;
-      const netCost = unitsSold * costPrice;
-
-      // Calculate profit
-      const netProfit = netRevenue - netCost;
-      const profitMargin = netRevenue > 0 ? (netProfit / netRevenue) * 100 : 0;
-
-      // Calculate return rate
-      const productReturns = returns?.filter(r => r.product_id === product.id) || [];
-      const returnedUnits = productReturns.reduce((sum, r) => sum + (r.quantity || 0), 0);
-      const returnRate = unitsSold > 0 ? (returnedUnits / unitsSold) * 100 : 0;
-
+    let result = products.map(product => {
+      const items = salesItems.filter(i => i.product_id === product.id);
+      const unitsSold = items.reduce((s, i) => s + (i.quantity || 0), 0);
+      const revenue = items.reduce((s, i) => s + parseFloat(i.total_price || 0), 0);
+      const cost = unitsSold * (parseFloat(product.cost_price) || 0);
+      const profit = revenue - cost;
       return {
-        id: product.id,
-        name: product.name,
-        sku: product.sku,
-        unitsSold,
-        netRevenue: netRevenue.toFixed(2),
-        netCost: netCost.toFixed(2),
-        netProfit: netProfit.toFixed(2),
-        profitMargin: profitMargin.toFixed(2),
-        returnRate: returnRate.toFixed(2)
+        id: product.id, name: product.name, sku: product.sku,
+        unitsSold, netRevenue: revenue.toFixed(2),
+        netProfit: profit.toFixed(2),
+        profitMargin: revenue > 0 ? ((profit / revenue) * 100).toFixed(2) : '0.00',
       };
-    }) || [];
-
-    // Filter by search if provided
-    let filteredData = performanceData;
-    if (search) {
-      const searchLower = search.toString().toLowerCase();
-      filteredData = performanceData.filter(p => 
-        p.name.toLowerCase().includes(searchLower) || 
-        p.sku.toLowerCase().includes(searchLower)
-      );
-    }
-
-    // Sort by units sold (descending) - most performing to least performing
-    filteredData.sort((a, b) => b.unitsSold - a.unitsSold);
-
-    return res.status(200).json({
-      products: filteredData
     });
 
+    if (search) {
+      const s = search.toString().toLowerCase();
+      result = result.filter(p => p.name.toLowerCase().includes(s) || p.sku.toLowerCase().includes(s));
+    }
+
+    result.sort((a, b) => b.unitsSold - a.unitsSold);
+    return res.status(200).json({ products: result });
   } catch (error: any) {
-    console.error('Error fetching product performance:', error);
-    return res.status(500).json({ error: error.message || 'Failed to fetch product performance' });
+    return res.status(500).json({ error: error.message });
   }
-}
+});
