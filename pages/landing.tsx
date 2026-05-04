@@ -108,18 +108,18 @@ export default function Landing() {
           </div>
         </nav>
 
-        {/* Hero Section */}
-        <div className="pt-24 pb-12 px-4 sm:px-6 lg:px-8">
+        {/* Hero Section - Compact */}
+        <div className="pt-20 pb-8 px-4 sm:px-6 lg:px-8">
           <div className="max-w-7xl mx-auto">
             <div className="text-center">
               {/* Icon/Logo */}
-              <div className="flex justify-center mb-5">
+              <div className="flex justify-center mb-3">
                 {settings.logo_url ? (
                   <img 
                     src={settings.logo_url} 
                     alt={settings.business_name}
-                    className="w-20 h-20 object-cover rounded-2xl shadow-2xl animate-pulse"
-                    style={{ boxShadow: `0 25px 50px -12px ${settings.primary_color}80` }}
+                    className="w-16 h-16 object-cover rounded-2xl shadow-2xl"
+                    style={{ boxShadow: `0 20px 40px -12px ${settings.primary_color}80` }}
                     onError={(e) => {
                       e.currentTarget.style.display = 'none';
                       e.currentTarget.nextElementSibling!.classList.remove('hidden');
@@ -127,32 +127,33 @@ export default function Landing() {
                   />
                 ) : null}
                 <div 
-                  className={settings.logo_url ? 'hidden w-16 h-16 rounded-2xl flex items-center justify-center shadow-2xl animate-pulse' : 'w-16 h-16 rounded-2xl flex items-center justify-center shadow-2xl animate-pulse'}
+                  className={settings.logo_url ? 'hidden w-14 h-14 rounded-2xl flex items-center justify-center shadow-2xl' : 'w-14 h-14 rounded-2xl flex items-center justify-center shadow-2xl'}
                   style={{ 
                     background: `linear-gradient(135deg, ${settings.primary_color} 0%, ${settings.secondary_color || settings.primary_color} 100%)`,
-                    boxShadow: `0 25px 50px -12px ${settings.primary_color}80`
+                    boxShadow: `0 20px 40px -12px ${settings.primary_color}80`
                   }}
                 >
-                  <svg className="w-9 h-9 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                   </svg>
                 </div>
               </div>
 
               {/* Heading */}
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white mb-4 leading-tight">
-                {settings.business_name}
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white mb-3 leading-tight">
+                The POS system that<br />
+                <span style={{ color: settings.primary_color }}>grows with your shop</span>
               </h1>
               
-              <p className="text-lg sm:text-xl text-slate-300 mb-8 max-w-2xl mx-auto">
-                {settings.business_tagline || 'Streamline your stock, sales, and returns with our powerful and intuitive dashboard.'}
+              <p className="text-base sm:text-lg text-slate-300 mb-6 max-w-2xl mx-auto">
+                Manage inventory, track sales, handle debts, and send SMS to customers — all from one dashboard.
               </p>
 
               {/* CTA Button */}
               <div className="flex justify-center">
                 <button
                   onClick={handleLoginClick}
-                  className="px-10 py-4 text-white text-lg font-semibold rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg"
+                  className="px-8 py-3 text-white text-base font-semibold rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg"
                   style={{ 
                     backgroundColor: settings.primary_color,
                     boxShadow: `0 10px 15px -3px ${settings.primary_color}50`
@@ -171,227 +172,154 @@ export default function Landing() {
           </div>
         </div>
 
-        {/* Features Section */}
-        <div className="py-24 px-4 sm:px-6 lg:px-8 bg-slate-900/50">
+        {/* Features Section - Compact */}
+        <div className="py-12 px-4 sm:px-6 lg:px-8 bg-slate-900/50">
           <div className="max-w-7xl mx-auto">
-            <h2 className="text-5xl font-bold text-white text-center mb-20 animate-fade-in">
-              Everything You Need to Manage Your Business
+            <h2 className="text-2xl sm:text-3xl font-bold text-white text-center mb-8">
+              Everything You Need
             </h2>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {/* Feature 1 */}
               <div 
-                className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-2xl p-8 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl"
-                style={{ 
-                  '--hover-border': settings.primary_color 
-                } as React.CSSProperties}
+                className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-5 transition-all duration-300 transform hover:scale-105"
                 onMouseEnter={(e) => {
                   e.currentTarget.style.borderColor = settings.primary_color;
-                  e.currentTarget.style.boxShadow = `0 25px 50px -12px ${settings.primary_color}50`;
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.borderColor = 'rgb(51 65 85)';
-                  e.currentTarget.style.boxShadow = '';
                 }}
               >
                 <div 
-                  className="w-16 h-16 rounded-xl flex items-center justify-center mb-6 shadow-lg"
+                  className="w-12 h-12 rounded-lg flex items-center justify-center mb-3"
                   style={{ backgroundColor: settings.primary_color }}
                 >
-                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                   </svg>
                 </div>
-                <h3 className="text-2xl font-semibold text-white mb-3">Real-time Analytics</h3>
-                <p className="text-slate-400 text-lg">Track sales, inventory, and performance metrics in real-time with beautiful dashboards.</p>
+                <h3 className="text-lg font-semibold text-white mb-2">Point of Sale</h3>
+                <p className="text-slate-400 text-sm">Fast checkout with barcode scanning, cart management, and receipt printing.</p>
               </div>
 
               {/* Feature 2 */}
               <div 
-                className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-2xl p-8 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl"
+                className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-5 transition-all duration-300 transform hover:scale-105"
                 onMouseEnter={(e) => {
                   e.currentTarget.style.borderColor = settings.primary_color;
-                  e.currentTarget.style.boxShadow = `0 25px 50px -12px ${settings.primary_color}50`;
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.borderColor = 'rgb(51 65 85)';
-                  e.currentTarget.style.boxShadow = '';
                 }}
               >
                 <div 
-                  className="w-16 h-16 rounded-xl flex items-center justify-center mb-6 shadow-lg"
-                  style={{ backgroundColor: settings.secondary_color || settings.primary_color }}
+                  className="w-12 h-12 rounded-lg flex items-center justify-center mb-3"
+                  style={{ backgroundColor: settings.primary_color }}
                 >
-                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                   </svg>
                 </div>
-                <h3 className="text-2xl font-semibold text-white mb-3">Point of Sale</h3>
-                <p className="text-slate-400 text-lg">Fast and efficient checkout process with barcode scanning and receipt printing.</p>
+                <h3 className="text-lg font-semibold text-white mb-2">Inventory</h3>
+                <p className="text-slate-400 text-sm">Real-time stock tracking, low stock alerts, and restock management.</p>
               </div>
 
               {/* Feature 3 */}
               <div 
-                className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-2xl p-8 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl"
+                className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-5 transition-all duration-300 transform hover:scale-105"
                 onMouseEnter={(e) => {
                   e.currentTarget.style.borderColor = settings.primary_color;
-                  e.currentTarget.style.boxShadow = `0 25px 50px -12px ${settings.primary_color}50`;
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.borderColor = 'rgb(51 65 85)';
-                  e.currentTarget.style.boxShadow = '';
                 }}
               >
                 <div 
-                  className="w-16 h-16 rounded-xl flex items-center justify-center mb-6 shadow-lg"
+                  className="w-12 h-12 rounded-lg flex items-center justify-center mb-3"
                   style={{ backgroundColor: settings.primary_color }}
                 >
-                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
                   </svg>
                 </div>
-                <h3 className="text-2xl font-semibold text-white mb-3">Inventory Management</h3>
-                <p className="text-slate-400 text-lg">Keep track of stock levels, restock alerts, and product performance.</p>
+                <h3 className="text-lg font-semibold text-white mb-2">Customers & Debts</h3>
+                <p className="text-slate-400 text-sm">Track customer credit, manage debts, and view purchase history.</p>
               </div>
 
               {/* Feature 4 */}
               <div 
-                className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-2xl p-8 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl"
+                className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-5 transition-all duration-300 transform hover:scale-105"
                 onMouseEnter={(e) => {
                   e.currentTarget.style.borderColor = settings.primary_color;
-                  e.currentTarget.style.boxShadow = `0 25px 50px -12px ${settings.primary_color}50`;
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.borderColor = 'rgb(51 65 85)';
-                  e.currentTarget.style.boxShadow = '';
                 }}
               >
                 <div 
-                  className="w-16 h-16 rounded-xl flex items-center justify-center mb-6 shadow-lg"
-                  style={{ backgroundColor: settings.secondary_color || settings.primary_color }}
+                  className="w-12 h-12 rounded-lg flex items-center justify-center mb-3"
+                  style={{ backgroundColor: settings.primary_color }}
                 >
-                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                   </svg>
                 </div>
-                <h3 className="text-2xl font-semibold text-white mb-3">Customer Management</h3>
-                <p className="text-slate-400 text-lg">Manage customer information, credit limits, and purchase history.</p>
+                <h3 className="text-lg font-semibold text-white mb-2">Analytics</h3>
+                <p className="text-slate-400 text-sm">Sales reports, profit tracking, and product performance insights.</p>
               </div>
 
               {/* Feature 5 */}
               <div 
-                className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-2xl p-8 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl"
+                className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-5 transition-all duration-300 transform hover:scale-105"
                 onMouseEnter={(e) => {
                   e.currentTarget.style.borderColor = settings.primary_color;
-                  e.currentTarget.style.boxShadow = `0 25px 50px -12px ${settings.primary_color}50`;
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.borderColor = 'rgb(51 65 85)';
-                  e.currentTarget.style.boxShadow = '';
                 }}
               >
                 <div 
-                  className="w-16 h-16 rounded-xl flex items-center justify-center mb-6 shadow-lg"
+                  className="w-12 h-12 rounded-lg flex items-center justify-center mb-3"
                   style={{ backgroundColor: settings.primary_color }}
                 >
-                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 15v-1a4 4 0 00-4-4H8m0 0l3 3m-3-3l3-3m9 14V5a2 2 0 00-2-2H6a2 2 0 00-2 2v16l4-2 4 2 4-2 4 2z" />
                   </svg>
                 </div>
-                <h3 className="text-2xl font-semibold text-white mb-3">Expense Tracking</h3>
-                <p className="text-slate-400 text-lg">Monitor business expenses and maintain accurate financial records.</p>
+                <h3 className="text-lg font-semibold text-white mb-2">Returns</h3>
+                <p className="text-slate-400 text-sm">Handle product returns with automated inventory updates.</p>
               </div>
 
               {/* Feature 6 */}
               <div 
-                className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-2xl p-8 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl"
+                className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-5 transition-all duration-300 transform hover:scale-105"
                 onMouseEnter={(e) => {
                   e.currentTarget.style.borderColor = settings.primary_color;
-                  e.currentTarget.style.boxShadow = `0 25px 50px -12px ${settings.primary_color}50`;
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.borderColor = 'rgb(51 65 85)';
-                  e.currentTarget.style.boxShadow = '';
                 }}
               >
                 <div 
-                  className="w-16 h-16 rounded-xl flex items-center justify-center mb-6 shadow-lg"
-                  style={{ backgroundColor: settings.secondary_color || settings.primary_color }}
+                  className="w-12 h-12 rounded-lg flex items-center justify-center mb-3"
+                  style={{ backgroundColor: settings.primary_color }}
                 >
-                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 15v-1a4 4 0 00-4-4H8m0 0l3 3m-3-3l3-3m9 14V5a2 2 0 00-2-2H6a2 2 0 00-2 2v16l4-2 4 2 4-2 4 2z" />
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
                   </svg>
                 </div>
-                <h3 className="text-2xl font-semibold text-white mb-3">Returns Management</h3>
-                <p className="text-slate-400 text-lg">Handle product returns efficiently with automated inventory updates.</p>
+                <h3 className="text-lg font-semibold text-white mb-2">SMS Messages</h3>
+                <p className="text-slate-400 text-sm">Send automated SMS to customers for debts, promotions, and updates.</p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Install App Section */}
-        <div className="py-24 px-4 sm:px-6 lg:px-8">
-          <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-5xl font-bold text-white mb-8 animate-fade-in">
-              Get the Full Experience
-            </h2>
-            <p className="text-2xl text-slate-300 mb-12">
-              Install our app on your device for faster access and offline features.
-            </p>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-              <div className="text-center transform transition-all duration-300 hover:scale-105">
-                <div 
-                  className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg"
-                  style={{ backgroundColor: settings.primary_color }}
-                >
-                  <span className="text-3xl font-bold text-white">1</span>
-                </div>
-                <p className="text-slate-300 text-lg">Click "Install App" button</p>
-              </div>
-              
-              <div className="text-center transform transition-all duration-300 hover:scale-105">
-                <div 
-                  className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg"
-                  style={{ backgroundColor: settings.secondary_color || settings.primary_color }}
-                >
-                  <span className="text-3xl font-bold text-white">2</span>
-                </div>
-                <p className="text-slate-300 text-lg">Follow browser prompts</p>
-              </div>
-              
-              <div className="text-center transform transition-all duration-300 hover:scale-105">
-                <div 
-                  className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg"
-                  style={{ backgroundColor: settings.primary_color }}
-                >
-                  <span className="text-3xl font-bold text-white">3</span>
-                </div>
-                <p className="text-slate-300 text-lg">Access from home screen</p>
-              </div>
-            </div>
-            
-            <button
-              onClick={handleInstallClick}
-              className="px-10 py-5 text-white text-xl font-semibold rounded-xl transition-all duration-300 transform hover:scale-105 shadow-2xl"
-              style={{ 
-                background: `linear-gradient(135deg, ${settings.primary_color} 0%, ${settings.secondary_color || settings.primary_color} 100%)`,
-                boxShadow: `0 20px 25px -5px ${settings.primary_color}50`
-              }}
-            >
-              Install App Now
-            </button>
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="py-8 px-4 sm:px-6 lg:px-8">
+        {/* Footer - Compact */}
+        <div className="py-6 px-4 sm:px-6 lg:px-8">
           <div className="max-w-7xl mx-auto text-center">
-            <p className="text-purple-300 text-sm">
-              © 2026 {settings.business_name}. Built with Next.js and Supabase.
-            </p>
-            <p className="text-purple-300 text-sm mt-2">
-              Protected by enterprise-grade security
+            <p className="text-slate-400 text-sm">
+              © 2026 {settings.business_name}. Built for small & medium retail businesses.
             </p>
           </div>
         </div>
