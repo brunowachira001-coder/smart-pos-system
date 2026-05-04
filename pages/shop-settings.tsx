@@ -21,6 +21,15 @@ export default function ShopSettingsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const { toast, showToast, hideToast } = useToast();
+  const [slug, setSlug] = useState('');
+  const [slugInput, setSlugInput] = useState('');
+  const [slugSaving, setSlugSaving] = useState(false);
+  const [slugEditing, setSlugEditing] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const shopUrl = typeof window !== 'undefined' && slug
+    ? `${window.location.origin}/s/${slug}`
+    : '';
 
   useEffect(() => {
     fetchSettings();
@@ -49,10 +58,53 @@ export default function ShopSettingsPage() {
       if (response.ok && data.settings) {
         setSettings(data.settings);
       }
+
+      // Fetch tenant slug
+      const token = localStorage.getItem('token');
+      const tenantRes = await fetch('/api/tenant', token ? { headers: { Authorization: `Bearer ${token}` } } : {});
+      if (tenantRes.ok) {
+        const tenantData = await tenantRes.json();
+        if (tenantData.tenant?.slug) {
+          setSlug(tenantData.tenant.slug);
+          setSlugInput(tenantData.tenant.slug);
+          localStorage.setItem('tenantSlug', tenantData.tenant.slug);
+        }
+      }
     } catch (error) {
       console.error('Error fetching settings:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCopyUrl = () => {
+    if (!shopUrl) return;
+    navigator.clipboard.writeText(shopUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleSaveSlug = async () => {
+    if (!slugInput || slugInput === slug) { setSlugEditing(false); return; }
+    setSlugSaving(true);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch('/api/tenant/update-slug', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        body: JSON.stringify({ slug: slugInput }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      setSlug(data.slug);
+      setSlugInput(data.slug);
+      localStorage.setItem('tenantSlug', data.slug);
+      setSlugEditing(false);
+      showToast('Shop URL updated successfully!', 'success');
+    } catch (err: any) {
+      showToast(err.message || 'Failed to update slug', 'error');
+    } finally {
+      setSlugSaving(false);
     }
   };
 
@@ -124,6 +176,84 @@ export default function ShopSettingsPage() {
         </div>
 
         <form onSubmit={handleSave} className="space-y-6">
+          {/* Shop URL */}
+          {slug && (
+            <div className="bg-[var(--bg-tertiary)] border border-emerald-500/30 rounded-lg p-4 md:p-6">
+              <h2 className="text-xl md:text-lg font-semibold text-[var(--text-primary)] mb-1">Your Shop URL</h2>
+              <p className="text-sm text-[var(--text-secondary)] mb-4">
+                Share this link with your customers. They can view your shop page and log in from here.
+              </p>
+
+              {/* URL display + copy */}
+              <div className="flex items-center gap-2 mb-4">
+                <div className="flex-1 bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-4 py-3 text-sm text-emerald-400 font-mono truncate">
+                  {shopUrl}
+                </div>
+                <button
+                  type="button"
+                  onClick={handleCopyUrl}
+                  className="px-4 py-3 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg transition-colors whitespace-nowrap"
+                >
+                  {copied ? '✓ Copied!' : 'Copy Link'}
+                </button>
+                <a
+                  href={shopUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-4 py-3 border border-[var(--border-color)] hover:bg-[var(--bg-secondary)] text-[var(--text-primary)] text-sm font-medium rounded-lg transition-colors whitespace-nowrap"
+                >
+                  Open ↗
+                </a>
+              </div>
+
+              {/* Slug editor */}
+              <div>
+                <p className="text-xs text-[var(--text-secondary)] mb-2">
+                  Slug: <span className="font-mono text-[var(--text-primary)]">{slug}</span>
+                  {!slugEditing && (
+                    <button
+                      type="button"
+                      onClick={() => setSlugEditing(true)}
+                      className="ml-2 text-emerald-500 hover:text-emerald-400 text-xs underline"
+                    >
+                      Customize
+                    </button>
+                  )}
+                </p>
+                {slugEditing && (
+                  <div className="flex items-center gap-2 mt-2">
+                    <span className="text-sm text-[var(--text-secondary)] whitespace-nowrap">/s/</span>
+                    <input
+                      type="text"
+                      value={slugInput}
+                      onChange={e => setSlugInput(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                      className="flex-1 bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-sm text-[var(--text-primary)] font-mono focus:ring-2 focus:ring-emerald-500"
+                      placeholder="your-shop-name"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleSaveSlug}
+                      disabled={slugSaving}
+                      className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg disabled:opacity-50"
+                    >
+                      {slugSaving ? 'Saving...' : 'Save'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setSlugEditing(false); setSlugInput(slug); }}
+                      className="px-3 py-2 border border-[var(--border-color)] text-[var(--text-secondary)] text-sm rounded-lg hover:bg-[var(--bg-secondary)]"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                )}
+                <p className="text-xs text-[var(--text-secondary)] mt-2">
+                  Lowercase letters, numbers and hyphens only. This is your permanent link until you connect a custom domain.
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Business Information */}
           <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-4 md:p-6">
             <h2 className="text-xl md:text-lg font-semibold text-[var(--text-primary)] mb-4">Business Information</h2>

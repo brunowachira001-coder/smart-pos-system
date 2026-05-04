@@ -47,6 +47,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .replace(/[^a-z0-9]/g, '')
       .substring(0, 30);
 
+    // Generate a URL-friendly slug from the business name
+    const baseSlug = business_name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')  // spaces/special chars → hyphens
+      .replace(/^-+|-+$/g, '')       // trim leading/trailing hyphens
+      .substring(0, 50);
+
+    // Check if slug is taken, append random suffix if needed
+    const { data: existing } = await supabase
+      .from('tenants')
+      .select('id')
+      .eq('slug', baseSlug)
+      .single();
+
+    const slug = existing
+      ? `${baseSlug}-${Math.random().toString(36).substring(2, 6)}`
+      : baseSlug;
+
     const { data: tenant, error: tenantError } = await supabase
       .from('tenants')
       .insert({
@@ -60,8 +78,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         currency_symbol,
         sms_sender_name: subdomain.toUpperCase(),
         subdomain,
+        slug,
         is_active: true,
-        onboarding_step: 1, // new signups go through the wizard
+        onboarding_step: 1,
       })
       .select()
       .single();

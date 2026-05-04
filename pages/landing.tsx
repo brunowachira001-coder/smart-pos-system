@@ -101,7 +101,7 @@ export default function Landing() {
                     e.currentTarget.style.backgroundColor = settings.primary_color;
                   }}
                 >
-                  Login to Dashboard
+                  Go to Your Shop
                 </button>
               </div>
             </div>
@@ -109,19 +109,17 @@ export default function Landing() {
         </nav>
 
         {/* Hero Section */}
-        <div className="pt-32 pb-20 px-4 sm:px-6 lg:px-8">
+        <div className="pt-24 pb-12 px-4 sm:px-6 lg:px-8">
           <div className="max-w-7xl mx-auto">
             <div className="text-center">
               {/* Icon/Logo */}
-              <div className="flex justify-center mb-8">
+              <div className="flex justify-center mb-5">
                 {settings.logo_url ? (
                   <img 
                     src={settings.logo_url} 
                     alt={settings.business_name}
-                    className="w-32 h-32 object-cover rounded-2xl shadow-2xl animate-pulse"
-                    style={{ 
-                      boxShadow: `0 25px 50px -12px ${settings.primary_color}80`
-                    }}
+                    className="w-20 h-20 object-cover rounded-2xl shadow-2xl animate-pulse"
+                    style={{ boxShadow: `0 25px 50px -12px ${settings.primary_color}80` }}
                     onError={(e) => {
                       e.currentTarget.style.display = 'none';
                       e.currentTarget.nextElementSibling!.classList.remove('hidden');
@@ -129,32 +127,32 @@ export default function Landing() {
                   />
                 ) : null}
                 <div 
-                  className={settings.logo_url ? 'hidden w-20 h-20 rounded-2xl flex items-center justify-center shadow-2xl animate-pulse' : 'w-20 h-20 rounded-2xl flex items-center justify-center shadow-2xl animate-pulse'}
+                  className={settings.logo_url ? 'hidden w-16 h-16 rounded-2xl flex items-center justify-center shadow-2xl animate-pulse' : 'w-16 h-16 rounded-2xl flex items-center justify-center shadow-2xl animate-pulse'}
                   style={{ 
                     background: `linear-gradient(135deg, ${settings.primary_color} 0%, ${settings.secondary_color || settings.primary_color} 100%)`,
                     boxShadow: `0 25px 50px -12px ${settings.primary_color}80`
                   }}
                 >
-                  <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-9 h-9 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                   </svg>
                 </div>
               </div>
 
               {/* Heading */}
-              <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold text-white mb-6 leading-tight">
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white mb-4 leading-tight">
                 {settings.business_name}
               </h1>
               
-              <p className="text-xl sm:text-2xl text-slate-300 mb-12 max-w-3xl mx-auto">
+              <p className="text-lg sm:text-xl text-slate-300 mb-8 max-w-2xl mx-auto">
                 {settings.business_tagline || 'Streamline your stock, sales, and returns with our powerful and intuitive dashboard.'}
               </p>
 
-              {/* CTA Buttons */}
-              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              {/* CTA Button */}
+              <div className="flex justify-center">
                 <button
                   onClick={handleLoginClick}
-                  className="px-8 py-4 text-white text-lg font-semibold rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg w-full sm:w-auto"
+                  className="px-10 py-4 text-white text-lg font-semibold rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg"
                   style={{ 
                     backgroundColor: settings.primary_color,
                     boxShadow: `0 10px 15px -3px ${settings.primary_color}50`
@@ -166,17 +164,7 @@ export default function Landing() {
                     e.currentTarget.style.backgroundColor = settings.primary_color;
                   }}
                 >
-                  Login to Dashboard
-                </button>
-                
-                <button
-                  onClick={handleInstallClick}
-                  className="px-8 py-4 bg-slate-800 hover:bg-slate-700 text-white text-lg font-semibold rounded-xl border-2 border-slate-600 transition-all duration-200 transform hover:scale-105 flex items-center justify-center gap-2 w-full sm:w-auto"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                  </svg>
-                  Install App
+                  Go to Your Shop
                 </button>
               </div>
             </div>
