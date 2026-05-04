@@ -47,13 +47,13 @@ export default function Login() {
         localStorage.setItem('user', JSON.stringify(user));
         localStorage.setItem('tenant_id', user.tenant_id || '');
 
-        // Redirect to onboarding wizard if setup is incomplete
-        const onboardingStep = data.onboarding_step ?? 5;
-        if (onboardingStep < 5) {
-          router.push('/onboarding');
-        } else {
-          router.push('/dashboard-pro');
+        // Store first login flag for welcome banner
+        if (data.is_first_login) {
+          localStorage.setItem('is_first_login', 'true');
         }
+
+        // All users go to dashboard — no onboarding wizard
+        router.push('/dashboard-pro');
       } else {
         throw new Error(data.error || 'Login failed');
       }
@@ -245,12 +245,6 @@ export default function Login() {
               >
                 Forgot your password?
               </a>
-              <p className="text-sm" style={{ color: '#64748b' }}>
-                New shop?{' '}
-                <a href="/signup" className="font-medium" style={{ color: '#10b981' }}>
-                  Create your account →
-                </a>
-              </p>
             </div>
           </div>
 

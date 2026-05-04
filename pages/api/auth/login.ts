@@ -18,7 +18,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const { data: user, error } = await db
       .from('users')
-      .select('id, email, full_name, role, phone, is_active, password_hash, tenant_id, tenants(onboarding_step)')
+      .select('id, email, full_name, role, phone, is_active, password_hash, tenant_id, is_first_login, tenants(onboarding_step)')
       .eq('email', email.toLowerCase().trim())
       .single();
 
@@ -55,6 +55,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       success: true,
       token,
       onboarding_step: onboardingStep,
+      is_first_login: user.is_first_login ?? false,
       user: {
         id: user.id,
         email: user.email,
@@ -64,6 +65,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         tenant_id: user.tenant_id,
       },
     });
+
+    // Mark is_first_login = false after successful login (non-blocking)
+    if (user.is_first_login) {
+      db.from('users').update({ is_first_login: false }).eq('id', user.id).then(() => {});
+    }
   } catch (error: any) {
     console.error('Login error:', error);
     return res.status(500).json({ error: 'Internal server error' });
