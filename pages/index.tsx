@@ -31,7 +31,7 @@ export default function LandingPage() {
     if ('caches' in window) {
       caches.keys().then((names) => {
         names.forEach((name) => {
-          if (name.includes('nyla-wigs') && !name.includes('v3')) {
+          if (name.includes('smart-pos') && !name.includes('v3')) {
             caches.delete(name);
           }
         });

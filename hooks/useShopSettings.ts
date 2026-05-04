@@ -18,13 +18,13 @@ export interface ShopSettings {
 }
 
 const defaultSettings: ShopSettings = {
-  business_name: 'Nyla Wigs',
-  business_tagline: 'Premium Quality Wigs',
+  business_name: 'My Shop',
+  business_tagline: '',
   business_type: 'Retail Store',
-  business_email: 'info@nylawigs.com',
-  business_phone: '0789715533',
-  business_address: 'Nairobi, Kenya',
-  logo_url: '/nyla-logo.png',
+  business_email: '',
+  business_phone: '',
+  business_address: '',
+  logo_url: '',
   primary_color: '#10b981',
   secondary_color: '#059669',
   currency: 'KES',
@@ -47,13 +47,44 @@ export function useShopSettings() {
         setSettings(JSON.parse(cached));
       }
 
-      // Fetch fresh data
-      const response = await fetch('/api/shop-settings');
-      const data = await response.json();
-      
-      if (response.ok && data.settings) {
-        setSettings(data.settings);
-        localStorage.setItem('shopSettings', JSON.stringify(data.settings));
+      // Try tenant API first (multi-tenant), fall back to shop-settings
+      let data: any = null;
+      const tenantRes = await fetch('/api/tenant');
+      if (tenantRes.ok) {
+        const tenantData = await tenantRes.json();
+        if (tenantData.tenant) {
+          // Map tenant fields to ShopSettings shape
+          data = {
+            business_name: tenantData.tenant.business_name,
+            business_tagline: tenantData.tenant.tagline,
+            business_type: tenantData.tenant.business_type,
+            business_email: tenantData.tenant.business_email,
+            business_phone: tenantData.tenant.business_phone,
+            business_address: '',
+            logo_url: tenantData.tenant.logo_url,
+            primary_color: tenantData.tenant.primary_color,
+            secondary_color: tenantData.tenant.secondary_color,
+            currency: tenantData.tenant.currency,
+            currency_symbol: tenantData.tenant.currency_symbol,
+            instagram_url: tenantData.tenant.instagram_url,
+            facebook_url: tenantData.tenant.facebook_url,
+            tiktok_url: tenantData.tenant.tiktok_url,
+          };
+        }
+      }
+
+      // Fallback to shop-settings API
+      if (!data) {
+        const response = await fetch('/api/shop-settings');
+        const shopData = await response.json();
+        if (response.ok && shopData.settings) {
+          data = shopData.settings;
+        }
+      }
+
+      if (data) {
+        setSettings(data);
+        localStorage.setItem('shopSettings', JSON.stringify(data));
       }
     } catch (error) {
       console.error('Error fetching shop settings:', error);
