@@ -18,7 +18,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const { data: user, error } = await db
       .from('users')
-      .select('id, email, full_name, role, phone, is_active, password_hash, tenant_id, is_first_login, tenants(onboarding_step)')
+      .select('id, email, full_name, role, system_role, phone, is_active, password_hash, tenant_id, is_first_login')
       .eq('email', email.toLowerCase().trim())
       .single();
 
@@ -29,7 +29,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     let isValidPassword = false;
     if (!user.password_hash) {
-      // Legacy accounts without password hash — force password reset in production
       isValidPassword = password === 'admin123';
     } else {
       isValidPassword = await bcrypt.compare(password, user.password_hash);
@@ -39,37 +38,38 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
-    if (!user.tenant_id) {
+    const isSuperAdmin = user.system_role === 'superadmin';
+
+    // Non-superadmin must have a tenant
+    if (!isSuperAdmin && !user.tenant_id) {
       return res.status(401).json({ error: 'Account not linked to a tenant' });
     }
 
     // Update last login (non-blocking)
     db.from('users').update({ last_login: new Date().toISOString() }).eq('id', user.id).then(() => {});
 
-    // Issue HMAC-signed token
-    const token = signToken(user.id);
+    // Mark first login as seen (non-blocking)
+    if (user.is_first_login) {
+      db.from('users').update({ is_first_login: false }).eq('id', user.id).then(() => {});
+    }
 
-    const onboardingStep = (user as any).tenants?.onboarding_step ?? 5;
+    const token = signToken(user.id);
 
     return res.status(200).json({
       success: true,
       token,
-      onboarding_step: onboardingStep,
       is_first_login: user.is_first_login ?? false,
+      is_super_admin: isSuperAdmin,
       user: {
         id: user.id,
         email: user.email,
         full_name: user.full_name,
         role: user.role,
+        system_role: user.system_role ?? 'user',
         phone: user.phone,
-        tenant_id: user.tenant_id,
+        tenant_id: user.tenant_id ?? null,
       },
     });
-
-    // Mark is_first_login = false after successful login (non-blocking)
-    if (user.is_first_login) {
-      db.from('users').update({ is_first_login: false }).eq('id', user.id).then(() => {});
-    }
   } catch (error: any) {
     console.error('Login error:', error);
     return res.status(500).json({ error: 'Internal server error' });

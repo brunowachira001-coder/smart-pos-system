@@ -65,9 +65,22 @@ export default function Sidebar({ onClose }: SidebarProps) {
     { label: 'User Management', href: '/user-management', icon: '👤' },
     { label: 'Shop Settings', href: '/shop-settings', icon: '🏪' },
     { label: 'My Profile', href: '/my-profile', icon: '⚙️' },
+    { label: 'Admin Panel', href: '/admin', icon: '🔧', adminOnly: true },
   ];
 
   const isActive = (href: string) => router.pathname === href;
+
+  // Read user role from localStorage for frontend-only guard
+  // Backend always enforces this independently
+  const isSuperAdmin = (() => {
+    if (typeof window === 'undefined') return false;
+    try {
+      const u = JSON.parse(localStorage.getItem('user') || '{}');
+      return u.system_role === 'superadmin';
+    } catch { return false; }
+  })();
+
+  const visibleMenuItems = menuItems.filter(item => !item.adminOnly || isSuperAdmin);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -127,7 +140,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
       )}
 
       <nav className="px-3 py-4 space-y-1 flex-1">
-        {menuItems.map((item) => (
+        {visibleMenuItems.map((item) => (
           <Link
             key={item.href}
             href={item.href}

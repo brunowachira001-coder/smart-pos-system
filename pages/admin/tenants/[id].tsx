@@ -24,6 +24,14 @@ export default function TenantDetail() {
 
   useEffect(() => {
     if (!id) return;
+    // Frontend guard — backend enforces independently
+    try {
+      const u = JSON.parse(localStorage.getItem('user') || '{}');
+      if (u.system_role !== 'superadmin' && u.role !== 'Admin') {
+        router.replace('/dashboard-pro');
+        return;
+      }
+    } catch {}
     fetch(`/api/admin/tenants/${id}`, { headers: authHeaders() })
       .then(r => r.json())
       .then(d => { setTenant(d.tenant); setUsers(d.users || []); })

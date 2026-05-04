@@ -39,8 +39,9 @@ export default function Login() {
           username: data.user.full_name,
           email: data.user.email,
           phone: data.user.phone,
-          role: data.user.role || 'ADMIN',
-          tenant_id: data.tenant_id || data.user.tenant_id
+          role: data.user.role || 'Admin',
+          system_role: data.user.system_role || 'user',
+          tenant_id: data.tenant_id || data.user.tenant_id,
         };
         
         localStorage.setItem('token', data.token);
@@ -52,8 +53,12 @@ export default function Login() {
           localStorage.setItem('is_first_login', 'true');
         }
 
-        // All users go to dashboard — no onboarding wizard
-        router.push('/dashboard-pro');
+        // Superadmin → admin panel; everyone else → dashboard
+        if (data.is_super_admin) {
+          router.push('/admin');
+        } else {
+          router.push('/dashboard-pro');
+        }
       } else {
         throw new Error(data.error || 'Login failed');
       }

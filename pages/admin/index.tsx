@@ -42,6 +42,21 @@ export default function AdminPanel() {
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (!token) { router.replace('/login'); return; }
+
+    // Frontend guard: check user role from localStorage
+    // Backend will also enforce this — this is just UX protection
+    try {
+      const userData = localStorage.getItem('user');
+      if (userData) {
+        const user = JSON.parse(userData);
+        // Only superadmin or Admin role can access this page
+        if (user.role !== 'Admin' && user.system_role !== 'superadmin') {
+          router.replace('/dashboard-pro');
+          return;
+        }
+      }
+    } catch {}
+
     loadTenants();
   }, []);
 

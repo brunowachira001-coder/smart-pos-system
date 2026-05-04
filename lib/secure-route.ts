@@ -1,13 +1,16 @@
 /**
  * SECURE ROUTE — Global Authentication & Tenant Isolation Middleware
  *
- * This is the SINGLE source of truth for all API authentication.
- * Every protected route MUST use secureRoute().
- *
  * Security guarantees:
  * - Token is HMAC-SHA256 signed — cannot be forged
  * - Tenant identity is derived from DB, never from client
+ * - system_admin users bypass tenant requirement (cross-tenant access)
  * - Any invalid/expired/tampered token → 401
+ *
+ * Role model:
+ *   system_role = 'superadmin' → platform-level admin, no tenant scope
+ *   role = 'Admin'             → tenant-level admin, scoped to own tenant
+ *   role = 'Cashier'           → tenant-level user, scoped to own tenant
  */
 
 import type { NextApiRequest, NextApiResponse } from 'next';
@@ -27,14 +30,16 @@ const TOKEN_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 // ─── Public types ─────────────────────────────────────────────────────────────
 export interface AuthUser {
   userId: string;
-  tenantId: string;
+  tenantId: string | null; // null for system_admin
   email: string;
-  role: string;
+  role: string;            // tenant-level role: Admin, Cashier, Manager
+  systemRole: string;      // platform-level role: 'superadmin' | 'user'
+  isSuperAdmin: boolean;   // convenience flag
 }
 
 export interface SecureRequest extends NextApiRequest {
   user: AuthUser;
-  tenantId: string;
+  tenantId: string | null; // null for system_admin
 }
 
 type SecureHandler = (req: SecureRequest, res: NextApiResponse) => Promise<void> | void;
@@ -49,50 +54,32 @@ function getSecret(): string {
   return secret;
 }
 
-/**
- * Sign a token payload with HMAC-SHA256.
- * Format: v2.<base64(payload)>.<signature>
- */
 export function signToken(userId: string): string {
   const secret = getSecret();
   const payload = Buffer.from(
     JSON.stringify({ userId, iat: Date.now(), v: TOKEN_VERSION })
   ).toString('base64url');
-
   const sig = createHmac('sha256', secret).update(payload).digest('base64url');
   return `${TOKEN_VERSION}.${payload}.${sig}`;
 }
 
-/**
- * Verify and decode a token.
- * Returns userId if valid, throws if invalid/expired/tampered.
- */
 export function verifyToken(token: string): string {
-  if (!token || typeof token !== 'string') {
-    throw new Error('Missing token');
-  }
+  if (!token || typeof token !== 'string') throw new Error('Missing token');
 
   const parts = token.split('.');
-  if (parts.length !== 3 || parts[0] !== TOKEN_VERSION) {
-    throw new Error('Malformed token');
-  }
+  if (parts.length !== 3 || parts[0] !== TOKEN_VERSION) throw new Error('Malformed token');
 
   const [, payload, providedSig] = parts;
   const secret = getSecret();
 
-  // Verify signature using timing-safe comparison
   const expectedSig = createHmac('sha256', secret).update(payload).digest('base64url');
   const expectedBuf = Buffer.from(expectedSig);
   const providedBuf = Buffer.from(providedSig);
 
-  if (
-    expectedBuf.length !== providedBuf.length ||
-    !timingSafeEqual(expectedBuf, providedBuf)
-  ) {
+  if (expectedBuf.length !== providedBuf.length || !timingSafeEqual(expectedBuf, providedBuf)) {
     throw new Error('Invalid token signature');
   }
 
-  // Decode and validate payload
   let decoded: { userId: string; iat: number; v: string };
   try {
     decoded = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'));
@@ -100,18 +87,9 @@ export function verifyToken(token: string): string {
     throw new Error('Malformed token payload');
   }
 
-  if (decoded.v !== TOKEN_VERSION) {
-    throw new Error('Token version mismatch');
-  }
-
-  if (!decoded.userId || !decoded.iat) {
-    throw new Error('Invalid token payload');
-  }
-
-  // Check expiry
-  if (Date.now() - decoded.iat > TOKEN_TTL_MS) {
-    throw new Error('Token expired');
-  }
+  if (decoded.v !== TOKEN_VERSION) throw new Error('Token version mismatch');
+  if (!decoded.userId || !decoded.iat) throw new Error('Invalid token payload');
+  if (Date.now() - decoded.iat > TOKEN_TTL_MS) throw new Error('Token expired');
 
   return decoded.userId;
 }
@@ -121,10 +99,14 @@ export function verifyToken(token: string): string {
 /**
  * secureRoute — wraps any API handler with full auth + tenant resolution.
  *
+ * For system_admin: tenantId will be null — they have cross-tenant access.
+ * For all other roles: tenantId is mandatory and derived from DB only.
+ *
  * Usage:
  *   export default secureRoute(async (req, res) => {
- *     const { tenantId } = req;
- *     // ... handler logic
+ *     if (!req.user.isSuperAdmin) {
+ *       // tenant-scoped logic using req.tenantId
+ *     }
  *   });
  */
 export function secureRoute(handler: SecureHandler) {
@@ -138,7 +120,7 @@ export function secureRoute(handler: SecureHandler) {
 
       const token = authHeader.slice(7).trim();
 
-      // 2. Verify HMAC signature — rejects forged tokens
+      // 2. Verify HMAC signature
       let userId: string;
       try {
         userId = verifyToken(token);
@@ -146,34 +128,34 @@ export function secureRoute(handler: SecureHandler) {
         return res.status(401).json({ error: 'Unauthorized' });
       }
 
-      // 3. Fetch user from DB — tenant_id is ONLY derived here
+      // 3. Fetch user from DB — tenant_id and system_role derived here ONLY
       const { data: user, error } = await _adminDb
         .from('users')
-        .select('id, tenant_id, email, role, is_active')
+        .select('id, tenant_id, email, role, system_role, is_active')
         .eq('id', userId)
         .single();
 
-      if (error || !user) {
+      if (error || !user) return res.status(401).json({ error: 'Unauthorized' });
+      if (!user.is_active) return res.status(401).json({ error: 'Unauthorized' });
+
+      const isSuperAdmin = user.system_role === 'superadmin';
+
+      // 4. Non-superadmin MUST have a tenant_id
+      if (!isSuperAdmin && !user.tenant_id) {
         return res.status(401).json({ error: 'Unauthorized' });
       }
 
-      if (!user.is_active) {
-        return res.status(401).json({ error: 'Unauthorized' });
-      }
-
-      if (!user.tenant_id) {
-        return res.status(401).json({ error: 'Unauthorized' });
-      }
-
-      // 4. Attach auth context — tenant_id is server-derived, never from client
+      // 5. Attach auth context — all values server-derived, never from client
       const secureReq = req as SecureRequest;
       secureReq.user = {
         userId: user.id,
-        tenantId: user.tenant_id,
+        tenantId: user.tenant_id ?? null,
         email: user.email,
         role: user.role,
+        systemRole: user.system_role ?? 'user',
+        isSuperAdmin,
       };
-      secureReq.tenantId = user.tenant_id;
+      secureReq.tenantId = user.tenant_id ?? null;
 
       return handler(secureReq, res);
     } catch (err: any) {
@@ -184,9 +166,33 @@ export function secureRoute(handler: SecureHandler) {
 }
 
 /**
- * getAdminDb — returns the admin client for use ONLY inside this module.
- * Exported only for use in login.ts and onboard.ts where no user session exists yet.
- * Do NOT use in regular route handlers.
+ * requireSuperAdmin — middleware guard for system_admin-only routes.
+ * Must be called at the top of any admin handler.
+ */
+export function requireSuperAdmin(req: SecureRequest, res: NextApiResponse): boolean {
+  if (!req.user.isSuperAdmin) {
+    res.status(403).json({ error: 'Forbidden — superadmin only' });
+    return false;
+  }
+  return true;
+}
+
+/**
+ * requireTenantAccess — ensures the requesting user belongs to the given tenantId.
+ * system_admin always passes. All others must match.
+ */
+export function requireTenantAccess(req: SecureRequest, res: NextApiResponse, tenantId: string): boolean {
+  if (req.user.isSuperAdmin) return true;
+  if (req.user.tenantId !== tenantId) {
+    res.status(403).json({ error: 'Forbidden — tenant mismatch' });
+    return false;
+  }
+  return true;
+}
+
+/**
+ * getAdminDb — returns the admin client.
+ * Only for use in auth flows (login, onboard) where no session exists yet.
  */
 export function getAdminDb() {
   return _adminDb;
