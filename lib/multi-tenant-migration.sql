@@ -55,25 +55,46 @@ CREATE TABLE IF NOT EXISTS tenant_users (
 -- ============================================================
 
 -- Products
-ALTER TABLE products ADD COLUMN IF NOT EXISTS tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE;
+DO $$ BEGIN
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'products') THEN
+    ALTER TABLE products ADD COLUMN IF NOT EXISTS tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE;
+  END IF;
+END $$;
 
 -- Customers
-ALTER TABLE customers ADD COLUMN IF NOT EXISTS tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE;
+DO $$ BEGIN
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'customers') THEN
+    ALTER TABLE customers ADD COLUMN IF NOT EXISTS tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE;
+  END IF;
+END $$;
 
 -- Sales transactions
-ALTER TABLE sales_transactions ADD COLUMN IF NOT EXISTS tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE;
+DO $$ BEGIN
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'sales_transactions') THEN
+    ALTER TABLE sales_transactions ADD COLUMN IF NOT EXISTS tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE;
+  END IF;
+END $$;
 
--- Sales transaction items (inherits via transaction, but add for direct queries)
-ALTER TABLE sales_transaction_items ADD COLUMN IF NOT EXISTS tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE;
+-- Sales transaction items
+DO $$ BEGIN
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'sales_transaction_items') THEN
+    ALTER TABLE sales_transaction_items ADD COLUMN IF NOT EXISTS tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE;
+  END IF;
+END $$;
 
 -- Cart items
-ALTER TABLE cart_items ADD COLUMN IF NOT EXISTS tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE;
+DO $$ BEGIN
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'cart_items') THEN
+    ALTER TABLE cart_items ADD COLUMN IF NOT EXISTS tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE;
+  END IF;
+END $$;
 
 -- Inventory
-ALTER TABLE inventory ADD COLUMN IF NOT EXISTS tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE;
-
--- Products (main products table)
--- Already added above
+DO $$ BEGIN
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'inventory') THEN
+    ALTER TABLE inventory ADD COLUMN IF NOT EXISTS tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE;
+  END IF;
+END $$;
 
 -- Returns (if table exists)
 ALTER TABLE IF EXISTS returns ADD COLUMN IF NOT EXISTS tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE;
@@ -102,10 +123,21 @@ ALTER TABLE IF EXISTS users ADD COLUMN IF NOT EXISTS tenant_id UUID REFERENCES t
 -- ============================================================
 -- STEP 4: CREATE INDEXES FOR PERFORMANCE
 -- ============================================================
-CREATE INDEX IF NOT EXISTS idx_products_tenant ON products(tenant_id);
-CREATE INDEX IF NOT EXISTS idx_customers_tenant ON customers(tenant_id);
-CREATE INDEX IF NOT EXISTS idx_sales_transactions_tenant ON sales_transactions(tenant_id);
-CREATE INDEX IF NOT EXISTS idx_inventory_tenant ON inventory(tenant_id);
+DO $$ BEGIN
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'products') THEN
+    CREATE INDEX IF NOT EXISTS idx_products_tenant ON products(tenant_id);
+  END IF;
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'customers') THEN
+    CREATE INDEX IF NOT EXISTS idx_customers_tenant ON customers(tenant_id);
+  END IF;
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'sales_transactions') THEN
+    CREATE INDEX IF NOT EXISTS idx_sales_transactions_tenant ON sales_transactions(tenant_id);
+  END IF;
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'inventory') THEN
+    CREATE INDEX IF NOT EXISTS idx_inventory_tenant ON inventory(tenant_id);
+  END IF;
+END $$;
+
 CREATE INDEX IF NOT EXISTS idx_tenant_users_tenant ON tenant_users(tenant_id);
 CREATE INDEX IF NOT EXISTS idx_tenant_users_user ON tenant_users(user_id);
 CREATE INDEX IF NOT EXISTS idx_tenants_subdomain ON tenants(subdomain);
@@ -126,12 +158,27 @@ $$ LANGUAGE sql SECURITY DEFINER STABLE;
 -- ============================================================
 ALTER TABLE tenants ENABLE ROW LEVEL SECURITY;
 ALTER TABLE tenant_users ENABLE ROW LEVEL SECURITY;
-ALTER TABLE products ENABLE ROW LEVEL SECURITY;
-ALTER TABLE customers ENABLE ROW LEVEL SECURITY;
-ALTER TABLE sales_transactions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE sales_transaction_items ENABLE ROW LEVEL SECURITY;
-ALTER TABLE cart_items ENABLE ROW LEVEL SECURITY;
-ALTER TABLE inventory ENABLE ROW LEVEL SECURITY;
+
+DO $$ BEGIN
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'products') THEN
+    ALTER TABLE products ENABLE ROW LEVEL SECURITY;
+  END IF;
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'customers') THEN
+    ALTER TABLE customers ENABLE ROW LEVEL SECURITY;
+  END IF;
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'sales_transactions') THEN
+    ALTER TABLE sales_transactions ENABLE ROW LEVEL SECURITY;
+  END IF;
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'sales_transaction_items') THEN
+    ALTER TABLE sales_transaction_items ENABLE ROW LEVEL SECURITY;
+  END IF;
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'cart_items') THEN
+    ALTER TABLE cart_items ENABLE ROW LEVEL SECURITY;
+  END IF;
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'inventory') THEN
+    ALTER TABLE inventory ENABLE ROW LEVEL SECURITY;
+  END IF;
+END $$;
 
 -- ============================================================
 -- STEP 7: RLS POLICIES
@@ -139,47 +186,85 @@ ALTER TABLE inventory ENABLE ROW LEVEL SECURITY;
 -- ============================================================
 
 -- Drop old permissive policies first
-DROP POLICY IF EXISTS "Allow all operations on products" ON products;
-DROP POLICY IF EXISTS "Allow all operations on customers" ON customers;
-DROP POLICY IF EXISTS "Allow all operations on sales" ON sales;
-DROP POLICY IF EXISTS "Allow all operations on inventory" ON inventory;
-DROP POLICY IF EXISTS "Allow all operations on settings" ON settings;
+DO $$ BEGIN
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'products') THEN
+    DROP POLICY IF EXISTS "Allow all operations on products" ON products;
+  END IF;
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'customers') THEN
+    DROP POLICY IF EXISTS "Allow all operations on customers" ON customers;
+  END IF;
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'sales') THEN
+    DROP POLICY IF EXISTS "Allow all operations on sales" ON sales;
+  END IF;
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'inventory') THEN
+    DROP POLICY IF EXISTS "Allow all operations on inventory" ON inventory;
+  END IF;
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'settings') THEN
+    DROP POLICY IF EXISTS "Allow all operations on settings" ON settings;
+  END IF;
+END $$;
 
 -- Tenants: users can only see their own tenant
 CREATE POLICY "tenant_isolation" ON tenants
-  FOR ALL USING (
-    id = get_tenant_id()
-  );
+  FOR ALL USING (id = get_tenant_id());
 
 -- Tenant users: can see users in same tenant
 CREATE POLICY "tenant_users_isolation" ON tenant_users
-  FOR ALL USING (
-    tenant_id = get_tenant_id()
-  );
+  FOR ALL USING (tenant_id = get_tenant_id());
 
 -- Products
-CREATE POLICY "products_tenant_isolation" ON products
-  FOR ALL USING (tenant_id = get_tenant_id());
+DO $$ BEGIN
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'products') THEN
+    DROP POLICY IF EXISTS "products_tenant_isolation" ON products;
+    CREATE POLICY "products_tenant_isolation" ON products
+      FOR ALL USING (tenant_id = get_tenant_id());
+  END IF;
+END $$;
 
 -- Customers
-CREATE POLICY "customers_tenant_isolation" ON customers
-  FOR ALL USING (tenant_id = get_tenant_id());
+DO $$ BEGIN
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'customers') THEN
+    DROP POLICY IF EXISTS "customers_tenant_isolation" ON customers;
+    CREATE POLICY "customers_tenant_isolation" ON customers
+      FOR ALL USING (tenant_id = get_tenant_id());
+  END IF;
+END $$;
 
 -- Sales transactions
-CREATE POLICY "sales_transactions_tenant_isolation" ON sales_transactions
-  FOR ALL USING (tenant_id = get_tenant_id());
+DO $$ BEGIN
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'sales_transactions') THEN
+    DROP POLICY IF EXISTS "sales_transactions_tenant_isolation" ON sales_transactions;
+    CREATE POLICY "sales_transactions_tenant_isolation" ON sales_transactions
+      FOR ALL USING (tenant_id = get_tenant_id());
+  END IF;
+END $$;
 
 -- Sales transaction items
-CREATE POLICY "sales_transaction_items_tenant_isolation" ON sales_transaction_items
-  FOR ALL USING (tenant_id = get_tenant_id());
+DO $$ BEGIN
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'sales_transaction_items') THEN
+    DROP POLICY IF EXISTS "sales_transaction_items_tenant_isolation" ON sales_transaction_items;
+    CREATE POLICY "sales_transaction_items_tenant_isolation" ON sales_transaction_items
+      FOR ALL USING (tenant_id = get_tenant_id());
+  END IF;
+END $$;
 
 -- Cart items
-CREATE POLICY "cart_items_tenant_isolation" ON cart_items
-  FOR ALL USING (tenant_id = get_tenant_id());
+DO $$ BEGIN
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'cart_items') THEN
+    DROP POLICY IF EXISTS "cart_items_tenant_isolation" ON cart_items;
+    CREATE POLICY "cart_items_tenant_isolation" ON cart_items
+      FOR ALL USING (tenant_id = get_tenant_id());
+  END IF;
+END $$;
 
 -- Inventory
-CREATE POLICY "inventory_tenant_isolation" ON inventory
-  FOR ALL USING (tenant_id = get_tenant_id());
+DO $$ BEGIN
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'inventory') THEN
+    DROP POLICY IF EXISTS "inventory_tenant_isolation" ON inventory;
+    CREATE POLICY "inventory_tenant_isolation" ON inventory
+      FOR ALL USING (tenant_id = get_tenant_id());
+  END IF;
+END $$;
 
 -- ============================================================
 -- STEP 8: RLS FOR OPTIONAL TABLES (only if they exist)
@@ -280,20 +365,44 @@ INSERT INTO tenants (
 ) ON CONFLICT (id) DO NOTHING;
 
 -- Assign all existing data to Nyla Wigs tenant
-UPDATE products SET tenant_id = 'a0000000-0000-0000-0000-000000000001' WHERE tenant_id IS NULL;
-UPDATE customers SET tenant_id = 'a0000000-0000-0000-0000-000000000001' WHERE tenant_id IS NULL;
-UPDATE sales_transactions SET tenant_id = 'a0000000-0000-0000-0000-000000000001' WHERE tenant_id IS NULL;
-UPDATE sales_transaction_items SET tenant_id = 'a0000000-0000-0000-0000-000000000001' WHERE tenant_id IS NULL;
-UPDATE cart_items SET tenant_id = 'a0000000-0000-0000-0000-000000000001' WHERE tenant_id IS NULL;
-UPDATE inventory SET tenant_id = 'a0000000-0000-0000-0000-000000000001' WHERE tenant_id IS NULL;
-
--- Update optional tables if they exist
-UPDATE returns SET tenant_id = 'a0000000-0000-0000-0000-000000000001' WHERE tenant_id IS NULL AND EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'returns');
-UPDATE expenses SET tenant_id = 'a0000000-0000-0000-0000-000000000001' WHERE tenant_id IS NULL AND EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'expenses');
-UPDATE customer_debts SET tenant_id = 'a0000000-0000-0000-0000-000000000001' WHERE tenant_id IS NULL AND EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'customer_debts');
-UPDATE message_queue SET tenant_id = 'a0000000-0000-0000-0000-000000000001' WHERE tenant_id IS NULL AND EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'message_queue');
-UPDATE message_templates SET tenant_id = 'a0000000-0000-0000-0000-000000000001' WHERE tenant_id IS NULL AND EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'message_templates');
-UPDATE users SET tenant_id = 'a0000000-0000-0000-0000-000000000001' WHERE tenant_id IS NULL AND EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'users');
+DO $$ BEGIN
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'products') THEN
+    UPDATE products SET tenant_id = 'a0000000-0000-0000-0000-000000000001' WHERE tenant_id IS NULL;
+  END IF;
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'customers') THEN
+    UPDATE customers SET tenant_id = 'a0000000-0000-0000-0000-000000000001' WHERE tenant_id IS NULL;
+  END IF;
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'sales_transactions') THEN
+    UPDATE sales_transactions SET tenant_id = 'a0000000-0000-0000-0000-000000000001' WHERE tenant_id IS NULL;
+  END IF;
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'sales_transaction_items') THEN
+    UPDATE sales_transaction_items SET tenant_id = 'a0000000-0000-0000-0000-000000000001' WHERE tenant_id IS NULL;
+  END IF;
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'cart_items') THEN
+    UPDATE cart_items SET tenant_id = 'a0000000-0000-0000-0000-000000000001' WHERE tenant_id IS NULL;
+  END IF;
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'inventory') THEN
+    UPDATE inventory SET tenant_id = 'a0000000-0000-0000-0000-000000000001' WHERE tenant_id IS NULL;
+  END IF;
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'returns') THEN
+    UPDATE returns SET tenant_id = 'a0000000-0000-0000-0000-000000000001' WHERE tenant_id IS NULL;
+  END IF;
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'expenses') THEN
+    UPDATE expenses SET tenant_id = 'a0000000-0000-0000-0000-000000000001' WHERE tenant_id IS NULL;
+  END IF;
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'customer_debts') THEN
+    UPDATE customer_debts SET tenant_id = 'a0000000-0000-0000-0000-000000000001' WHERE tenant_id IS NULL;
+  END IF;
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'message_queue') THEN
+    UPDATE message_queue SET tenant_id = 'a0000000-0000-0000-0000-000000000001' WHERE tenant_id IS NULL;
+  END IF;
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'message_templates') THEN
+    UPDATE message_templates SET tenant_id = 'a0000000-0000-0000-0000-000000000001' WHERE tenant_id IS NULL;
+  END IF;
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'users') THEN
+    UPDATE users SET tenant_id = 'a0000000-0000-0000-0000-000000000001' WHERE tenant_id IS NULL;
+  END IF;
+END $$;
 
 -- ============================================================
 -- STEP 10: LINK EXISTING AUTH USERS TO NYLA WIGS TENANT
