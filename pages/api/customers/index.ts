@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { supabase } from '../../../lib/supabase-client';
+import { getTenantIdSync } from '../../../lib/tenant-context';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { method } = req;
@@ -26,6 +27,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 async function getCustomer(req: NextApiRequest, res: NextApiResponse) {
   const { id } = req.query;
+  const tenantId = getTenantIdSync(req);
 
   if (!id) {
     return res.status(400).json({ error: 'Customer ID is required' });
@@ -35,6 +37,7 @@ async function getCustomer(req: NextApiRequest, res: NextApiResponse) {
     .from('customers')
     .select('*')
     .eq('id', id)
+    .eq('tenant_id', tenantId)
     .single();
 
   if (error) {
@@ -50,6 +53,7 @@ async function getCustomer(req: NextApiRequest, res: NextApiResponse) {
 
 async function createCustomer(req: NextApiRequest, res: NextApiResponse) {
   const { firstName, lastName, name, email, phone, customerType, debtLimit } = req.body;
+  const tenantId = getTenantIdSync(req);
 
   // Support both new format (firstName + lastName) and old format (name)
   const fullName = name || `${firstName || ''} ${lastName || ''}`.trim();
@@ -66,7 +70,8 @@ async function createCustomer(req: NextApiRequest, res: NextApiResponse) {
       phone: phone || null,
       customer_type: customerType || 'retail',
       debt_limit: debtLimit ? parseFloat(debtLimit) : null,
-      status: 'active'
+      status: 'active',
+      tenant_id: tenantId
     })
     .select()
     .single();
@@ -112,6 +117,7 @@ async function updateCustomer(req: NextApiRequest, res: NextApiResponse) {
 
 async function deleteCustomer(req: NextApiRequest, res: NextApiResponse) {
   const { id } = req.query;
+  const tenantId = getTenantIdSync(req);
 
   if (!id) {
     return res.status(400).json({ error: 'Customer ID is required' });
@@ -120,7 +126,8 @@ async function deleteCustomer(req: NextApiRequest, res: NextApiResponse) {
   const { error } = await supabase
     .from('customers')
     .delete()
-    .eq('id', id);
+    .eq('id', id)
+    .eq('tenant_id', tenantId);
 
   if (error) {
     return res.status(500).json({ error: error.message });

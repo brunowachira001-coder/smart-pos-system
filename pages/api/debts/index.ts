@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { supabase } from '../../../lib/supabase';
+import { getTenantIdSync } from '../../../lib/tenant-context';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
@@ -17,7 +18,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       let query = supabase
         .from('debts')
-        .select('*', { count: 'exact' });
+        .select('*', { count: 'exact' })
+        .eq('tenant_id', getTenantIdSync(req));
 
       // Apply date filtering only if both dates are provided
       if (startDate && endDate) {
@@ -96,6 +98,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             status: 'Outstanding',
             due_date,
             notes,
+            tenant_id: getTenantIdSync(req),
           },
         ])
         .select()

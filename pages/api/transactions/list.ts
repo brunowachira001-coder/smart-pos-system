@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { supabase } from '../../../lib/supabase-client';
+import { getTenantIdSync } from '../../../lib/tenant-context';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
@@ -25,10 +26,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const limitNum = parseInt(limit as string);
     const offset = (pageNum - 1) * limitNum;
 
+    const tenantId = getTenantIdSync(req);
+
     // Simple query without join first
     let query = supabase
       .from('transactions')
-      .select('*', { count: 'exact' });
+      .select('*', { count: 'exact' })
+      .eq('tenant_id', tenantId);
 
     // Search filter - search by transaction_id (the TEXT field)
     if (search) {

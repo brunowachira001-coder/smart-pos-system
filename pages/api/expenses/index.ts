@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { supabase } from '../../../lib/supabase';
 import { getTodayStartInKenyaTime, getTodayEndInKenyaTime } from '../../../lib/timezone';
+import { getTenantIdSync } from '../../../lib/tenant-context';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
@@ -21,7 +22,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       let query = supabase
         .from('expenses')
-        .select('*', { count: 'exact' });
+        .select('*', { count: 'exact' })
+        .eq('tenant_id', getTenantIdSync(req));
 
       if (category && category !== 'all') {
         query = query.eq('category', category);

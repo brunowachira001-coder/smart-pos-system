@@ -60,10 +60,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Return user data (without password_hash)
     const { password_hash, ...userData } = user;
 
+    // Ensure tenant_id is included - fallback to Nyla Wigs if not set
+    const tenantId = userData.tenant_id || 'a0000000-0000-0000-0000-000000000001';
+
     res.status(200).json({
       success: true,
-      user: userData,
-      token: 'jwt-token-' + Date.now() // Mock token for now
+      user: { ...userData, tenant_id: tenantId },
+      tenant_id: tenantId,
+      token: 'jwt-token-' + Date.now()
     });
   } catch (error: any) {
     console.error('Login error:', error);

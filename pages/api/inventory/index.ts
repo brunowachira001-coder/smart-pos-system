@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { supabase } from '../../../lib/supabase-client';
+import { getTenantIdSync } from '../../../lib/tenant-context';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   
@@ -40,7 +41,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           image_url: imageUrl || null,
           description: description || null,
           barcode: barcode || null,
-          status: 'active'
+          status: 'active',
+          tenant_id: getTenantIdSync(req)
         }])
         .select()
         .single();

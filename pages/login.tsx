@@ -35,11 +35,13 @@ export default function Login() {
           username: data.user.full_name,
           email: data.user.email,
           phone: data.user.phone,
-          role: data.user.role || 'ADMIN'
+          role: data.user.role || 'ADMIN',
+          tenant_id: data.tenant_id || data.user.tenant_id
         };
         
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(user));
+        localStorage.setItem('tenant_id', user.tenant_id || '');
         router.push('/dashboard-pro');
       } else {
         throw new Error(data.error || 'Login failed');
