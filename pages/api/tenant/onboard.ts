@@ -61,6 +61,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         sms_sender_name: subdomain.toUpperCase(),
         subdomain,
         is_active: true,
+        onboarding_step: 1, // new signups go through the wizard
       })
       .select()
       .single();
