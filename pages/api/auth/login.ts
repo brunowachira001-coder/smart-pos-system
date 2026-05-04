@@ -18,7 +18,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const { data: user, error } = await db
       .from('users')
-      .select('id, email, full_name, role, phone, is_active, password_hash, tenant_id')
+      .select('id, email, full_name, role, phone, is_active, password_hash, tenant_id, tenants(onboarding_step)')
       .eq('email', email.toLowerCase().trim())
       .single();
 
@@ -49,9 +49,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Issue HMAC-signed token
     const token = signToken(user.id);
 
+    const onboardingStep = (user as any).tenants?.onboarding_step ?? 5;
+
     return res.status(200).json({
       success: true,
       token,
+      onboarding_step: onboardingStep,
       user: {
         id: user.id,
         email: user.email,
