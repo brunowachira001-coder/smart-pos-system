@@ -16,7 +16,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       hasCronSecret: !!process.env.CRON_SECRET,
       hasSupabaseUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
       hasSupabaseAnonKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-      hasSupabaseServiceKey: !!process.env.SUPABASE_SERVICE_KEY,
+      hasSupabaseServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
       testMode: process.env.SMS_TEST_MODE === 'true',
       nodeEnv: process.env.NODE_ENV
     };
