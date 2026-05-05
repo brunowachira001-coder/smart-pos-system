@@ -3,17 +3,22 @@ import type { NextApiResponse } from 'next';
 import { secureRoute, SecureRequest, getAdminDb } from '../../../lib/secure-route';
 
 async function handler(req: SecureRequest, res: NextApiResponse) {
-  const db = getAdminDb();
   if (req.method !== 'GET') {
     res.setHeader('Allow', ['GET']);
     return res.status(405).json({ error: `Method ${req.method} Not Allowed` });
   }
 
   const { tenantId } = req;
+  
+  // CRITICAL: Superadmin cannot access this endpoint (no tenant context)
+  if (!tenantId) {
+    return res.status(403).json({ error: 'Tenant context required' });
+  }
 
   try {
     const { startDate, endDate } = req.query;
 
+    // Defense-in-depth: Explicit tenant filtering + RLS enforcement
     let query = getAdminDb()
       .from('transactions')
       .select('transaction_id, total_amount, payment_method, created_at')

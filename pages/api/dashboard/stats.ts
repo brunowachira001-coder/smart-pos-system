@@ -6,6 +6,12 @@ export default secureRoute(async (req: SecureRequest, res: NextApiResponse) => {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
 
   const { tenantId } = req;
+  
+  // CRITICAL: Superadmin cannot access this endpoint (no tenant context)
+  if (!tenantId) {
+    return res.status(403).json({ error: 'Tenant context required' });
+  }
+
   const db = getAdminDb();
 
   try {
@@ -13,6 +19,7 @@ export default secureRoute(async (req: SecureRequest, res: NextApiResponse) => {
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
     const tomorrowStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).toISOString();
 
+    // Defense-in-depth: Explicit tenant filtering + RLS enforcement
     const [productsRes, customersRes, todayTxnRes, recentTxnRes] = await Promise.all([
       db.from('products').select('id, stock_quantity, minimum_stock_level').eq('tenant_id', tenantId),
       db.from('customers').select('id', { count: 'exact', head: true }).eq('tenant_id', tenantId),

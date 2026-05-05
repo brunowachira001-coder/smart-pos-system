@@ -37,6 +37,12 @@ export default secureRoute(async function handler(req: SecureRequest, res: NextA
   }
 
   const { tenantId } = req;
+  
+  // CRITICAL: Superadmin cannot access this endpoint (no tenant context)
+  if (!tenantId) {
+    return res.status(403).json({ error: 'Tenant context required' });
+  }
+  
   const range = (req.query.range as string) || 'today';
 
   try {
@@ -282,13 +288,14 @@ export default secureRoute(async function handler(req: SecureRequest, res: NextA
       console.log('Sample transaction:', rangeTransactionsData[0]);
     }
 
-    // Fetch expenses for the selected date range
+    // Fetch expenses for the selected date range — scoped to tenant
     let rangeExpenses = 0;
     let todayExpensesOnly = 0;
     try {
       let expensesQuery = db
         .from('expenses')
         .select('amount, expense_date, status')
+        .eq('tenant_id', tenantId) // CRITICAL: Tenant filtering
         .eq('status', 'Approved'); // Only count approved expenses
       
       if (startDate && endDate) {
@@ -309,6 +316,7 @@ export default secureRoute(async function handler(req: SecureRequest, res: NextA
       const { data: todayExpensesData } = await db
         .from('expenses')
         .select('amount, expense_date, status')
+        .eq('tenant_id', tenantId) // CRITICAL: Tenant filtering
         .eq('status', 'Approved')
         .eq('expense_date', todayDateStr);
       
@@ -319,12 +327,13 @@ export default secureRoute(async function handler(req: SecureRequest, res: NextA
       todayExpensesOnly = 0;
     }
 
-    // Fetch returns for the selected date range
+    // Fetch returns for the selected date range — scoped to tenant
     let rangeReturns = 0;
     try {
       let returnsQuery = db
         .from('returns')
         .select('amount, return_date, status')
+        .eq('tenant_id', tenantId) // CRITICAL: Tenant filtering
         .in('status', ['Completed', 'Approved']); // Only count completed/approved returns
       
       if (startDate && endDate) {
@@ -358,12 +367,13 @@ export default secureRoute(async function handler(req: SecureRequest, res: NextA
       p.stock_quantity <= (p.minimum_stock_level || 10)
     ).length || 0;
 
-    // Fetch outstanding debt (Outstanding + Partial statuses)
+    // Fetch outstanding debt (Outstanding + Partial statuses) — scoped to tenant
     let outstandingDebt = 0;
     try {
       const { data: debts } = await db
         .from('debts')
         .select('amount_remaining, status')
+        .eq('tenant_id', tenantId) // CRITICAL: Tenant filtering
         .in('status', ['Outstanding', 'Partial']);
       
       outstandingDebt = debts?.reduce((sum, d) => sum + (parseFloat(d.amount_remaining) || 0), 0) || 0;
@@ -441,6 +451,7 @@ export default secureRoute(async function handler(req: SecureRequest, res: NextA
     const { data: trendTransactions, error: trendError } = await db
       .from('transactions')
       .select('created_at, total_amount')
+      .eq('tenant_id', tenantId) // CRITICAL: Tenant filtering
       .gte('created_at', trendStartDate.toISOString())
       .lte('created_at', trendEndDate.toISOString())
       .order('created_at', { ascending: true });
@@ -455,6 +466,7 @@ export default secureRoute(async function handler(req: SecureRequest, res: NextA
       const { data: trendTransactionsWithIds } = await db
         .from('transactions')
         .select('id, transaction_id, created_at, total_amount')
+        .eq('tenant_id', tenantId) // CRITICAL: Tenant filtering
         .gte('created_at', trendStartDate.toISOString())
         .lte('created_at', trendEndDate.toISOString())
         .order('created_at', { ascending: true });
@@ -462,10 +474,11 @@ export default secureRoute(async function handler(req: SecureRequest, res: NextA
       const transactionIdsForChart = trendTransactionsWithIds?.map(t => t.transaction_id) || [];
 
       if (transactionIdsForChart.length > 0) {
-        // Fetch transaction items
+        // Fetch transaction items — scoped to tenant
         const { data: trendItems } = await db
           .from('transaction_items')
           .select('transaction_id, product_id, quantity, unit_price')
+          .eq('tenant_id', tenantId) // CRITICAL: Tenant filtering
           .in('transaction_id', transactionIdsForChart);
 
         // Create a map of product IDs to cost prices
@@ -493,12 +506,13 @@ export default secureRoute(async function handler(req: SecureRequest, res: NextA
           }
         }
 
-        // Fetch expenses for the trend period
+        // Fetch expenses for the trend period — scoped to tenant
         let trendExpenses: any[] = [];
         try {
           const { data: expensesData } = await db
             .from('expenses')
             .select('amount, expense_date, status')
+            .eq('tenant_id', tenantId) // CRITICAL: Tenant filtering
             .eq('status', 'Approved') // Only approved expenses
             .gte('expense_date', trendStartDate.toISOString().split('T')[0])
             .lte('expense_date', trendEndDate.toISOString().split('T')[0]);

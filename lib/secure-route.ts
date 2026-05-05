@@ -23,6 +23,24 @@ const _adminDb = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
+/**
+ * setTenantContext — Sets PostgreSQL session variable for RLS policies.
+ * CRITICAL: This must be called before ANY database query to enforce tenant isolation.
+ * The RLS function get_current_tenant_id() reads from app.current_user_id.
+ */
+async function setTenantContext(userId: string): Promise<void> {
+  try {
+    await _adminDb.rpc('set_config', {
+      setting_name: 'app.current_user_id',
+      new_value: userId,
+      is_local: true
+    });
+  } catch (err: any) {
+    console.error('[setTenantContext] Failed to set session variable:', err?.message);
+    throw new Error('Failed to set tenant context');
+  }
+}
+
 // ─── Token config ─────────────────────────────────────────────────────────────
 const TOKEN_VERSION = 'v2';
 const TOKEN_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
@@ -145,7 +163,11 @@ export function secureRoute(handler: SecureHandler) {
         return res.status(401).json({ error: 'Unauthorized' });
       }
 
-      // 5. Attach auth context — all values server-derived, never from client
+      // 5. Set PostgreSQL session variable for RLS enforcement
+      // This enables RLS policies to work even with service role key
+      await setTenantContext(user.id);
+
+      // 6. Attach auth context — all values server-derived, never from client
       const secureReq = req as SecureRequest;
       secureReq.user = {
         userId: user.id,
@@ -156,6 +178,9 @@ export function secureRoute(handler: SecureHandler) {
         isSuperAdmin,
       };
       secureReq.tenantId = user.tenant_id ?? null;
+
+      // 7. Log tenant context for debugging (remove in production)
+      console.log(`[secureRoute] User ${user.email} accessing as tenant ${user.tenant_id || 'SUPERADMIN'}`);
 
       return handler(secureReq, res);
     } catch (err: any) {
