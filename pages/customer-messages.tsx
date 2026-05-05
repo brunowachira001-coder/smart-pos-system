@@ -75,9 +75,18 @@ export default function CustomerMessages() {
     try {
       const response = await fetch('/api/sms/templates');
       const data = await response.json();
-      
+
       if (response.ok) {
-        setTemplates(data.data || []);
+        // If no templates exist yet, auto-seed defaults for this tenant
+        if ((data.data || []).length === 0) {
+          await fetch('/api/sms/templates/seed', { method: 'POST' });
+          // Fetch again after seeding
+          const retry = await fetch('/api/sms/templates');
+          const retryData = await retry.json();
+          setTemplates(retryData.data || []);
+        } else {
+          setTemplates(data.data || []);
+        }
       }
     } catch (error) {
       console.error('Error fetching templates:', error);
