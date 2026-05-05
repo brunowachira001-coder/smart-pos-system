@@ -18,7 +18,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const { data: tenant, error } = await db
     .from('tenants')
-    .select('id, business_name, business_type, slug, theme_color, is_active, tiktok_url, instagram_url, facebook_url, logo_url, tagline, business_phone')
+    .select('id, business_name, business_type, slug, primary_color, is_active, tiktok_url, instagram_url, facebook_url, logo_url, tagline, business_phone')
     .eq('slug', slug)
     .eq('is_active', true)
     .single();
@@ -27,23 +27,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(404).json({ error: 'Shop not found' });
   }
 
-  // Also fetch shop_settings for logo and tagline
+  // Also fetch shop_settings for additional branding
   const { data: settings } = await db
     .from('shop_settings')
-    .select('logo_url, business_tagline, business_phone, business_address')
+    .select('logo_url, business_tagline, business_phone, business_address, primary_color')
     .eq('tenant_id', tenant.id)
     .single();
 
+  // Merge data: shop_settings takes precedence over tenant table
   return res.status(200).json({
     tenant: {
       id: tenant.id,
       name: tenant.business_name,
       slug: tenant.slug,
       type: tenant.business_type,
-      theme_color: tenant.theme_color || '#10b981',
-      logo_url: settings?.logo_url || null,
-      tagline: settings?.business_tagline || null,
-      phone: settings?.business_phone || null,
+      theme_color: settings?.primary_color || tenant.primary_color || '#10b981',
+      logo_url: settings?.logo_url || tenant.logo_url || null,
+      tagline: settings?.business_tagline || tenant.tagline || null,
+      phone: settings?.business_phone || tenant.business_phone || null,
       tiktok_url: tenant.tiktok_url || null,
       instagram_url: tenant.instagram_url || null,
       facebook_url: tenant.facebook_url || null,
