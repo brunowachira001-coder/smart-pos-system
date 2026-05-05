@@ -1,15 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import { useShopSettings } from '../hooks/useShopSettings';
 
 export default function Login() {
   const router = useRouter();
-  const { settings } = useShopSettings();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+
+  // Generic branding for universal login
+  const settings = {
+    business_name: 'Smart POS System',
+    business_tagline: 'Multi-Tenant Business Management',
+    logo_url: null
+  };
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme') || 'dark';
