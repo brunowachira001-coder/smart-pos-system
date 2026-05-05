@@ -77,21 +77,43 @@ export default function CustomerMessages() {
       const data = await response.json();
 
       if (response.ok) {
-        // If no templates exist yet, auto-seed defaults for this tenant
-        if ((data.data || []).length === 0) {
-          await fetch('/api/sms/templates/seed', { method: 'POST' });
-          // Fetch again after seeding
-          const retry = await fetch('/api/sms/templates');
-          const retryData = await retry.json();
-          setTemplates(retryData.data || []);
+        const existing = data.data || [];
+
+        // Auto-seed ONLY on first visit (no templates AND never seeded before)
+        if (existing.length === 0 && !localStorage.getItem(`templates_seeded_${tenantSeededKey()}`)) {
+          const seedRes = await fetch('/api/sms/templates/seed', { method: 'POST' });
+          const seedData = await seedRes.json();
+
+          if (seedData.seeded) {
+            // Mark as seeded so we never auto-seed again for this tenant
+            localStorage.setItem(`templates_seeded_${tenantSeededKey()}`, '1');
+            const retry = await fetch('/api/sms/templates');
+            const retryData = await retry.json();
+            setTemplates(retryData.data || []);
+          } else {
+            // Already seeded before (seed returned seeded:false) — mark it
+            localStorage.setItem(`templates_seeded_${tenantSeededKey()}`, '1');
+            setTemplates(existing);
+          }
         } else {
-          setTemplates(data.data || []);
+          setTemplates(existing);
         }
       }
     } catch (error) {
       console.error('Error fetching templates:', error);
     } finally {
       setLoadingTemplates(false);
+    }
+  };
+
+  // Get a stable key for localStorage based on the current user session
+  const tenantSeededKey = () => {
+    try {
+      const token = localStorage.getItem('auth_token') || '';
+      // Use first 16 chars of token as a stable tenant identifier
+      return token.substring(0, 16) || 'default';
+    } catch {
+      return 'default';
     }
   };
 
