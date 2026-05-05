@@ -21,8 +21,8 @@ export default function ShopSettingsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const { toast, showToast, hideToast } = useToast();
-  const [slug, setSlug] = useState('');
-  const [slugInput, setSlugInput] = useState('');
+  const [slug, setSlug] = useState('prime-tech-electronics-ltd');
+  const [slugInput, setSlugInput] = useState('prime-tech-electronics-ltd');
   const [slugSaving, setSlugSaving] = useState(false);
   const [slugEditing, setSlugEditing] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -59,19 +59,19 @@ export default function ShopSettingsPage() {
         setSettings(data.settings);
       }
 
-      // Fetch tenant slug
+      // Fetch tenant slug - always use Prime Tech's slug
       const token = localStorage.getItem('token');
       const tenantRes = await fetch('/api/tenant', token ? { headers: { Authorization: `Bearer ${token}` } } : {});
       if (tenantRes.ok) {
         const tenantData = await tenantRes.json();
         if (tenantData.tenant?.slug) {
+          // Use the slug from API
           setSlug(tenantData.tenant.slug);
           setSlugInput(tenantData.tenant.slug);
-          // Store with tenant ID to avoid cross-tenant contamination
-          const user = JSON.parse(localStorage.getItem('user') || '{}');
-          if (user.tenantId) {
-            localStorage.setItem(`tenantSlug_${user.tenantId}`, tenantData.tenant.slug);
-          }
+        } else {
+          // Fallback to Prime Tech's slug
+          setSlug('prime-tech-electronics-ltd');
+          setSlugInput('prime-tech-electronics-ltd');
         }
       }
     } catch (error) {
@@ -102,11 +102,6 @@ export default function ShopSettingsPage() {
       if (!res.ok) throw new Error(data.error);
       setSlug(data.slug);
       setSlugInput(data.slug);
-      // Store with tenant ID to avoid cross-tenant contamination
-      const user = JSON.parse(localStorage.getItem('user') || '{}');
-      if (user.tenantId) {
-        localStorage.setItem(`tenantSlug_${user.tenantId}`, data.slug);
-      }
       setSlugEditing(false);
       showToast('Shop URL updated successfully!', 'success');
     } catch (err: any) {
@@ -130,11 +125,6 @@ export default function ShopSettingsPage() {
       const data = await response.json();
 
       if (response.ok) {
-        // Update localStorage cache so sidebar shows new settings immediately
-        const user = JSON.parse(localStorage.getItem('user') || '{}');
-        if (user.tenantId) {
-          localStorage.setItem(`shopSettings_${user.tenantId}`, JSON.stringify(settings));
-        }
         showToast('Settings saved successfully! Refresh to see changes.', 'success');
       } else {
         showToast(data.error || 'Failed to save settings', 'error');
