@@ -114,7 +114,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (linkError) throw linkError;
 
-    // 4. Insert default message templates for this tenant
+    // 4. Create shop_settings with tenant's business info
+    await supabase.from('shop_settings').insert({
+      tenant_id: tenant.id,
+      user_id: authData.user.id,
+      business_name,
+      business_type,
+      business_email: business_email || '',
+      business_phone: business_phone || '',
+      business_address: '',
+      business_tagline: tagline || '',
+      logo_url: '',
+      primary_color,
+      currency,
+      currency_symbol,
+      tiktok_url: '',
+      instagram_url: '',
+      facebook_url: '',
+    });
+
+    // 5. Insert default message templates for this tenant
     await supabase.from('message_templates').insert([
       {
         tenant_id: tenant.id,
@@ -136,7 +155,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       success: true,
       tenant,
       user: { id: authData.user.id, email: admin_email },
-      message: `Tenant "${business_name}" created successfully. Login with ${admin_email}.`
+      message: `Tenant "${business_name}" created successfully. Login with ${admin_email}.`,
+      shopUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'https://smart-pos-system-peach.vercel.app'}/s/${slug}`
     });
 
   } catch (error: any) {
