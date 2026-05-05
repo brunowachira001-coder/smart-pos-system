@@ -137,19 +137,53 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     await supabase.from('message_templates').insert([
       {
         tenant_id: tenant.id,
-        name: 'Thank You',
-        message_text: 'Hi {customer_name}! Thank you for shopping at {shop_name}. We appreciate your business! 🙏',
-        message_type: 'thank_you',
+        name: 'Thank You - After Purchase',
+        category: 'after_purchase',
+        message_text: 'Hi {customer_name}! Thank you for shopping at {shop_name}. We appreciate your business! Call us: {shop_phone}',
+        language: 'en',
         is_active: true,
       },
       {
         tenant_id: tenant.id,
-        name: 'Promotional',
-        message_text: 'Hi {customer_name}! {shop_name} has a special offer just for you. Visit us today! 🎉',
-        message_type: 'promotional',
+        name: 'Debt Reminder',
+        category: 'debt_reminder',
+        message_text: 'Hi {customer_name}, you have an outstanding balance of KES {amount} at {shop_name}. Please settle by your due date. Call: {shop_phone}',
+        language: 'en',
         is_active: true,
-      }
-    ]).select(); // ignore errors if message_templates doesn't exist yet
+      },
+      {
+        tenant_id: tenant.id,
+        name: 'Debt Overdue',
+        category: 'debt_overdue',
+        message_text: 'Hi {customer_name}, your payment of KES {amount} at {shop_name} is overdue. Please contact us urgently at {shop_phone}.',
+        language: 'en',
+        is_active: true,
+      },
+      {
+        tenant_id: tenant.id,
+        name: 'Welcome New Customer',
+        category: 'welcome',
+        message_text: 'Welcome to {shop_name}, {customer_name}! We are glad to have you. Visit us again soon. {shop_phone}',
+        language: 'en',
+        is_active: true,
+      },
+      {
+        tenant_id: tenant.id,
+        name: 'Win Back - Inactive Customer',
+        category: 'win_back',
+        message_text: 'Hi {customer_name}, we miss you at {shop_name}! Come back and check out our latest products. Call: {shop_phone}',
+        language: 'en',
+        is_active: true,
+      },
+      {
+        tenant_id: tenant.id,
+        name: 'Promotional Offer',
+        category: 'promotion',
+        message_text: 'Hi {customer_name}, {shop_name} has a special offer just for you! Visit us today or call {shop_phone} for details.',
+        language: 'en',
+        is_active: true,
+      },
+    ]);
 
     return res.status(201).json({
       success: true,
