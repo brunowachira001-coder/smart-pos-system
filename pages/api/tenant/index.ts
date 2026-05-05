@@ -1,71 +1,64 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { createClient } from '@supabase/supabase-js';
+import { verifyToken, getAdminDb } from '../../../lib/secure-route';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
-
-// Tenant API - Returns tenant data based on authenticated user's tenant_users mapping
+// Tenant API - Returns the authenticated user's own tenant
+// SECURITY: Never falls back to another tenant. If no valid auth, returns 401.
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method === 'GET') {
-    return getTenant(req, res);
-  }
-  if (req.method === 'PUT') {
-    return updateTenant(req, res);
-  }
+  if (req.method === 'GET') return getTenant(req, res);
+  if (req.method === 'PUT') return updateTenant(req, res);
   return res.status(405).json({ error: 'Method not allowed' });
 }
 
 async function getTenant(req: NextApiRequest, res: NextApiResponse) {
   try {
-    // Get tenant_id from auth token
     const authHeader = req.headers.authorization;
-    let tenantId: string | null = null;
 
-    if (authHeader) {
-      const token = authHeader.replace('Bearer ', '');
-      const { data: { user } } = await supabase.auth.getUser(token);
-
-      if (user) {
-        const { data: tenantUser } = await supabase
-          .from('tenant_users')
-          .select('tenant_id, role')
-          .eq('user_id', user.id)
-          .single();
-
-        tenantId = tenantUser?.tenant_id || null;
-      }
+    // SECURITY: No auth = no tenant. Never fall back to another tenant.
+    if (!authHeader?.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    // Fallback: if no auth, return the first/only tenant (for single-tenant mode)
-    if (!tenantId) {
-      const { data: firstTenant } = await supabase
-        .from('tenants')
-        .select('id')
-        .eq('is_active', true)
-        .limit(1)
-        .single();
-      tenantId = firstTenant?.id || null;
+    const token = authHeader.slice(7).trim();
+    let userId: string;
+    try {
+      userId = verifyToken(token);
+    } catch {
+      return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    if (!tenantId) {
-      return res.status(404).json({ error: 'No tenant found' });
-    }
+    const db = getAdminDb();
 
-    const { data: tenant, error } = await supabase
-      .from('tenants')
-      .select('*')
-      .eq('id', tenantId)
+    // Get user's tenant_id from the users table (custom auth system)
+    const { data: user, error: userError } = await db
+      .from('users')
+      .select('tenant_id, system_role')
+      .eq('id', userId)
+      .eq('is_active', true)
       .single();
 
-    if (error || !tenant) {
+    if (userError || !user) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    // Superadmin has no tenant — return null
+    if (user.system_role === 'superadmin' || !user.tenant_id) {
+      return res.status(200).json({ tenant: null });
+    }
+
+    // Fetch this user's specific tenant — never any other
+    const { data: tenant, error: tenantError } = await db
+      .from('tenants')
+      .select('*')
+      .eq('id', user.tenant_id)
+      .single();
+
+    if (tenantError || !tenant) {
       return res.status(404).json({ error: 'Tenant not found' });
     }
 
     return res.status(200).json({ tenant });
   } catch (error: any) {
-    console.error('Get tenant error:', error);
+    console.error('[/api/tenant] GET error:', error);
     return res.status(500).json({ error: error.message });
   }
 }
@@ -73,22 +66,32 @@ async function getTenant(req: NextApiRequest, res: NextApiResponse) {
 async function updateTenant(req: NextApiRequest, res: NextApiResponse) {
   try {
     const authHeader = req.headers.authorization;
-    if (!authHeader) {
+    if (!authHeader?.startsWith('Bearer ')) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user } } = await supabase.auth.getUser(token);
-    if (!user) return res.status(401).json({ error: 'Unauthorized' });
+    const token = authHeader.slice(7).trim();
+    let userId: string;
+    try {
+      userId = verifyToken(token);
+    } catch {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
 
-    // Get tenant_id and verify role
-    const { data: tenantUser } = await supabase
-      .from('tenant_users')
+    const db = getAdminDb();
+
+    const { data: user, error: userError } = await db
+      .from('users')
       .select('tenant_id, role')
-      .eq('user_id', user.id)
+      .eq('id', userId)
+      .eq('is_active', true)
       .single();
 
-    if (!tenantUser || !['owner', 'admin'].includes(tenantUser.role)) {
+    if (userError || !user || !user.tenant_id) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
+    if (!['Admin', 'Owner', 'owner', 'admin'].includes(user.role)) {
       return res.status(403).json({ error: 'Insufficient permissions' });
     }
 
@@ -106,10 +109,11 @@ async function updateTenant(req: NextApiRequest, res: NextApiResponse) {
       }
     }
 
-    const { data: tenant, error } = await supabase
+    // SECURITY: always scope update to this user's own tenant
+    const { data: tenant, error } = await db
       .from('tenants')
       .update(updates)
-      .eq('id', tenantUser.tenant_id)
+      .eq('id', user.tenant_id)
       .select()
       .single();
 
@@ -117,7 +121,7 @@ async function updateTenant(req: NextApiRequest, res: NextApiResponse) {
 
     return res.status(200).json({ tenant });
   } catch (error: any) {
-    console.error('Update tenant error:', error);
+    console.error('[/api/tenant] PUT error:', error);
     return res.status(500).json({ error: error.message });
   }
 }
