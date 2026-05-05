@@ -60,7 +60,8 @@ $$ LANGUAGE plpgsql SECURITY DEFINER STABLE;
 
 -- ============================================================
 -- STEP 4: Enable RLS + FORCE on all tenant-scoped tables
--- FORCE ensures even the table owner (postgres role) is subject to RLS
+-- Only enables on tables that actually have a tenant_id column.
+-- FORCE ensures even the table owner (postgres role) is subject to RLS.
 -- ============================================================
 DO $$
 DECLARE
@@ -73,13 +74,19 @@ DECLARE
   ];
 BEGIN
   FOREACH tbl IN ARRAY tables LOOP
+    -- Only enable RLS if the table exists AND has a tenant_id column
     IF EXISTS (
-      SELECT FROM information_schema.tables
-      WHERE table_schema = 'public' AND table_name = tbl
+      SELECT FROM information_schema.columns
+      WHERE table_schema = 'public' AND table_name = tbl AND column_name = 'tenant_id'
     ) THEN
       EXECUTE format('ALTER TABLE %I ENABLE ROW LEVEL SECURITY', tbl);
       EXECUTE format('ALTER TABLE %I FORCE ROW LEVEL SECURITY', tbl);
       RAISE NOTICE 'RLS enabled + forced on: %', tbl;
+    ELSIF EXISTS (
+      SELECT FROM information_schema.tables
+      WHERE table_schema = 'public' AND table_name = tbl
+    ) THEN
+      RAISE WARNING 'Table % exists but has NO tenant_id column — RLS skipped, ISOLATION GAP!', tbl;
     ELSE
       RAISE NOTICE 'Table not found (skipped): %', tbl;
     END IF;
@@ -205,21 +212,33 @@ DO $$ BEGIN
   END IF;
 END $$;
 
--- automation_rules
+-- automation_rules (only if tenant_id column exists)
 DO $$ BEGIN
-  IF EXISTS (SELECT FROM information_schema.tables WHERE table_schema='public' AND table_name='automation_rules') THEN
+  IF EXISTS (
+    SELECT FROM information_schema.columns
+    WHERE table_schema='public' AND table_name='automation_rules' AND column_name='tenant_id'
+  ) THEN
     CREATE POLICY "automation_rules_tenant_isolation" ON automation_rules
       FOR ALL USING (tenant_id = current_tenant_id())
       WITH CHECK (tenant_id = current_tenant_id());
+    RAISE NOTICE 'Policy created: automation_rules';
+  ELSE
+    RAISE NOTICE 'SKIPPED automation_rules — no tenant_id column (add it to enable isolation)';
   END IF;
 END $$;
 
--- customer_communication_prefs
+-- customer_communication_prefs (only if tenant_id column exists)
 DO $$ BEGIN
-  IF EXISTS (SELECT FROM information_schema.tables WHERE table_schema='public' AND table_name='customer_communication_prefs') THEN
+  IF EXISTS (
+    SELECT FROM information_schema.columns
+    WHERE table_schema='public' AND table_name='customer_communication_prefs' AND column_name='tenant_id'
+  ) THEN
     CREATE POLICY "comm_prefs_tenant_isolation" ON customer_communication_prefs
       FOR ALL USING (tenant_id = current_tenant_id())
       WITH CHECK (tenant_id = current_tenant_id());
+    RAISE NOTICE 'Policy created: customer_communication_prefs';
+  ELSE
+    RAISE NOTICE 'SKIPPED customer_communication_prefs — no tenant_id column';
   END IF;
 END $$;
 
@@ -271,21 +290,23 @@ END $$;
 
 -- ============================================================
 -- STEP 8: Verify RLS is enabled on all tables
+-- Uses pg_class which is accessible in Supabase
 -- ============================================================
 SELECT
-  tablename,
-  rowsecurity AS rls_enabled,
-  forcerowsecurity AS rls_forced
-FROM pg_tables
-WHERE schemaname = 'public'
-  AND tablename IN (
+  c.relname AS tablename,
+  c.relrowsecurity AS rls_enabled,
+  c.relforcerowsecurity AS rls_forced
+FROM pg_class c
+JOIN pg_namespace n ON n.oid = c.relnamespace
+WHERE n.nspname = 'public'
+  AND c.relname IN (
     'tenants', 'tenant_users', 'products', 'customers',
     'transactions', 'transaction_items', 'cart_items',
     'expenses', 'debts', 'returns', 'shop_settings',
     'message_queue', 'message_templates', 'automation_rules',
     'customer_communication_prefs'
   )
-ORDER BY tablename;
+ORDER BY c.relname;
 
 -- ============================================================
 -- DONE.
