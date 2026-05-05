@@ -1,12 +1,5 @@
 // API: View Message Queue
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
 import { secureRoute, SecureRequest, getAdminDb } from '../../../lib/secure-route';
 
 export default secureRoute(async function handler(req: SecureRequest, res: NextApiResponse) {
@@ -19,15 +12,11 @@ export default secureRoute(async function handler(req: SecureRequest, res: NextA
   try {
     const { status, limit = 50 } = req.query;
 
-    let query = supabase
+    // CRITICAL: tenant isolation — only show this tenant's message queue
+    let query = db
       .from('message_queue')
-      .select(`
-        *,
-        customers (
-          name,
-          phone
-        )
-      `)
+      .select('*, customers(name, phone)')
+      .eq('tenant_id', tenantId)
       .order('created_at', { ascending: false })
       .limit(parseInt(limit as string));
 

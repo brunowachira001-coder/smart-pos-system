@@ -3,17 +3,22 @@ import SMSService from '../../../services/sms.service';
 
 import { secureRoute, SecureRequest, getAdminDb } from '../../../lib/secure-route';
 
-export default secureRoute(async function handler(req: SecureRequest, res: NextApiResponse
-) {
+export default secureRoute(async function handler(req: SecureRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  const { tenantId } = req;
+  if (!tenantId) {
+    return res.status(403).json({ error: 'Tenant context required' });
   }
 
   try {
     const { days } = req.query;
     const daysNum = days ? parseInt(days as string) : 30;
 
-    const stats = await SMSService.getStatistics(daysNum);
+    // Pass tenantId so stats are scoped to this tenant only
+    const stats = await SMSService.getStatistics(tenantId, daysNum);
 
     return res.status(200).json({
       success: true,
