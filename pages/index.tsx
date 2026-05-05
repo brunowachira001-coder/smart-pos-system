@@ -35,11 +35,8 @@ export default function Home() {
             <span style={{ fontWeight: 700, fontSize: 20, color: '#fff' }}>SmartPOS</span>
           </div>
           <div style={{ display: 'flex', gap: 12 }}>
-            <Link href="/login" style={{ padding: '9px 20px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.15)', color: '#cbd5e1', textDecoration: 'none', fontSize: 14, fontWeight: 500 }}>
-              Sign In
-            </Link>
-            <Link href="/signup" style={{ padding: '9px 20px', borderRadius: 10, background: 'linear-gradient(135deg, #10b981, #059669)', color: '#fff', textDecoration: 'none', fontSize: 14, fontWeight: 600 }}>
-              Get Started Free
+            <Link href="/login" style={{ padding: '9px 20px', borderRadius: 10, background: 'linear-gradient(135deg, #10b981, #059669)', color: '#fff', textDecoration: 'none', fontSize: 14, fontWeight: 600 }}>
+              Go to Your Shop
             </Link>
           </div>
         </nav>
@@ -57,11 +54,8 @@ export default function Home() {
             Manage inventory, track sales, handle debts, and send SMS to customers — all from one dashboard.
           </p>
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Link href="/signup" style={{ padding: '14px 32px', borderRadius: 12, background: 'linear-gradient(135deg, #10b981, #059669)', color: '#fff', textDecoration: 'none', fontSize: 16, fontWeight: 700, display: 'inline-block' }}>
-              Start for free →
-            </Link>
-            <Link href="/login" style={{ padding: '14px 32px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.15)', color: '#cbd5e1', textDecoration: 'none', fontSize: 16, fontWeight: 500, display: 'inline-block' }}>
-              Sign in to your shop
+            <Link href="/login" style={{ padding: '14px 32px', borderRadius: 12, background: 'linear-gradient(135deg, #10b981, #059669)', color: '#fff', textDecoration: 'none', fontSize: 16, fontWeight: 700, display: 'inline-block' }}>
+              Go to Your Shop
             </Link>
           </div>
         </div>
@@ -87,15 +81,15 @@ export default function Home() {
         {/* CTA */}
         <div style={{ textAlign: 'center', padding: '40px 20px 80px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
           <h2 style={{ fontSize: 28, fontWeight: 700, color: '#fff', marginBottom: 12 }}>Ready to get started?</h2>
-          <p style={{ color: '#64748b', marginBottom: 28 }}>Set up your shop in under 2 minutes. No credit card required.</p>
-          <Link href="/signup" style={{ padding: '14px 36px', borderRadius: 12, background: 'linear-gradient(135deg, #10b981, #059669)', color: '#fff', textDecoration: 'none', fontSize: 16, fontWeight: 700, display: 'inline-block' }}>
-            Create your shop →
+          <p style={{ color: '#64748b', marginBottom: 28 }}>Access your shop dashboard and start managing your business.</p>
+          <Link href="/login" style={{ padding: '14px 36px', borderRadius: 12, background: 'linear-gradient(135deg, #10b981, #059669)', color: '#fff', textDecoration: 'none', fontSize: 16, fontWeight: 700, display: 'inline-block' }}>
+            Go to Your Shop
           </Link>
         </div>
 
         {/* Footer */}
         <div style={{ textAlign: 'center', padding: '20px', borderTop: '1px solid rgba(255,255,255,0.06)', color: '#334155', fontSize: 13 }}>
-          © 2026 SmartPOS · <Link href="/login" style={{ color: '#475569', textDecoration: 'none' }}>Sign In</Link> · <Link href="/signup" style={{ color: '#475569', textDecoration: 'none' }}>Sign Up</Link>
+          © 2026 SmartPOS · Built for small & medium retail businesses
         </div>
       </div>
     </>
