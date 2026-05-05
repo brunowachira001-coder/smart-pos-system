@@ -12,10 +12,25 @@ export default function TopBar({ onMenuClick }: TopBarProps) {
   const [showThemeMenu, setShowThemeMenu] = useState(false);
   const { theme, setTheme } = useTheme();
 
+  const [superAdminReturn, setSuperAdminReturn] = useState<string | null>(null);
+
   useEffect(() => {
     const userData = localStorage.getItem('user');
     if (userData) setUser(JSON.parse(userData));
+    // Check if we're in impersonation mode
+    const returnPath = localStorage.getItem('superadmin_return');
+    if (returnPath) setSuperAdminReturn(returnPath);
   }, []);
+
+  const returnToAdmin = () => {
+    const superAdminToken = localStorage.getItem('superadmin_token');
+    if (superAdminToken) {
+      localStorage.setItem('token', superAdminToken);
+      localStorage.removeItem('superadmin_token');
+      localStorage.removeItem('superadmin_return');
+      router.push('/admin');
+    }
+  };
 
   const themes = [
     { value: 'light', label: 'Light', icon: '☀️' },
@@ -73,6 +88,17 @@ export default function TopBar({ onMenuClick }: TopBarProps) {
       </div>
 
       <div className="flex items-center gap-2 md:gap-4">
+        {/* Return to Admin banner — shown when impersonating a tenant */}
+        {superAdminReturn && (
+          <button
+            onClick={returnToAdmin}
+            className="flex items-center gap-1 px-3 py-1.5 bg-amber-500/20 border border-amber-500/40 text-amber-400 rounded-lg text-xs font-semibold hover:bg-amber-500/30 transition-colors"
+            title="Return to Admin Panel"
+          >
+            ← Admin
+          </button>
+        )}
+
         {/* AI Accountant - hidden on small mobile */}
         <button className="hidden sm:flex px-3 md:px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-xs md:text-sm font-medium items-center gap-1 md:gap-2">
           <span>🤖</span>

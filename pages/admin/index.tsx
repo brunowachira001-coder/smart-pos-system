@@ -101,6 +101,33 @@ export default function AdminPanel() {
     loadTenants();
   };
 
+  const enterTenantDashboard = async (tenantId: string, slug: string) => {
+    try {
+      // Get a tenant user token for this tenant (superadmin impersonation)
+      const res = await fetch(`/api/admin/impersonate`, {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({ tenant_id: tenantId }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+
+      // Save current superadmin token so we can return
+      const superAdminToken = localStorage.getItem('token');
+      localStorage.setItem('superadmin_token', superAdminToken || '');
+      localStorage.setItem('superadmin_return', '/admin');
+
+      // Switch to tenant context
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      localStorage.setItem('tenant_id', data.user.tenant_id || '');
+
+      router.push('/dashboard-pro');
+    } catch (err: any) {
+      setError(`Failed to enter tenant: ${err.message}`);
+    }
+  };
+
   const s = { // styles
     page: { minHeight: '100vh', background: '#0f172a', color: '#e2e8f0', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' },
     header: { padding: '20px 32px', borderBottom: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' },
@@ -217,6 +244,13 @@ export default function AdminPanel() {
                           <div style={{ display: 'flex', gap: 8 }}>
                             <button style={{ ...s.btn, ...s.btnGhost, padding: '6px 12px', fontSize: 12 }} onClick={() => router.push(`/admin/tenants/${t.id}`)}>
                               View
+                            </button>
+                            <button
+                              style={{ ...s.btn, padding: '6px 12px', fontSize: 12, background: 'rgba(59,130,246,0.15)', color: '#93c5fd', border: 'none', cursor: 'pointer', borderRadius: 8, fontWeight: 600 }}
+                              onClick={() => enterTenantDashboard(t.id, t.slug)}
+                              title="Open this tenant's dashboard"
+                            >
+                              Enter →
                             </button>
                             <button style={{ ...s.btn, padding: '6px 12px', fontSize: 12, background: t.is_active ? 'rgba(239,68,68,0.15)' : 'rgba(16,185,129,0.15)', color: t.is_active ? '#fca5a5' : '#6ee7b7', border: 'none', cursor: 'pointer', borderRadius: 8, fontWeight: 600 }} onClick={() => toggleActive(t.id, t.is_active)}>
                               {t.is_active ? 'Deactivate' : 'Activate'}
