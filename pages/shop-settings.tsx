@@ -21,8 +21,8 @@ export default function ShopSettingsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const { toast, showToast, hideToast } = useToast();
-  const [slug, setSlug] = useState('prime-tech-electronics-ltd');
-  const [slugInput, setSlugInput] = useState('prime-tech-electronics-ltd');
+  const [slug, setSlug] = useState('');
+  const [slugInput, setSlugInput] = useState('');
   const [slugSaving, setSlugSaving] = useState(false);
   const [slugEditing, setSlugEditing] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -65,14 +65,10 @@ export default function ShopSettingsPage() {
       if (tenantRes.ok) {
         const tenantData = await tenantRes.json();
         if (tenantData.tenant?.slug) {
-          // Use the slug from API
           setSlug(tenantData.tenant.slug);
           setSlugInput(tenantData.tenant.slug);
-        } else {
-          // Fallback to Prime Tech's slug
-          setSlug('prime-tech-electronics-ltd');
-          setSlugInput('prime-tech-electronics-ltd');
         }
+        // No fallback to hardcoded slug — if no tenant, show nothing
       }
     } catch (error) {
       console.error('Error fetching settings:', error);
