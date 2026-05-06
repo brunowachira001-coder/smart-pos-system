@@ -54,6 +54,11 @@ export default function POSPage() {
   const [loading, setLoading] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
   const [sessionId] = useState(() => {
+    // Only access localStorage on client side
+    if (typeof window === 'undefined') {
+      return `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    }
+    
     // Check if there's an existing session in localStorage
     const existingSession = localStorage.getItem('pos_session_id');
     if (existingSession) {
