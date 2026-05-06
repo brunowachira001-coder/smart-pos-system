@@ -2,7 +2,7 @@
  * Tenant-branded landing page
  * Route: /s/[slug]
  */
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
@@ -21,32 +21,6 @@ interface TenantInfo {
   facebook_url: string | null;
 }
 
-function useFadeIn(delay = 0) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(false);
-  useEffect(() => {
-    // Small timeout ensures DOM is ready before observing
-    const timer = setTimeout(() => {
-      const el = ref.current;
-      if (!el) { setVisible(true); return; }
-      const obs = new IntersectionObserver(([e]) => {
-        if (e.isIntersecting) { setVisible(true); obs.disconnect(); }
-      }, { threshold: 0.01 });
-      obs.observe(el);
-      return () => obs.disconnect();
-    }, 50);
-    return () => clearTimeout(timer);
-  }, []);
-  return {
-    ref,
-    style: {
-      opacity: visible ? 1 : 0,
-      transform: visible ? 'translateY(0)' : 'translateY(20px)',
-      transition: `opacity 0.55s ease ${delay}ms, transform 0.55s ease ${delay}ms`,
-    }
-  };
-}
-
 export default function TenantLanding() {
   const router = useRouter();
   const { slug } = router.query as { slug: string };
@@ -54,17 +28,6 @@ export default function TenantLanding() {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [btnHover, setBtnHover] = useState(false);
-
-  const hero = useFadeIn(0);
-  const features = useFadeIn(180);
-  const footer = useFadeIn(300);
-
-  // Safety fallback: force content visible after 800ms regardless
-  const [forceVisible, setForceVisible] = useState(false);
-  useEffect(() => {
-    const t = setTimeout(() => setForceVisible(true), 800);
-    return () => clearTimeout(t);
-  }, []);
 
   useEffect(() => {
     if (!slug) return;
@@ -95,11 +58,9 @@ export default function TenantLanding() {
 
   if (!tenant) return null;
 
-  const color = tenant.theme_color || '#7c3aed';
-  const initial = tenant.name.charAt(0).toUpperCase();
-
-  // Derive a second accent color for gradient text
+  const color = tenant.theme_color || '#10b981';
   const colorLight = color + 'cc';
+  const initial = tenant.name.charAt(0).toUpperCase();
 
   return (
     <>
@@ -114,7 +75,12 @@ export default function TenantLanding() {
         body{margin:0}
         @keyframes spin{to{transform:rotate(360deg)}}
         @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
-        @keyframes glow-pulse{0%,100%{opacity:0.15}50%{opacity:0.28}}
+        @keyframes glow-pulse{0%,100%{opacity:0.12}50%{opacity:0.22}}
+        @keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+        .hero-content{animation:fadeUp 0.6s ease 0.1s both}
+        .features-row{animation:fadeUp 0.6s ease 0.35s both}
+        .footer-row{animation:fadeUp 0.6s ease 0.5s both}
+        .icon-float{animation:float 4s ease-in-out infinite}
       `}</style>
 
       <div style={{
@@ -137,11 +103,11 @@ export default function TenantLanding() {
           <div style={{ position: 'absolute', bottom: '10%', right: '15%', width: 400, height: 400, borderRadius: '50%', background: color, opacity: 0.08, filter: 'blur(100px)', animation: 'glow-pulse 5s ease-in-out infinite 2.5s' }} />
         </div>
 
-        {/* Hero */}
-        <div ref={hero.ref} style={{ ...hero.style, ...(forceVisible ? { opacity: 1, transform: 'translateY(0)' } : {}), position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', maxWidth: 680 }}>
+        {/* Hero — CSS animation, no JS observer */}
+        <div className="hero-content" style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', maxWidth: 680 }}>
 
-          {/* Logo / Icon — floating */}
-          <div style={{ marginBottom: 32, animation: 'float 4s ease-in-out infinite' }}>
+          {/* Logo / Icon */}
+          <div className="icon-float" style={{ marginBottom: 32 }}>
             {tenant.logo_url ? (
               <div style={{
                 width: 110, height: 110, borderRadius: 28,
@@ -164,7 +130,6 @@ export default function TenantLanding() {
                 boxShadow: `0 0 0 8px ${color}10, 0 20px 60px rgba(0,0,0,0.5)`,
                 backdropFilter: 'blur(10px)',
               }}>
-                {/* 3D box icon */}
                 <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
                   <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
@@ -174,21 +139,17 @@ export default function TenantLanding() {
             )}
           </div>
 
-          {/* Business name — small label above */}
-          <div style={{
-            fontSize: 15, fontWeight: 600, color: '#94a3b8',
-            letterSpacing: '0.08em', textTransform: 'uppercase',
-            marginBottom: 12,
-          }}>
+          {/* Business name label */}
+          <div style={{ fontSize: 14, fontWeight: 600, color: '#64748b', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 14 }}>
             {tenant.name}
           </div>
 
-          {/* Main headline — large gradient */}
+          {/* Gradient headline */}
           <h1 style={{ fontSize: 'clamp(40px, 7vw, 72px)', fontWeight: 900, lineHeight: 1.05, letterSpacing: '-0.03em', marginBottom: 0 }}>
             <span style={{ color: '#fff' }}>Business</span>{' '}
             <span style={{ background: `linear-gradient(135deg, ${color}, ${colorLight})`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Management</span>
           </h1>
-          <h1 style={{ fontSize: 'clamp(40px, 7vw, 72px)', fontWeight: 900, lineHeight: 1.05, letterSpacing: '-0.03em', marginBottom: 20 }}>
+          <h1 style={{ fontSize: 'clamp(40px, 7vw, 72px)', fontWeight: 900, lineHeight: 1.05, letterSpacing: '-0.03em', marginBottom: 24 }}>
             <span style={{ background: `linear-gradient(135deg, ${colorLight}, ${color})`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>System</span>
           </h1>
 
@@ -198,47 +159,43 @@ export default function TenantLanding() {
             </p>
           )}
 
-          {/* CTA buttons */}
-          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center', marginBottom: 8 }}>
-            <Link
-              href={`/s/${slug}/login`}
-              onMouseEnter={() => setBtnHover(true)}
-              onMouseLeave={() => setBtnHover(false)}
-              style={{
-                padding: '14px 32px',
-                borderRadius: 14,
-                background: `linear-gradient(135deg, ${color}, ${colorLight})`,
-                color: '#fff',
-                textDecoration: 'none',
-                fontSize: 16,
-                fontWeight: 700,
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 8,
-                boxShadow: btnHover ? `0 12px 40px ${color}55` : `0 6px 20px ${color}35`,
-                transform: btnHover ? 'translateY(-2px)' : 'translateY(0)',
-                transition: 'all 0.2s ease',
-                letterSpacing: '0.01em',
-              }}
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-              </svg>
-              Login to Dashboard
-            </Link>
-          </div>
+          {/* CTA */}
+          <Link
+            href={`/s/${slug}/login`}
+            onMouseEnter={() => setBtnHover(true)}
+            onMouseLeave={() => setBtnHover(false)}
+            style={{
+              padding: '14px 36px',
+              borderRadius: 14,
+              background: `linear-gradient(135deg, ${color}, ${colorLight})`,
+              color: '#fff',
+              textDecoration: 'none',
+              fontSize: 16,
+              fontWeight: 700,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+              boxShadow: btnHover ? `0 12px 40px ${color}55` : `0 6px 20px ${color}35`,
+              transform: btnHover ? 'translateY(-2px)' : 'translateY(0)',
+              transition: 'all 0.2s ease',
+              letterSpacing: '0.01em',
+              marginBottom: 16,
+            }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            Login to Dashboard
+          </Link>
 
-          {/* Trust badge */}
-          {tenant.tagline && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#475569', fontSize: 13, marginTop: 16 }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
-              Trusted by businesses in Kenya
-            </div>
-          )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#475569', fontSize: 13 }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
+            Trusted by businesses in Kenya
+          </div>
         </div>
 
         {/* Features */}
-        <div ref={features.ref} style={{ ...features.style, ...(forceVisible ? { opacity: 1, transform: 'translateY(0)' } : {}), display: 'flex', gap: 16, flexWrap: 'wrap', justifyContent: 'center', marginTop: 52, position: 'relative', zIndex: 1 }}>
+        <div className="features-row" style={{ display: 'flex', gap: 16, flexWrap: 'wrap', justifyContent: 'center', marginTop: 52, position: 'relative', zIndex: 1 }}>
           {[
             { icon: '📦', text: 'Real-time inventory tracking' },
             { icon: '💬', text: 'Customer management & SMS' },
@@ -259,7 +216,7 @@ export default function TenantLanding() {
         </div>
 
         {/* Footer */}
-        <div ref={footer.ref} style={{ ...footer.style, ...(forceVisible ? { opacity: 1, transform: 'translateY(0)' } : {}), position: 'relative', zIndex: 1, marginTop: 52, color: '#334155', fontSize: 13, textAlign: 'center' }}>
+        <div className="footer-row" style={{ position: 'relative', zIndex: 1, marginTop: 52, color: '#334155', fontSize: 13, textAlign: 'center' }}>
           {tenant.phone && (
             <div style={{ marginBottom: 12, color: '#64748b', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.67A2 2 0 012 .18h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 14.92z"/></svg>

@@ -134,10 +134,10 @@ export default function TenantLogin() {
         body { margin: 0; }
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes fadeSlideIn {
-          from { opacity: 0; transform: translateY(20px); }
+          from { opacity: 0; transform: translateY(16px); }
           to { opacity: 1; transform: translateY(0); }
         }
-        .login-card { animation: fadeSlideIn 0.5s ease forwards; }
+        .login-card { animation: fadeSlideIn 0.5s ease 0.05s both; }
         .left-panel { animation: fadeSlideIn 0.5s ease 0.1s both; }
         input::placeholder { color: rgba(255,255,255,0.3); }
       `}</style>
