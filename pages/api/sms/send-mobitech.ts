@@ -1,13 +1,17 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
+import type { NextApiResponse } from 'next';
+import { secureRoute, SecureRequest, getAdminDb } from '../../../lib/secure-route';
 import mobitechSMSService from '../../../services/mobitech-sms.service';
 
-export default async function handler(
-  req: NextApiRequest,
+export default secureRoute(async function handler(
+  req: SecureRequest,
   res: NextApiResponse
 ) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
+
+  const { tenantId } = req;
+  const db = getAdminDb();
 
   try {
     const { phoneNumber, message, customerId, messageType, templateId, context } = req.body;
@@ -22,17 +26,12 @@ export default async function handler(
 
     // If template ID provided, generate message from template
     if (templateId && customerId) {
-      // Get customer details
-      const { createClient } = require('@supabase/supabase-js');
-      const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      );
-
-      const { data: customer } = await supabase
+      // Get customer details WITH TENANT FILTERING
+      const { data: customer } = await db
         .from('customers')
         .select('*')
         .eq('id', customerId)
+        .eq('tenant_id', tenantId)
         .single();
 
       if (customer) {
@@ -73,4 +72,4 @@ export default async function handler(
       error: error.message || 'Internal server error'
     });
   }
-}
+});
