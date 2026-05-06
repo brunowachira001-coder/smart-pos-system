@@ -53,7 +53,17 @@ export default function POSPage() {
   const [cartTotal, setCartTotal] = useState(0);
   const [loading, setLoading] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
-  const [sessionId] = useState(() => `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
+  const [sessionId] = useState(() => {
+    // Check if there's an existing session in localStorage
+    const existingSession = localStorage.getItem('pos_session_id');
+    if (existingSession) {
+      return existingSession;
+    }
+    // Create new session and store it
+    const newSession = `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    localStorage.setItem('pos_session_id', newSession);
+    return newSession;
+  });
   
   // Toast notification
   const { toast, showToast, hideToast } = useToast();
