@@ -1,12 +1,6 @@
 // Celcom Africa SMS Service
-import { createClient } from '@supabase/supabase-js';
+import { getAdminDb } from '../lib/secure-route';
 import axios from 'axios';
-
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  supabaseKey
-);
 
 interface SendSMSParams {
   phoneNumber: string;
@@ -14,6 +8,7 @@ interface SendSMSParams {
   customerId?: string;
   messageType: string;
   priority?: number;
+  tenantId: string; // REQUIRED for tenant isolation
 }
 
 interface SMSResult {
@@ -81,6 +76,7 @@ class CelcomSMSService {
           phoneNumber: formattedPhone,
           status: success ? 'sent' : 'failed',
           messageId: messageId,
+          tenantId: params.tenantId,
           error: success ? null : result['response-description']
         });
 
@@ -167,9 +163,11 @@ class CelcomSMSService {
   // Queue message in database
   private async queueMessage(params: any): Promise<void> {
     try {
-      const { error } = await supabase
+      const db = getAdminDb();
+      const { error } = await db
         .from('message_queue')
         .insert({
+          tenant_id: params.tenantId, // CRITICAL: tenant isolation
           customer_id: params.customerId,
           phone_number: params.phoneNumber,
           message_text: params.message,
@@ -187,7 +185,7 @@ class CelcomSMSService {
 
       // Update customer preferences
       if (params.customerId) {
-        await this.updateCustomerPreferences(params.customerId);
+        await this.updateCustomerPreferences(params.customerId, params.tenantId);
       }
     } catch (error) {
       console.error('Error in queueMessage:', error);
@@ -195,19 +193,22 @@ class CelcomSMSService {
   }
 
   // Update customer communication preferences
-  private async updateCustomerPreferences(customerId: string): Promise<void> {
+  private async updateCustomerPreferences(customerId: string, tenantId: string): Promise<void> {
     try {
-      const { data: currentPrefs } = await supabase
+      const db = getAdminDb();
+      const { data: currentPrefs } = await db
         .from('customer_communication_prefs')
         .select('total_messages_sent')
         .eq('customer_id', customerId)
+        .eq('tenant_id', tenantId)
         .single();
 
       const currentCount = currentPrefs?.total_messages_sent || 0;
 
-      await supabase
+      await db
         .from('customer_communication_prefs')
         .upsert({
+          tenant_id: tenantId, // CRITICAL: tenant isolation
           customer_id: customerId,
           last_contacted_at: new Date().toISOString(),
           total_messages_sent: currentCount + 1,
@@ -252,22 +253,26 @@ class CelcomSMSService {
   async generateMessage(
     templateId: number,
     customer: any,
+    tenantId: string, // REQUIRED for tenant isolation
     context: any = {}
   ): Promise<string> {
     try {
-      const { data: template, error } = await supabase
+      const db = getAdminDb();
+      const { data: template, error } = await db
         .from('message_templates')
         .select('*')
         .eq('id', templateId)
+        .eq('tenant_id', tenantId) // CRITICAL: tenant isolation
         .single();
 
       if (error || !template) {
         throw new Error('Template not found');
       }
 
-      const { data: shopSettings } = await supabase
+      const { data: shopSettings } = await db
         .from('shop_settings')
         .select('*')
+        .eq('tenant_id', tenantId) // CRITICAL: tenant isolation
         .single();
 
       let message = template.message_text;
@@ -297,6 +302,7 @@ class CelcomSMSService {
   async sendBulkSMS(
     customers: any[],
     templateId: number,
+    tenantId: string, // REQUIRED for tenant isolation
     context: any = {}
   ): Promise<{ sent: number; failed: number }> {
     let sent = 0;
@@ -310,14 +316,15 @@ class CelcomSMSService {
           continue;
         }
 
-        const message = await this.generateMessage(templateId, customer, context);
+        const message = await this.generateMessage(templateId, customer, tenantId, context);
 
         const result = await this.sendSMS({
           phoneNumber: customer.phone,
           message,
           customerId: customer.id,
           messageType: 'bulk',
-          priority: 5
+          priority: 5,
+          tenantId,
         });
 
         if (result.success) {
@@ -338,14 +345,16 @@ class CelcomSMSService {
   }
 
   // Get SMS statistics
-  async getStatistics(days: number = 30): Promise<any> {
+  async getStatistics(tenantId: string, days: number = 30): Promise<any> {
     try {
+      const db = getAdminDb();
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - days);
 
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from('message_queue')
         .select('*')
+        .eq('tenant_id', tenantId) // CRITICAL: tenant isolation
         .gte('created_at', startDate.toISOString());
 
       if (error) throw error;

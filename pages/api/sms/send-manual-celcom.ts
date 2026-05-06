@@ -1,22 +1,17 @@
 // API: Send Manual SMS via Celcom Africa
-import type { NextApiRequest, NextApiResponse } from 'next';
+import type { NextApiResponse } from 'next';
+import { secureRoute, SecureRequest, getAdminDb } from '../../../lib/secure-route';
 import celcomSMS from '../../../services/celcom-sms.service';
-import { createClient } from '@supabase/supabase-js';
 
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  supabaseKey
-);
-
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default secureRoute(async function handler(req: SecureRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  const { tenantId } = req;
+  if (!tenantId) return res.status(403).json({ error: 'Tenant context required' });
+
   try {
-    console.log('Send manual SMS request (Celcom):', req.body);
-    
     const { customerIds, message } = req.body;
 
     if (!message || !message.trim()) {
@@ -27,11 +22,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: 'At least one customer must be selected' });
     }
 
-    // Get customers
-    const { data: customers, error } = await supabase
+    const db = getAdminDb();
+
+    // Get customers — scoped to this tenant only
+    const { data: customers, error } = await db
       .from('customers')
       .select('*')
-      .in('id', customerIds);
+      .in('id', customerIds)
+      .eq('tenant_id', tenantId); // CRITICAL: tenant isolation
 
     if (error) throw error;
 
@@ -43,57 +41,35 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     let failed = 0;
     const results = [];
 
-    // Send SMS to each customer
     for (const customer of customers) {
       try {
         if (!customer.phone) {
-          console.log(`Skipping ${customer.name} - no phone number`);
           failed++;
-          results.push({
-            customer: customer.name,
-            status: 'failed',
-            error: 'No phone number'
-          });
+          results.push({ customer: customer.name, status: 'failed', error: 'No phone number' });
           continue;
         }
 
-        // Personalize message with customer name
         const personalizedMessage = message.replace(/{name}/g, customer.name);
 
-        // Send SMS
         const result = await celcomSMS.sendSMS({
           phoneNumber: customer.phone,
           message: personalizedMessage,
           customerId: customer.id,
           messageType: 'manual',
-          priority: 5
+          priority: 5,
+          tenantId, // CRITICAL: pass tenant context
         });
 
         if (result.success) {
           sent++;
-          results.push({
-            customer: customer.name,
-            status: 'sent',
-            messageId: result.messageId
-          });
-          console.log(`✅ Sent message to ${customer.name} (${customer.phone})`);
+          results.push({ customer: customer.name, status: 'sent', messageId: result.messageId });
         } else {
           failed++;
-          results.push({
-            customer: customer.name,
-            status: 'failed',
-            error: result.error
-          });
-          console.log(`❌ Failed to send to ${customer.name}: ${result.error}`);
+          results.push({ customer: customer.name, status: 'failed', error: result.error });
         }
-      } catch (error: any) {
-        console.error(`Failed to send to ${customer.name}:`, error);
+      } catch (err: any) {
         failed++;
-        results.push({
-          customer: customer.name,
-          status: 'failed',
-          error: error.message
-        });
+        results.push({ customer: customer.name, status: 'failed', error: err.message });
       }
     }
 
@@ -103,10 +79,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       failed,
       total: customers.length,
       message: `Successfully sent ${sent} messages, ${failed} failed`,
-      results
+      results,
     });
   } catch (error: any) {
     console.error('Manual SMS error:', error);
     res.status(500).json({ error: error.message || 'Failed to send messages' });
   }
-}
+});

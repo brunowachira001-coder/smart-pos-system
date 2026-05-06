@@ -1,6 +1,6 @@
 import type { NextApiResponse } from 'next';
 import { secureRoute, SecureRequest, getAdminDb } from '../../../lib/secure-route';
-import smsService from '../../../services/africastalking-sms.service';
+import smsService from '../../../services/sms.service';
 
 export default secureRoute(async (req: SecureRequest, res: NextApiResponse) => {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
