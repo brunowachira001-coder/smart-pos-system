@@ -107,88 +107,82 @@ export default function TenantLanding() {
         <div className="hero-content" style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', maxWidth: 680 }}>
 
           {/* Logo / Icon */}
-          <div className="icon-float" style={{ marginBottom: 32 }}>
+          <div className="icon-float" style={{ marginBottom: 24 }}>
             {tenant.logo_url ? (
               <div style={{
-                width: 110, height: 110, borderRadius: 28,
-                background: 'rgba(255,255,255,0.06)',
-                border: `1px solid ${color}40`,
+                width: 100, height: 100, borderRadius: '50%',
+                background: '#fff',
+                border: `3px solid ${color}`,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                boxShadow: `0 0 0 8px ${color}12, 0 20px 60px rgba(0,0,0,0.5)`,
+                boxShadow: `0 0 0 6px ${color}18, 0 16px 48px rgba(0,0,0,0.5)`,
                 overflow: 'hidden',
-                backdropFilter: 'blur(10px)',
               }}>
-                <img src={tenant.logo_url} alt={tenant.name} style={{ width: 90, height: 90, objectFit: 'cover', borderRadius: 20 }}
+                <img src={tenant.logo_url} alt={tenant.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                   onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
               </div>
             ) : (
               <div style={{
-                width: 110, height: 110, borderRadius: 28,
-                background: `linear-gradient(135deg, ${color}30, ${color}15)`,
-                border: `1px solid ${color}40`,
+                width: 100, height: 100, borderRadius: '50%',
+                background: `linear-gradient(135deg, ${color}, ${colorLight})`,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                boxShadow: `0 0 0 8px ${color}10, 0 20px 60px rgba(0,0,0,0.5)`,
-                backdropFilter: 'blur(10px)',
+                fontSize: 42, fontWeight: 900, color: '#fff',
+                boxShadow: `0 0 0 6px ${color}18, 0 16px 48px rgba(0,0,0,0.5)`,
               }}>
-                <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-                  <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
-                  <line x1="12" y1="22.08" x2="12" y2="12"/>
-                </svg>
+                {initial}
               </div>
             )}
           </div>
 
-          {/* Business name label */}
-          <div style={{ fontSize: 14, fontWeight: 600, color: '#64748b', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 14 }}>
+          {/* Business name — main title */}
+          <h1 style={{ fontSize: 'clamp(32px, 5vw, 52px)', fontWeight: 900, lineHeight: 1.1, letterSpacing: '-0.02em', color: '#fff', marginBottom: 8 }}>
             {tenant.name}
-          </div>
+          </h1>
 
           {/* Gradient headline */}
-          <h1 style={{ fontSize: 'clamp(40px, 7vw, 72px)', fontWeight: 900, lineHeight: 1.05, letterSpacing: '-0.03em', marginBottom: 0 }}>
-            <span style={{ color: '#fff' }}>Business</span>{' '}
-            <span style={{ background: `linear-gradient(135deg, ${color}, ${colorLight})`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Management</span>
-          </h1>
-          <h1 style={{ fontSize: 'clamp(40px, 7vw, 72px)', fontWeight: 900, lineHeight: 1.05, letterSpacing: '-0.03em', marginBottom: 24 }}>
+          <h2 style={{ fontSize: 'clamp(28px, 5vw, 48px)', fontWeight: 900, lineHeight: 1.05, letterSpacing: '-0.03em', marginBottom: 0 }}>
+            <span style={{ background: `linear-gradient(135deg, ${color}, ${colorLight})`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Business Management</span>
+          </h2>
+          <h2 style={{ fontSize: 'clamp(28px, 5vw, 48px)', fontWeight: 900, lineHeight: 1.05, letterSpacing: '-0.03em', marginBottom: 20 }}>
             <span style={{ background: `linear-gradient(135deg, ${colorLight}, ${color})`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>System</span>
-          </h1>
+          </h2>
 
           {tenant.tagline && (
-            <p style={{ fontSize: 17, color: '#64748b', maxWidth: 460, lineHeight: 1.7, marginBottom: 36 }}>
+            <p style={{ fontSize: 16, color: '#94a3b8', maxWidth: 460, lineHeight: 1.7, marginBottom: 32 }}>
               {tenant.tagline}
             </p>
           )}
 
-          {/* CTA */}
-          <Link
-            href={`/s/${slug}/login`}
-            onMouseEnter={() => setBtnHover(true)}
-            onMouseLeave={() => setBtnHover(false)}
-            style={{
-              padding: '14px 36px',
-              borderRadius: 14,
-              background: `linear-gradient(135deg, ${color}, ${colorLight})`,
-              color: '#fff',
-              textDecoration: 'none',
-              fontSize: 16,
-              fontWeight: 700,
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 8,
-              boxShadow: btnHover ? `0 12px 40px ${color}55` : `0 6px 20px ${color}35`,
-              transform: btnHover ? 'translateY(-2px)' : 'translateY(0)',
-              transition: 'all 0.2s ease',
-              letterSpacing: '0.01em',
-              marginBottom: 16,
-            }}
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-            </svg>
-            Login to Dashboard
-          </Link>
+          {/* CTA buttons — two side by side like reference */}
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center', marginBottom: 16 }}>
+            <Link
+              href={`/s/${slug}/login`}
+              onMouseEnter={() => setBtnHover(true)}
+              onMouseLeave={() => setBtnHover(false)}
+              style={{
+                padding: '13px 28px',
+                borderRadius: 12,
+                background: `linear-gradient(135deg, ${color}, ${colorLight})`,
+                color: '#fff',
+                textDecoration: 'none',
+                fontSize: 15,
+                fontWeight: 700,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                boxShadow: btnHover ? `0 12px 40px ${color}55` : `0 6px 20px ${color}35`,
+                transform: btnHover ? 'translateY(-2px)' : 'translateY(0)',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
+              Login to Dashboard
+            </Link>
+          </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#475569', fontSize: 13 }}>
+          {/* Trust badge */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#64748b', fontSize: 13 }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
             Trusted by businesses in Kenya
           </div>
