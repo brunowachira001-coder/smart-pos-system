@@ -11,8 +11,8 @@ const PARTNER_ID = '36';
 const SHORTCODE = 'TEXTME';
 const API_URL = 'https://isms.celcomafrica.com/api/services/sendsms/';
 
-// Get phone from command line or use default test number
-const rawPhone = process.argv[2] || '0712345678';
+// Get phone from command line or use Nyla Wigs business number
+const rawPhone = process.argv[2] || '0718307550';
 
 // Format phone number
 function formatPhone(phone) {
