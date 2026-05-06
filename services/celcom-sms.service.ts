@@ -33,7 +33,7 @@ class CelcomSMSService {
     try {
       const apiKey = process.env.CELCOM_API_KEY;
       const partnerID = process.env.CELCOM_PARTNER_ID;
-      const shortcode = process.env.CELCOM_SENDER_ID || 'NYLAWIGS';
+      const shortcode = process.env.CELCOM_SENDER_ID || 'TEXTME';
 
       if (!apiKey || !partnerID) {
         console.error('Celcom credentials not configured');
