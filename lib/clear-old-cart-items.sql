@@ -1,15 +1,19 @@
--- IMPORTANT: Run this in Supabase SQL Editor
--- This will delete ALL cart items that don't have a tenant_id
--- These are old items from before tenant isolation was added
+-- Clear all old cart items to start fresh
+-- Run this in Supabase SQL Editor
 
--- First, check how many items will be deleted
-SELECT COUNT(*) as items_to_delete
+-- First, check what cart items exist
+SELECT 
+  id,
+  session_id,
+  tenant_id,
+  product_name,
+  quantity,
+  created_at
 FROM cart_items
-WHERE tenant_id IS NULL;
+ORDER BY created_at DESC;
 
--- If you're okay with deleting them, uncomment and run this:
--- DELETE FROM cart_items WHERE tenant_id IS NULL;
+-- Clear ALL cart items (this will force a fresh start)
+DELETE FROM cart_items;
 
--- After deleting, verify all remaining items have tenant_id:
--- SELECT COUNT(*) as items_with_tenant FROM cart_items WHERE tenant_id IS NOT NULL;
--- SELECT COUNT(*) as items_without_tenant FROM cart_items WHERE tenant_id IS NULL;
+-- Verify they're cleared
+SELECT COUNT(*) as remaining_cart_items FROM cart_items;

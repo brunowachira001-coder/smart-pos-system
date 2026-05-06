@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>POS Session Debug</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        .section {
+            background: #2a2a2a;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #2563eb;
+        }
+        .danger {
+            background: #ef4444;
+        }
+        .danger:hover {
+            background: #dc2626;
+        }
+        pre {
+            background: #1a1a1a;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 POS Session Debugger</h1>
+    
+    <div class="section">
+        <h2>Current Session ID</h2>
+        <pre id="sessionId">Loading...</pre>
+        <button onclick="refreshSession()">Refresh</button>
+        <button class="danger" onclick="clearSession()">Clear Session</button>
+    </div>
+
+    <div class="section">
+        <h2>All LocalStorage Data</h2>
+        <pre id="allStorage">Loading...</pre>
+    </div>
+
+    <div class="section">
+        <h2>Actions</h2>
+        <button onclick="generateNewSession()">Generate New Session</button>
+        <button onclick="testCartAPI()">Test Cart API</button>
+        <button onclick="testCheckoutAPI()">Test Checkout API</button>
+    </div>
+
+    <div class="section">
+        <h2>API Test Results</h2>
+        <pre id="apiResults">No tests run yet</pre>
+    </div>
+
+    <script>
+        function refreshSession() {
+            const sessionId = localStorage.getItem('pos_session_id');
+            document.getElementById('sessionId').textContent = sessionId || 'No session found';
+            
+            // Show all localStorage
+            const allData = {};
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                allData[key] = localStorage.getItem(key);
+            }
+            document.getElementById('allStorage').textContent = JSON.stringify(allData, null, 2);
+        }
+
+        function clearSession() {
+            localStorage.removeItem('pos_session_id');
+            alert('Session cleared! Refresh the page.');
+            refreshSession();
+        }
+
+        function generateNewSession() {
+            const newSession = `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+            localStorage.setItem('pos_session_id', newSession);
+            alert('New session generated: ' + newSession);
+            refreshSession();
+        }
+
+        async function testCartAPI() {
+            const sessionId = localStorage.getItem('pos_session_id');
+            const token = localStorage.getItem('token');
+            
+            if (!sessionId) {
+                document.getElementById('apiResults').textContent = 'Error: No session ID found';
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/pos/cart?sessionId=${sessionId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                const data = await response.json();
+                document.getElementById('apiResults').textContent = 
+                    `Cart API Response (${response.status}):\n` + JSON.stringify(data, null, 2);
+            } catch (error) {
+                document.getElementById('apiResults').textContent = 'Error: ' + error.message;
+            }
+        }
+
+        async function testCheckoutAPI() {
+            const sessionId = localStorage.getItem('pos_session_id');
+            const token = localStorage.getItem('token');
+            
+            if (!sessionId) {
+                document.getElementById('apiResults').textContent = 'Error: No session ID found';
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/pos/checkout', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        sessionId,
+                        total: 100,
+                        amountPaid: 100,
+                        paymentMethod: 'cash',
+                        cashierName: 'Test'
+                    })
+                });
+                const data = await response.json();
+                document.getElementById('apiResults').textContent = 
+                    `Checkout API Response (${response.status}):\n` + JSON.stringify(data, null, 2);
+            } catch (error) {
+                document.getElementById('apiResults').textContent = 'Error: ' + error.message;
+            }
+        }
+
+        // Load on page load
+        refreshSession();
+    </script>
+</body>
+</html>
