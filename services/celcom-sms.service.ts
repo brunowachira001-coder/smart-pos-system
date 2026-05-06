@@ -67,7 +67,7 @@ class CelcomSMSService {
       if (response.data && response.data.responses && response.data.responses.length > 0) {
         const result = response.data.responses[0];
         
-        const success = result['respose-code'] === 200;
+        const success = result['response-code'] === 200 || result['respose-code'] === 200;
         const messageId = result.messageid?.toString();
 
         // Queue message in database
