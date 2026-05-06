@@ -1,11 +1,14 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-import { supabase } from '../../../lib/supabase-client';
+import type { NextApiResponse } from 'next';
+import { secureRoute, SecureRequest, getAdminDb } from '../../../lib/secure-route';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default secureRoute(async function handler(req: SecureRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', ['POST']);
     return res.status(405).json({ error: `Method ${req.method} Not Allowed` });
   }
+
+  const { tenantId } = req;
+  const db = getAdminDb();
 
   try {
     const {
@@ -13,19 +16,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       customerId,
       customerName,
       customerPhone,
-      subtotal,
-      discount = 0,
-      tax = 0,
       total,
       amountPaid,
       paymentMethod,
-      paymentReference,
       notes,
-      cashierId,
       cashierName
     } = req.body;
 
-    // Validate required fields
     if (!sessionId) return res.status(400).json({ error: 'Session ID is required' });
     if (!total) return res.status(400).json({ error: 'Total amount is required' });
     if (!paymentMethod) return res.status(400).json({ error: 'Payment method is required' });
@@ -33,16 +30,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: 'Amount paid is required' });
     }
 
-    // For debt payment, validate customer and credit limit
     if (paymentMethod === 'debt') {
       if (!customerId) {
         return res.status(400).json({ error: 'Customer is required for debt payment' });
       }
 
-      const { data: customer, error: customerError } = await supabase
+      const { data: customer, error: customerError } = await db
         .from('customers')
         .select('debt_limit, name')
         .eq('id', customerId)
+        .eq('tenant_id', tenantId)
         .single();
 
       if (customerError || !customer) {
@@ -54,11 +51,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(400).json({ error: 'Customer does not have a credit limit set' });
       }
 
-      // Check current outstanding debt using correct column name
-      const { data: debts } = await supabase
+      const { data: debts } = await db
         .from('debts')
         .select('amount_remaining')
         .eq('customer_id', customerId)
+        .eq('tenant_id', tenantId)
         .neq('status', 'Paid');
 
       const currentDebt = debts?.reduce((sum, d) => sum + parseFloat(d.amount_remaining || '0'), 0) || 0;
@@ -71,11 +68,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     }
 
-    // Get cart items
-    const { data: cartItems, error: cartError } = await supabase
+    const { data: cartItems, error: cartError } = await db
       .from('cart_items')
       .select('*')
-      .eq('session_id', sessionId);
+      .eq('session_id', sessionId)
+      .eq('tenant_id', tenantId);
 
     if (cartError) {
       return res.status(500).json({ error: `Cart error: ${cartError.message}` });
@@ -85,14 +82,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: 'Cart is empty' });
     }
 
-    // Generate transaction/sale number
     const saleNumber = `SALE-${Math.floor(Math.random() * 900000 + 100000)}`;
-    const transactionNumber = `TXN-${Date.now()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
+    const transactionNumber = `TXN-${Date.now()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
 
-    // Create transaction in transactions table
-    const { data: transaction, error: transactionError } = await supabase
+    const { data: transaction, error: transactionError } = await db
       .from('transactions')
       .insert({
+        tenant_id: tenantId,
         transaction_id: transactionNumber,
         customer_id: customerId || null,
         customer_name: customerName || 'Walk-in Customer',
@@ -110,8 +106,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(500).json({ error: `Transaction error: ${transactionError.message}` });
     }
 
-    // Create transaction items in transaction_items table
     const transactionItems = cartItems.map(item => ({
+      tenant_id: tenantId,
       transaction_id: transaction.transaction_id,
       product_id: item.product_id,
       product_name: item.product_name || 'Unknown Product',
@@ -120,26 +116,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       total_price: item.subtotal
     }));
 
-    const { error: itemsError } = await supabase
+    const { error: itemsError } = await db
       .from('transaction_items')
       .insert(transactionItems);
 
     if (itemsError) {
-      await supabase.from('transactions').delete().eq('id', transaction.id);
+      await db.from('transactions').delete().eq('id', transaction.id).eq('tenant_id', tenantId);
       return res.status(500).json({ error: `Items error: ${itemsError.message}` });
     }
 
-    // If debt payment, create debt record using correct column names
     if (paymentMethod === 'debt') {
-      const { data: customer } = await supabase
+      const { data: customer } = await db
         .from('customers')
         .select('name')
         .eq('id', customerId)
+        .eq('tenant_id', tenantId)
         .single();
 
-      const { error: debtError } = await supabase
+      const { error: debtError } = await db
         .from('debts')
         .insert({
+          tenant_id: tenantId,
           customer_id: customerId,
           customer_name: customer?.name || customerName || 'Unknown',
           sale_id: saleNumber,
@@ -152,31 +149,31 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
 
       if (debtError) {
-        await supabase.from('transaction_items').delete().eq('transaction_id', transaction.transaction_id);
-        await supabase.from('transactions').delete().eq('id', transaction.id);
+        await db.from('transaction_items').delete().eq('transaction_id', transaction.transaction_id).eq('tenant_id', tenantId);
+        await db.from('transactions').delete().eq('id', transaction.id).eq('tenant_id', tenantId);
         return res.status(500).json({ error: `Debt error: ${debtError.message}` });
       }
     }
 
-    // Update product inventory
     for (const item of cartItems) {
-      const { data: product } = await supabase
+      const { data: product } = await db
         .from('products')
         .select('stock_quantity')
         .eq('id', item.product_id)
+        .eq('tenant_id', tenantId)
         .single();
 
       if (product) {
         const newQty = Math.max(0, (product.stock_quantity || 0) - item.quantity);
-        await supabase
+        await db
           .from('products')
           .update({ stock_quantity: newQty, updated_at: new Date().toISOString() })
-          .eq('id', item.product_id);
+          .eq('id', item.product_id)
+          .eq('tenant_id', tenantId);
       }
     }
 
-    // Clear cart
-    await supabase.from('cart_items').delete().eq('session_id', sessionId);
+    await db.from('cart_items').delete().eq('session_id', sessionId).eq('tenant_id', tenantId);
 
     const changeAmount = paymentMethod === 'debt' ? 0 : (amountPaid || 0) - total;
 
@@ -194,4 +191,4 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.error('Checkout Error:', error);
     return res.status(500).json({ error: error.message || 'Internal server error' });
   }
-}
+});
