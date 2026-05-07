@@ -58,7 +58,8 @@ export default function InventoryPage() {
     minimumStockLevel: '10',
     description: '',
     barcode: '',
-    imageUrl: ''
+    imageUrl: '',
+    purchaseUnit: ''
   });
 
   const [restockQuantity, setRestockQuantity] = useState('');
@@ -327,7 +328,8 @@ export default function InventoryPage() {
       minimumStockLevel: product.minimum_stock_level?.toString() || '10',
       description: product.description || '',
       barcode: product.barcode || '',
-      imageUrl: product.image_url || ''
+      imageUrl: product.image_url || '',
+      purchaseUnit: ''
     });
     setShowEditModal(true);
   };
@@ -344,7 +346,8 @@ export default function InventoryPage() {
       minimumStockLevel: '10',
       description: '',
       barcode: '',
-      imageUrl: ''
+      imageUrl: '',
+      purchaseUnit: ''
     });
     setCurrentStep(1);
     setImageFile(null);
@@ -908,6 +911,8 @@ export default function InventoryPage() {
                     <div>
                       <label className="block text-sm font-medium mb-2">Purchase Unit (for restocking)</label>
                       <select
+                        value={formData.purchaseUnit}
+                        onChange={(e) => setFormData({ ...formData, purchaseUnit: e.target.value })}
                         className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
                       >
                         <option value="">Select purchase unit...</option>
@@ -983,7 +988,9 @@ export default function InventoryPage() {
               {currentStep === 4 && (
                 <div className="space-y-6">
                   <div>
-                    <label className="block text-sm font-medium mb-2">Initial Stock (in dozens)</label>
+                    <label className="block text-sm font-medium mb-2">
+                      Initial Stock {formData.purchaseUnit ? `(in ${formData.purchaseUnit})` : ''}
+                    </label>
                     <input
                       type="number"
                       value={formData.stockQuantity}
@@ -1058,7 +1065,9 @@ export default function InventoryPage() {
                           </div>
                           <div>
                             <span className="text-[var(--text-secondary)]">Initial Stock:</span>
-                            <span className="ml-2">{formData.stockQuantity || '0'} (dozens)</span>
+                            <span className="ml-2">
+                              {formData.stockQuantity || '0'} {formData.purchaseUnit ? `(${formData.purchaseUnit})` : ''}
+                            </span>
                           </div>
                         </div>
                       </div>
