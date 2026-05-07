@@ -653,10 +653,25 @@ export default function InventoryPage() {
                               Adjust Stock
                             </button>
                             <button
+                              onClick={() => {
+                                // TODO: Implement view history functionality
+                                setToast({ message: 'View History feature coming soon', type: 'info' });
+                              }}
+                              className="w-full text-left px-4 py-2 text-sm hover:bg-[var(--bg-primary)]"
+                            >
+                              View History
+                            </button>
+                            <button
                               onClick={() => openEditModal(product)}
-                              className="w-full text-left px-4 py-2 text-sm hover:bg-[var(--bg-primary)] last:rounded-b-lg"
+                              className="w-full text-left px-4 py-2 text-sm hover:bg-[var(--bg-primary)]"
                             >
                               Edit
+                            </button>
+                            <button
+                              onClick={() => handleDeleteProduct(product.id)}
+                              className="w-full text-left px-4 py-2 text-sm hover:bg-[var(--bg-primary)] text-red-500 hover:text-red-600 last:rounded-b-lg"
+                            >
+                              Archive
                             </button>
                           </div>
                         </div>
