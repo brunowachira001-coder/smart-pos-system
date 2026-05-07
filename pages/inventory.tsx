@@ -875,9 +875,14 @@ export default function InventoryPage() {
                         className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
                       >
                         <option value="piece">piece</option>
-                        <option value="kg">kg</option>
-                        <option value="liter">liter</option>
                         <option value="box">box</option>
+                        <option value="dozen">dozen</option>
+                        <option value="kg">kg</option>
+                        <option value="g">g</option>
+                        <option value="litre">litre</option>
+                        <option value="ml">ml</option>
+                        <option value="pack">pack</option>
+                        <option value="1/2 dozen">1/2 dozen</option>
                       </select>
                     </div>
 
@@ -887,9 +892,12 @@ export default function InventoryPage() {
                         className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
                       >
                         <option value="">Select purchase unit...</option>
+                        <option value="piece">piece</option>
+                        <option value="box">box</option>
                         <option value="dozen">dozen</option>
-                        <option value="carton">carton</option>
                         <option value="kg">kg</option>
+                        <option value="litre">litre</option>
+                        <option value="pack">pack</option>
                       </select>
                     </div>
                   </div>
