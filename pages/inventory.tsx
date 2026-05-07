@@ -39,6 +39,10 @@ export default function InventoryPage() {
   const [showAdjustModal, setShowAdjustModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   
+  // Multi-step wizard state
+  const [currentStep, setCurrentStep] = useState(1);
+  const totalSteps = 4;
+  
   // Toast notification
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
   
@@ -310,6 +314,29 @@ export default function InventoryPage() {
       barcode: '',
       imageUrl: ''
     });
+    setCurrentStep(1);
+  };
+
+  const nextStep = () => {
+    if (currentStep < totalSteps) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
+
+  const prevStep = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
+  const getStepTitle = () => {
+    switch (currentStep) {
+      case 1: return 'Core Details';
+      case 2: return 'Organization';
+      case 3: return 'Units, Conversion & Pricing';
+      case 4: return 'Stock & Review';
+      default: return '';
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -585,154 +612,358 @@ export default function InventoryPage() {
         </div>
       </div>
 
-      {/* Add Product Modal */}
+      {/* Add Product Modal - Multi-Step Wizard */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
-          <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <h2 className="text-xl font-bold mb-4">Add New Product</h2>
+          <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-6 max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+            {/* Header */}
+            <div className="mb-6">
+              <h2 className="text-xl font-bold mb-2">Add New Product Wizard</h2>
+              <p className="text-sm text-[var(--text-secondary)]">Step {currentStep} of {totalSteps}: {getStepTitle()}</p>
+            </div>
+
+            {/* Progress Bar */}
+            <div className="mb-8">
+              <div className="flex items-center justify-between mb-2">
+                {[1, 2, 3, 4].map((step) => (
+                  <div key={step} className="flex items-center flex-1">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
+                      step <= currentStep 
+                        ? 'bg-emerald-600 text-white' 
+                        : 'bg-[var(--bg-primary)] border border-[var(--border-color)] text-[var(--text-secondary)]'
+                    }`}>
+                      {step}
+                    </div>
+                    {step < 4 && (
+                      <div className={`flex-1 h-1 mx-2 ${
+                        step < currentStep ? 'bg-emerald-600' : 'bg-[var(--border-color)]'
+                      }`} />
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
             
-            <form onSubmit={handleAddProduct} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Product Name *</label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-sm"
-                  />
+            <form onSubmit={handleAddProduct} className="space-y-6">
+              {/* Step 1: Core Details */}
+              {currentStep === 1 && (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Product Name *</label>
+                      <input
+                        type="text"
+                        required
+                        value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        placeholder="Enter product name"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium mb-2">SKU *</label>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          required
+                          value={formData.sku}
+                          onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
+                          className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                          placeholder="GEN-KAU-0004"
+                        />
+                        <button
+                          type="button"
+                          className="absolute right-2 top-1/2 transform -translate-y-1/2 text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Description</label>
+                    <textarea
+                      value={formData.description}
+                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                      className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      rows={4}
+                      placeholder="Kaulo best quality"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Image</label>
+                    <div className="flex items-center justify-center w-full">
+                      <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-[var(--border-color)] rounded-lg cursor-pointer bg-[var(--bg-primary)] hover:bg-[var(--bg-secondary)] transition-colors">
+                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                          <svg className="w-8 h-8 mb-2 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                          </svg>
+                          <p className="text-sm text-[var(--text-secondary)]">Upload</p>
+                        </div>
+                        <input
+                          type="file"
+                          className="hidden"
+                          accept="image/*"
+                        />
+                      </label>
+                    </div>
+                  </div>
                 </div>
+              )}
 
-                <div>
-                  <label className="block text-sm font-medium mb-2">SKU *</label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.sku}
-                    onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
-                    className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-sm"
-                  />
+              {/* Step 2: Organization */}
+              {currentStep === 2 && (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Category</label>
+                    <select
+                      value={formData.category}
+                      onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                      className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    >
+                      <option value="">Kaulo plates</option>
+                      {categories.map(cat => (
+                        <option key={cat} value={cat}>{cat}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Variant of (Optional)</label>
+                    <p className="text-xs text-[var(--text-secondary)] mb-2">
+                      If this is a variant (e.g., size or color), select the main product.
+                    </p>
+                    <select
+                      className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    >
+                      <option value="">Kenstar Soup Plate (GEN-KEN-0007)</option>
+                      {products.filter(p => !p.variant_of).map(p => (
+                        <option key={p.id} value={p.id}>{p.name} ({p.sku})</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
-              </div>
+              )}
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Category *</label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-sm"
-                  />
+              {/* Step 3: Units, Conversion & Pricing */}
+              {currentStep === 3 && (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Base Unit (for selling)</label>
+                      <select
+                        className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      >
+                        <option value="piece">piece</option>
+                        <option value="kg">kg</option>
+                        <option value="liter">liter</option>
+                        <option value="box">box</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Purchase Unit (for restocking)</label>
+                      <select
+                        className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      >
+                        <option value="">Select purchase unit...</option>
+                        <option value="dozen">dozen</option>
+                        <option value="carton">carton</option>
+                        <option value="kg">kg</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Selling Mode</label>
+                    <div className="flex gap-4">
+                      <label className="flex items-center">
+                        <input type="radio" name="sellingMode" value="retail" className="mr-2" defaultChecked />
+                        <span className="text-sm">Retail Only</span>
+                      </label>
+                      <label className="flex items-center">
+                        <input type="radio" name="sellingMode" value="wholesale" className="mr-2" />
+                        <span className="text-sm">Wholesale Only</span>
+                      </label>
+                      <label className="flex items-center">
+                        <input type="radio" name="sellingMode" value="both" className="mr-2" />
+                        <span className="text-sm">Both</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Buying Price (per piece)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={formData.costPrice}
+                      onChange={(e) => setFormData({ ...formData, costPrice: e.target.value })}
+                      className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      placeholder="0"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Retail Price (per piece)</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={formData.retailPrice}
+                        onChange={(e) => setFormData({ ...formData, retailPrice: e.target.value })}
+                        className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        placeholder="0"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Wholesale Price (per piece)</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={formData.wholesalePrice}
+                        onChange={(e) => setFormData({ ...formData, wholesalePrice: e.target.value })}
+                        className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        placeholder="0"
+                      />
+                    </div>
+                  </div>
                 </div>
+              )}
 
-                <div>
-                  <label className="block text-sm font-medium mb-2">Barcode</label>
-                  <input
-                    type="text"
-                    value={formData.barcode}
-                    onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
-                    className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-sm"
-                  />
+              {/* Step 4: Stock & Review */}
+              {currentStep === 4 && (
+                <div className="space-y-6">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Initial Stock (in dozens)</label>
+                    <input
+                      type="number"
+                      value={formData.stockQuantity}
+                      onChange={(e) => setFormData({ ...formData, stockQuantity: e.target.value })}
+                      className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      placeholder="0"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Min Retail Stock (pieces)</label>
+                      <input
+                        type="number"
+                        value={formData.minimumStockLevel}
+                        onChange={(e) => setFormData({ ...formData, minimumStockLevel: e.target.value })}
+                        className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        placeholder="0"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Min Wholesale Stock (pieces)</label>
+                      <input
+                        type="number"
+                        className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        placeholder="0"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Review Section */}
+                  <div className="border-t border-[var(--border-color)] pt-6">
+                    <h3 className="text-lg font-semibold mb-4">Review Product Details</h3>
+                    <div className="bg-[var(--bg-primary)] rounded-lg p-4 space-y-3">
+                      <div className="flex items-start gap-4">
+                        <div className="w-16 h-16 bg-[var(--bg-secondary)] rounded flex items-center justify-center text-2xl">
+                          IMG
+                        </div>
+                        <div className="flex-1 grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
+                          <div>
+                            <span className="text-[var(--text-secondary)]">Name:</span>
+                            <span className="ml-2 font-medium">{formData.name || 'Kaulo Plate'}</span>
+                          </div>
+                          <div>
+                            <span className="text-[var(--text-secondary)]">SKU:</span>
+                            <span className="ml-2 font-medium">{formData.sku || 'KAU-KALU-0003'}</span>
+                          </div>
+                          <div>
+                            <span className="text-[var(--text-secondary)]">Category:</span>
+                            <span className="ml-2">{formData.category || 'Kaulo plates'}</span>
+                          </div>
+                          <div>
+                            <span className="text-[var(--text-secondary)]">Base Unit:</span>
+                            <span className="ml-2">piece</span>
+                          </div>
+                          <div>
+                            <span className="text-[var(--text-secondary)]">Purchase Unit:</span>
+                            <span className="ml-2">dozen</span>
+                          </div>
+                          <div>
+                            <span className="text-[var(--text-secondary)]">Buying Price:</span>
+                            <span className="ml-2">{formData.costPrice || '600'}</span>
+                          </div>
+                          <div>
+                            <span className="text-[var(--text-secondary)]">Retail Price:</span>
+                            <span className="ml-2">{formData.retailPrice || '70'}</span>
+                          </div>
+                          <div>
+                            <span className="text-[var(--text-secondary)]">Wholesale Price:</span>
+                            <span className="ml-2">{formData.wholesalePrice || '65'}</span>
+                          </div>
+                          <div>
+                            <span className="text-[var(--text-secondary)]">Initial Stock:</span>
+                            <span className="ml-2">{formData.stockQuantity || '0'} (dozens)</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
+              )}
 
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Cost Price</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={formData.costPrice}
-                    onChange={(e) => setFormData({ ...formData, costPrice: e.target.value })}
-                    className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-sm"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2">Retail Price</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={formData.retailPrice}
-                    onChange={(e) => setFormData({ ...formData, retailPrice: e.target.value })}
-                    className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-sm"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2">Wholesale Price</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={formData.wholesalePrice}
-                    onChange={(e) => setFormData({ ...formData, wholesalePrice: e.target.value })}
-                    className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-sm"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Stock Quantity</label>
-                  <input
-                    type="number"
-                    value={formData.stockQuantity}
-                    onChange={(e) => setFormData({ ...formData, stockQuantity: e.target.value })}
-                    className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-sm"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2">Minimum Stock Level</label>
-                  <input
-                    type="number"
-                    value={formData.minimumStockLevel}
-                    onChange={(e) => setFormData({ ...formData, minimumStockLevel: e.target.value })}
-                    className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-sm"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">Description</label>
-                <textarea
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-sm"
-                  rows={3}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">Image URL</label>
-                <input
-                  type="url"
-                  value={formData.imageUrl || ''}
-                  onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                  placeholder="https://example.com/image.jpg"
-                  className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-sm"
-                />
-                <p className="text-xs text-gray-500 mt-1">Upload image to Imgur or image hosting service, then paste URL here</p>
-              </div>
-
-              <div className="flex gap-3 pt-4">
+              {/* Navigation Buttons */}
+              <div className="flex gap-3 pt-6 border-t border-[var(--border-color)]">
                 <button
                   type="button"
                   onClick={() => { setShowAddModal(false); resetForm(); }}
-                  className="flex-1 bg-[var(--bg-primary)] border border-[var(--border-color)] py-2 rounded-lg hover:bg-[var(--bg-secondary)]"
+                  className="px-6 bg-[var(--bg-primary)] border border-[var(--border-color)] py-2.5 rounded-lg hover:bg-[var(--bg-secondary)] transition-colors"
                 >
                   Cancel
                 </button>
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="flex-1 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-600 text-white py-2 rounded-lg font-semibold"
-                >
-                  {loading ? 'Adding...' : 'Add Product'}
-                </button>
+                
+                {currentStep > 1 && (
+                  <button
+                    type="button"
+                    onClick={prevStep}
+                    className="px-6 bg-[var(--bg-primary)] border border-[var(--border-color)] py-2.5 rounded-lg hover:bg-[var(--bg-secondary)] transition-colors"
+                  >
+                    Back
+                  </button>
+                )}
+
+                <div className="flex-1"></div>
+
+                {currentStep < totalSteps ? (
+                  <button
+                    type="button"
+                    onClick={nextStep}
+                    className="px-8 bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-lg font-semibold transition-colors"
+                  >
+                    Next
+                  </button>
+                ) : (
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="px-8 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-600 text-white py-2.5 rounded-lg font-semibold transition-colors"
+                  >
+                    {loading ? 'Adding...' : 'Add Product'}
+                  </button>
+                )}
               </div>
             </form>
           </div>
