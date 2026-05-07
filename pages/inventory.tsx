@@ -64,10 +64,19 @@ export default function InventoryPage() {
   const [restockQuantity, setRestockQuantity] = useState('');
   const [adjustQuantity, setAdjustQuantity] = useState('');
   const [adjustReason, setAdjustReason] = useState('');
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>('');
 
   useEffect(() => {
     fetchProducts();
   }, [searchQuery, selectedCategory, filterTab, currentPage, itemsPerPage]);
+
+  // Auto-generate SKU when Add Product modal opens
+  useEffect(() => {
+    if (showAddModal && !formData.sku) {
+      generateSKU();
+    }
+  }, [showAddModal]);
 
   const fetchProducts = async () => {
     setLoading(true);
@@ -103,6 +112,27 @@ export default function InventoryPage() {
     setLoading(true);
 
     try {
+      let uploadedImageUrl = formData.imageUrl;
+
+      // Upload image if file is selected
+      if (imageFile && imagePreview) {
+        const uploadResponse = await fetch('/api/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            file: imagePreview,
+            filename: imageFile.name,
+          }),
+        });
+
+        if (uploadResponse.ok) {
+          const uploadData = await uploadResponse.json();
+          uploadedImageUrl = uploadData.url;
+        } else {
+          setToast({ message: 'Image upload failed, continuing without image', type: 'info' });
+        }
+      }
+
       const response = await fetch('/api/inventory', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -117,7 +147,7 @@ export default function InventoryPage() {
           minimumStockLevel: parseInt(formData.minimumStockLevel) || 10,
           description: formData.description,
           barcode: formData.barcode,
-          imageUrl: formData.imageUrl
+          imageUrl: uploadedImageUrl
         })
       });
 
@@ -315,6 +345,51 @@ export default function InventoryPage() {
       imageUrl: ''
     });
     setCurrentStep(1);
+    setImageFile(null);
+    setImagePreview('');
+  };
+
+  const generateSKU = () => {
+    // Generate SKU format: PRD-YYYYMMDD-XXXX (e.g., PRD-20260507-A1B2)
+    const date = new Date();
+    const dateStr = date.getFullYear().toString() + 
+                    (date.getMonth() + 1).toString().padStart(2, '0') + 
+                    date.getDate().toString().padStart(2, '0');
+    const randomStr = Math.random().toString(36).substring(2, 6).toUpperCase();
+    const sku = `PRD-${dateStr}-${randomStr}`;
+    setFormData({ ...formData, sku });
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setToast({ message: 'Image size must be less than 5MB', type: 'error' });
+        return;
+      }
+
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        setToast({ message: 'Please select a valid image file', type: 'error' });
+        return;
+      }
+
+      setImageFile(file);
+
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeImage = () => {
+    setImageFile(null);
+    setImagePreview('');
+    setFormData({ ...formData, imageUrl: '' });
   };
 
   const nextStep = () => {
@@ -669,12 +744,14 @@ export default function InventoryPage() {
                           required
                           value={formData.sku}
                           onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
-                          className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                          placeholder="GEN-KAU-0004"
+                          className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2.5 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                          placeholder="Click refresh to auto-generate"
                         />
                         <button
                           type="button"
-                          className="absolute right-2 top-1/2 transform -translate-y-1/2 text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                          onClick={generateSKU}
+                          title="Auto-generate SKU"
+                          className="absolute right-2 top-1/2 transform -translate-y-1/2 text-[var(--text-secondary)] hover:text-emerald-500 transition-colors"
                         >
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -697,21 +774,42 @@ export default function InventoryPage() {
 
                   <div>
                     <label className="block text-sm font-medium mb-2">Image</label>
-                    <div className="flex items-center justify-center w-full">
-                      <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-[var(--border-color)] rounded-lg cursor-pointer bg-[var(--bg-primary)] hover:bg-[var(--bg-secondary)] transition-colors">
-                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                          <svg className="w-8 h-8 mb-2 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                          </svg>
-                          <p className="text-sm text-[var(--text-secondary)]">Upload</p>
-                        </div>
-                        <input
-                          type="file"
-                          className="hidden"
-                          accept="image/*"
+                    {imagePreview ? (
+                      <div className="relative">
+                        <img 
+                          src={imagePreview} 
+                          alt="Preview" 
+                          className="w-full h-48 object-cover rounded-lg border border-[var(--border-color)]"
                         />
-                      </label>
-                    </div>
+                        <button
+                          type="button"
+                          onClick={removeImage}
+                          className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-2 transition-colors"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-center w-full">
+                        <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-[var(--border-color)] rounded-lg cursor-pointer bg-[var(--bg-primary)] hover:bg-[var(--bg-secondary)] transition-colors">
+                          <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                            <svg className="w-8 h-8 mb-2 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                            </svg>
+                            <p className="text-sm text-[var(--text-secondary)]">Click to upload image</p>
+                            <p className="text-xs text-[var(--text-secondary)] mt-1">PNG, JPG up to 5MB</p>
+                          </div>
+                          <input
+                            type="file"
+                            className="hidden"
+                            accept="image/*"
+                            onChange={handleImageChange}
+                          />
+                        </label>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -938,7 +1036,10 @@ export default function InventoryPage() {
                 {currentStep > 1 && (
                   <button
                     type="button"
-                    onClick={prevStep}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      prevStep();
+                    }}
                     className="px-6 bg-[var(--bg-primary)] border border-[var(--border-color)] py-2.5 rounded-lg hover:bg-[var(--bg-secondary)] transition-colors"
                   >
                     Back
@@ -950,7 +1051,10 @@ export default function InventoryPage() {
                 {currentStep < totalSteps ? (
                   <button
                     type="button"
-                    onClick={nextStep}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      nextStep();
+                    }}
                     className="px-8 bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-lg font-semibold transition-colors"
                   >
                     Next
