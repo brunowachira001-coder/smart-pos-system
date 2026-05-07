@@ -41,11 +41,23 @@ async function handler(req: SecureRequest, res: NextApiResponse) {
     try {
       const { transaction_id, customer_id, customer_name, product_id, product_name, quantity, amount, reason, notes } = req.body;
 
+      // Generate unique return_id
+      const return_id = `RET-${Date.now()}-${Math.random().toString(36).substring(2, 9).toUpperCase()}`;
+
       const { data: returnRecord, error } = await getAdminDb()
         .from('returns')
         .insert([{
-          transaction_id, customer_id, customer_name, product_id, product_name,
-          quantity, amount, reason, status: 'Pending', notes,
+          return_id,
+          transaction_id, 
+          customer_id, 
+          customer_name, 
+          product_id, 
+          product_name,
+          quantity, 
+          amount, 
+          reason, 
+          status: 'Pending', 
+          notes,
           tenant_id: tenantId,
         }])
         .select().single();
