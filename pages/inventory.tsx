@@ -62,6 +62,8 @@ export default function InventoryPage() {
   });
 
   const [restockQuantity, setRestockQuantity] = useState('');
+  const [restockUnit, setRestockUnit] = useState('piece');
+  const [restockStockType, setRestockStockType] = useState('Retail');
   const [adjustQuantity, setAdjustQuantity] = useState('');
   const [adjustReason, setAdjustReason] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -1254,50 +1256,75 @@ export default function InventoryPage() {
       {showRestockModal && selectedProduct && (
         <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
           <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-6 max-w-md w-full">
-            <h2 className="text-xl font-bold mb-4">Restock Product</h2>
+            <h2 className="text-xl font-bold mb-6">Restock {selectedProduct.name}</h2>
             
             <form onSubmit={handleRestock} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-2">Product</label>
-                <div className="bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-sm">
-                  {selectedProduct.name}
-                </div>
-              </div>
-
-              <div>
                 <label className="block text-sm font-medium mb-2">Current Stock</label>
-                <div className="bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-sm">
-                  {selectedProduct.stock_quantity || 0} units
+                <div className="bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-4 py-3 text-sm">
+                  {selectedProduct.stock_quantity || 0} piece(s)
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">Quantity to Add *</label>
+                <label className="block text-sm font-medium mb-2">Restock In</label>
+                <select
+                  value={restockUnit}
+                  onChange={(e) => setRestockUnit(e.target.value)}
+                  className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                >
+                  <option value="piece">piece</option>
+                  <option value="dozen">dozen</option>
+                  <option value="carton">carton</option>
+                  <option value="box">box</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Quantity to Add</label>
                 <input
                   type="number"
                   required
                   min="1"
                   value={restockQuantity}
                   onChange={(e) => setRestockQuantity(e.target.value)}
-                  className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-sm"
-                  placeholder="Enter quantity"
+                  className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="1"
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Stock Type (for history)</label>
+                <select
+                  value={restockStockType}
+                  onChange={(e) => setRestockStockType(e.target.value)}
+                  className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                >
+                  <option value="Retail">Retail</option>
+                  <option value="Wholesale">Wholesale</option>
+                </select>
               </div>
 
               <div className="flex gap-3 pt-4">
                 <button
                   type="button"
-                  onClick={() => { setShowRestockModal(false); setSelectedProduct(null); setRestockQuantity(''); }}
-                  className="flex-1 bg-[var(--bg-primary)] border border-[var(--border-color)] py-2 rounded-lg hover:bg-[var(--bg-secondary)]"
+                  onClick={() => { 
+                    setShowRestockModal(false); 
+                    setSelectedProduct(null); 
+                    setRestockQuantity(''); 
+                    setRestockUnit('piece');
+                    setRestockStockType('Retail');
+                  }}
+                  className="flex-1 bg-[var(--bg-primary)] border border-[var(--border-color)] py-3 rounded-lg hover:bg-[var(--bg-secondary)] transition-colors text-sm font-medium"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="flex-1 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-600 text-white py-2 rounded-lg font-semibold"
+                  className="flex-1 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-600 text-white py-3 rounded-lg font-semibold transition-colors text-sm"
                 >
-                  {loading ? 'Restocking...' : 'Restock'}
+                  {loading ? 'Restocking...' : 'Confirm Restock'}
                 </button>
               </div>
             </form>
