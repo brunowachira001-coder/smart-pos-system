@@ -8,6 +8,15 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  
+  // Default shop settings (no API dependency)
+  const [settings, setSettings] = useState({
+    business_name: 'Smart POS System',
+    business_tagline: 'Multi-Tenant Business Management',
+    primary_color: '#6366f1',
+    secondary_color: '#a855f7',
+    logo_url: ''
+  });
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme') || 'dark';
