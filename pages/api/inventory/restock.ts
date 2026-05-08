@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { supabase } from '../../../lib/supabase-client';
+import { supabase } from '../../../lib/supabase';
 
 import { secureRoute, SecureRequest, getAdminDb } from '../../../lib/secure-route';
 import { logInventoryMovement } from '../../../services/inventory-movement.service';

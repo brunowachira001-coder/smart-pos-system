@@ -1,16 +1,53 @@
+/**
+ * CLIENT-SIDE Supabase Client
+ * ONLY uses anon key - safe for browser
+ * DO NOT import this in API routes
+ */
+
 import { createClient } from '@supabase/supabase-js';
+import env from './env-validation';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables');
+if (typeof window === 'undefined') {
+  throw new Error('supabase-client.ts should only be imported in client-side code');
 }
 
-// Public client — uses anon key, respects RLS
-// Use this in API routes alongside explicit tenant_id filters
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabaseClient = createClient(
+  env.NEXT_PUBLIC_SUPABASE_URL,
+  env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+);
 
-// NOTE: supabaseAdmin has been removed from exports.
-// Use getAdminDb() from lib/secure-route.ts in auth-only contexts (login, onboard).
-// All other routes must use secureRoute() which handles DB access internally.
+// Database types
+export interface Product {
+  id: string;
+  name: string;
+  sku: string;
+  price: number;
+  stock: number;
+  category: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Customer {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  total_spent: number;
+  status: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Sale {
+  id: string;
+  order_id: string;
+  customer_id: string;
+  customer_name: string;
+  amount: number;
+  items: number;
+  payment_method: string;
+  status: string;
+  created_at: string;
+}

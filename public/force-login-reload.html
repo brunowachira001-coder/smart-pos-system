@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Clear Login Cache</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #1e293b;
+            color: white;
+        }
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        .btn:hover {
+            opacity: 0.9;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            background: #334155;
+            border-radius: 8px;
+        }
+        .success {
+            color: #10b981;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔄 Force Login Page Reload</h1>
+    <p>Click the button below to clear all caches and reload the login page with the latest version.</p>
+    
+    <button class="btn" onclick="clearEverything()">Clear All Caches & Reload Login</button>
+    <button class="btn" onclick="hardReload()">Hard Reload Login Page</button>
+    
+    <div class="status" id="status"></div>
+
+    <script>
+        async function clearEverything() {
+            const status = document.getElementById('status');
+            status.innerHTML = '<p>🔄 Clearing caches...</p>';
+            
+            try {
+                // Clear localStorage
+                localStorage.clear();
+                status.innerHTML += '<p class="success">✓ LocalStorage cleared</p>';
+                
+                // Clear sessionStorage
+                sessionStorage.clear();
+                status.innerHTML += '<p class="success">✓ SessionStorage cleared</p>';
+                
+                // Clear Service Worker caches
+                if ('serviceWorker' in navigator) {
+                    const registrations = await navigator.serviceWorker.getRegistrations();
+                    for (let registration of registrations) {
+                        await registration.unregister();
+                    }
+                    status.innerHTML += '<p class="success">✓ Service Workers unregistered</p>';
+                }
+                
+                // Clear Cache API
+                if ('caches' in window) {
+                    const cacheNames = await caches.keys();
+                    await Promise.all(cacheNames.map(name => caches.delete(name)));
+                    status.innerHTML += '<p class="success">✓ Cache API cleared</p>';
+                }
+                
+                status.innerHTML += '<p class="success">✓ All caches cleared!</p>';
+                status.innerHTML += '<p>🔄 Redirecting to login page in 2 seconds...</p>';
+                
+                setTimeout(() => {
+                    window.location.href = '/login?nocache=' + Date.now();
+                }, 2000);
+                
+            } catch (error) {
+                status.innerHTML += '<p style="color: #ef4444;">❌ Error: ' + error.message + '</p>';
+            }
+        }
+        
+        function hardReload() {
+            // Force hard reload of login page
+            window.location.href = '/login?t=' + Date.now();
+            setTimeout(() => {
+                location.reload(true);
+            }, 100);
+        }
+    </script>
+</body>
+</html>
