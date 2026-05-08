@@ -37,7 +37,9 @@ export default function InventoryPage() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showRestockModal, setShowRestockModal] = useState(false);
   const [showAdjustModal, setShowAdjustModal] = useState(false);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [historyData, setHistoryData] = useState<any[]>([]);
   
   // Multi-step wizard state
   const [currentStep, setCurrentStep] = useState(1);
@@ -677,9 +679,22 @@ export default function InventoryPage() {
                               Adjust Stock
                             </button>
                             <button
-                              onClick={() => {
-                                // TODO: Implement view history functionality
-                                setToast({ message: 'View History feature coming soon', type: 'info' });
+                              onClick={async () => {
+                                setSelectedProduct(product);
+                                setShowHistoryModal(true);
+                                // Fetch history
+                                try {
+                                  const response = await fetch(`/api/inventory/${product.id}/history`, {
+                                    headers: {
+                                      'x-tenant-id': localStorage.getItem('tenantId') || ''
+                                    }
+                                  });
+                                  const data = await response.json();
+                                  setHistoryData(data.movements || []);
+                                } catch (error) {
+                                  console.error('Error fetching history:', error);
+                                  setToast({ message: 'Failed to load history', type: 'error' });
+                                }
                               }}
                               className="w-full text-left px-4 py-2 text-sm hover:bg-[var(--bg-primary)]"
                             >
@@ -858,16 +873,51 @@ export default function InventoryPage() {
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium mb-2">Category</label>
-                    <select
-                      value={formData.category}
-                      onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                      className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                    >
-                      <option value="">Kaulo plates</option>
-                      {categories.map(cat => (
-                        <option key={cat} value={cat}>{cat}</option>
-                      ))}
-                    </select>
+                    <div className="space-y-2">
+                      <select
+                        value={formData.category}
+                        onChange={(e) => {
+                          if (e.target.value === '__custom__') {
+                            setFormData({ ...formData, category: '' });
+                          } else {
+                            setFormData({ ...formData, category: e.target.value });
+                          }
+                        }}
+                        className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      >
+                        <option value="">Select a category</option>
+                        <option value="Electronics">Electronics</option>
+                        <option value="Computers">Computers & Laptops</option>
+                        <option value="Phones">Phones & Tablets</option>
+                        <option value="Accessories">Accessories</option>
+                        <option value="Gaming">Gaming</option>
+                        <option value="Audio">Audio & Headphones</option>
+                        <option value="Cameras">Cameras & Photography</option>
+                        <option value="Smart Home">Smart Home</option>
+                        <option value="Wearables">Wearables</option>
+                        <option value="Networking">Networking</option>
+                        {categories.filter(cat => !['Electronics', 'Computers', 'Phones', 'Accessories', 'Gaming', 'Audio', 'Cameras', 'Smart Home', 'Wearables', 'Networking'].includes(cat)).map(cat => (
+                          <option key={cat} value={cat}>{cat}</option>
+                        ))}
+                        <option value="__custom__">+ Add Custom Category</option>
+                      </select>
+                      
+                      {formData.category === '' && (
+                        <div>
+                          <input
+                            type="text"
+                            placeholder="Enter custom category name"
+                            value={formData.category}
+                            onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                            className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                            autoFocus
+                          />
+                          <p className="text-xs text-[var(--text-secondary)] mt-1">
+                            Type a custom category name for your product
+                          </p>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   <div>
@@ -878,7 +928,7 @@ export default function InventoryPage() {
                     <select
                       className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
                     >
-                      <option value="">Kenstar Soup Plate (GEN-KEN-0007)</option>
+                      <option value="">None - This is a main product</option>
                       {products.filter(p => !p.variant_of).map(p => (
                         <option key={p.id} value={p.id}>{p.name} ({p.sku})</option>
                       ))}
@@ -1432,6 +1482,98 @@ export default function InventoryPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Stock History Modal */}
+      {showHistoryModal && selectedProduct && (
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+          <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-6 max-w-5xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-start mb-6">
+              <div>
+                <h2 className="text-xl font-bold">Stock History for {selectedProduct.name}</h2>
+                <p className="text-sm text-[var(--text-secondary)] mt-1">
+                  A complete log of all stock movements for this product.
+                </p>
+              </div>
+              <button
+                onClick={() => { setShowHistoryModal(false); setSelectedProduct(null); setHistoryData([]); }}
+                className="text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {historyData.length === 0 ? (
+              <div className="text-center py-12 text-[var(--text-secondary)]">
+                No stock movements recorded yet
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-[var(--bg-primary)] border-b border-[var(--border-color)]">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-[var(--text-secondary)]">Date</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-[var(--text-secondary)]">Type</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-[var(--text-secondary)]">Stock</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-[var(--text-secondary)]">Change</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-[var(--text-secondary)]">Reason / Related</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[var(--border-color)]">
+                    {historyData.map((movement) => (
+                      <tr key={movement.id} className="hover:bg-[var(--bg-primary)] transition-colors">
+                        <td className="px-4 py-3 text-sm">
+                          {new Date(movement.created_at).toLocaleString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                            hour: 'numeric',
+                            minute: '2-digit',
+                            hour12: true
+                          })}
+                        </td>
+                        <td className="px-4 py-3 text-sm">
+                          <span className="capitalize">{movement.movement_type.replace('_', ' ')}</span>
+                        </td>
+                        <td className="px-4 py-3 text-sm">{movement.stock_type}</td>
+                        <td className="px-4 py-3 text-sm">
+                          <span className={movement.quantity_change > 0 ? 'text-green-500' : 'text-red-500'}>
+                            {movement.quantity_change > 0 ? '+' : ''}{movement.quantity_change} piece(s)
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-sm text-[var(--text-secondary)]">
+                          {movement.related_transaction_id && (
+                            <span>Product sold - Transaction: {movement.related_transaction_id}</span>
+                          )}
+                          {movement.related_return_id && (
+                            <span>Product returned - Return: {movement.related_return_id}</span>
+                          )}
+                          {movement.reason && !movement.related_transaction_id && !movement.related_return_id && (
+                            <span>{movement.reason}</span>
+                          )}
+                          {!movement.reason && !movement.related_transaction_id && !movement.related_return_id && (
+                            <span>-</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            <div className="flex justify-end mt-6 pt-4 border-t border-[var(--border-color)]">
+              <button
+                onClick={() => { setShowHistoryModal(false); setSelectedProduct(null); setHistoryData([]); }}
+                className="px-6 bg-[var(--bg-primary)] border border-[var(--border-color)] py-2 rounded-lg hover:bg-[var(--bg-secondary)] transition-colors"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -37,16 +37,17 @@ export default function App({ Component, pageProps }: AppProps) {
   const router = useRouter();
   const isPublicPage = ['/login', '/landing', '/', '/404', '/_error'].includes(router.pathname);
   const isAdminPage = router.pathname.startsWith('/admin') || router.pathname.startsWith('/s/');
+  const isMobileShop = router.pathname.startsWith('/m/');
+  const isDesktopShop = router.pathname.startsWith('/shop/');
 
   useEffect(() => {
-    // Initialize theme on app load
     initializeTheme();
   }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        {isPublicPage || isAdminPage ? (
+        {isPublicPage || isAdminPage || isMobileShop || isDesktopShop ? (
           <Component {...pageProps} />
         ) : (
           <MainLayout>

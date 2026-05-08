@@ -1,28 +1,42 @@
--- Check recent SMS messages sent
--- Run this in Supabase SQL Editor to see what happened
+-- Check recent SMS messages
+-- Run this in Supabase SQL Editor
 
--- Check the last 10 messages in the queue
+-- Check last 10 messages
 SELECT 
   id,
   phone_number,
   message_text,
-  message_type,
   status,
   error_message,
   sent_at,
-  created_at
+  created_at,
+  message_type
 FROM message_queue
 ORDER BY created_at DESC
 LIMIT 10;
 
--- Check if there are any failed messages
+-- Check failed messages
 SELECT 
-  COUNT(*) as failed_count,
-  error_message
+  id,
+  phone_number,
+  LEFT(message_text, 50) as message_preview,
+  status,
+  error_message,
+  created_at
 FROM message_queue
 WHERE status = 'failed'
-GROUP BY error_message
-ORDER BY failed_count DESC;
+ORDER BY created_at DESC
+LIMIT 5;
 
--- Check Celcom API balance (if you have access)
--- You can also check this by visiting: https://isms.celcomafrica.com/
+-- Check sent messages
+SELECT 
+  id,
+  phone_number,
+  LEFT(message_text, 50) as message_preview,
+  status,
+  sent_at,
+  created_at
+FROM message_queue
+WHERE status = 'sent'
+ORDER BY created_at DESC
+LIMIT 5;

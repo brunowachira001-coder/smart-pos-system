@@ -18,8 +18,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const { data: tenant, error } = await db
     .from('tenants')
-    .select('id, business_name, business_type, slug, primary_color, is_active, tiktok_url, instagram_url, facebook_url, logo_url, tagline, business_phone')
-    .eq('slug', slug)
+    .select('id, business_name, business_type, subdomain, primary_color, is_active, tiktok_url, instagram_url, facebook_url, logo_url, tagline, business_phone')
+    .eq('subdomain', slug)
     .eq('is_active', true)
     .single();
 
@@ -39,7 +39,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     tenant: {
       id: tenant.id,
       name: tenant.business_name,
-      slug: tenant.slug,
+      slug: tenant.subdomain,
       type: tenant.business_type,
       theme_color: settings?.primary_color || tenant.primary_color || '#10b981',
       logo_url: settings?.logo_url || tenant.logo_url || null,

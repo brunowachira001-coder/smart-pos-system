@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { supabase } from '../../../lib/supabase-client';
 
 import { secureRoute, SecureRequest, getAdminDb } from '../../../lib/secure-route';
+import { logInventoryMovement } from '../../../services/inventory-movement.service';
 
 export default secureRoute(async function handler(req: SecureRequest, res: NextApiResponse) {
   const { tenantId } = req;
@@ -52,6 +53,21 @@ export default secureRoute(async function handler(req: SecureRequest, res: NextA
     if (error) {
       return res.status(500).json({ error: error.message });
     }
+
+    // Log inventory movement
+    await logInventoryMovement({
+      productId,
+      tenantId,
+      movementType: 'restock',
+      stockType: 'Retail',
+      quantityChange: quantityNum,
+      stockBefore: currentStock,
+      stockAfter: newStock,
+      reason: 'Manual restock',
+      notes: notes || undefined,
+      performedBy: req.user?.id,
+      performedByName: req.user?.email
+    });
 
     return res.status(200).json({
       message: 'Stock restocked successfully',

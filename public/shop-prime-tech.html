@@ -1,0 +1,1454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prime Tech Electronics - Online Store</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+        .product-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .product-card { transition: all 0.2s ease; }
+        .line-clamp-2 { 
+            display: -webkit-box; 
+            -webkit-line-clamp: 2; 
+            -webkit-box-orient: vertical; 
+            overflow: hidden;
+            line-clamp: 2;
+        }
+        @keyframes fade-in {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in { animation: fade-in 0.3s ease; }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        .badge-new { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .badge-hot { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .badge-sale { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+        
+        /* Advertising carousel animations */
+        @keyframes slideIn {
+            from { transform: translateX(-100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(249, 115, 22, 0.3); }
+            50% { box-shadow: 0 0 40px rgba(249, 115, 22, 0.6); }
+        }
+        .ad-slide {
+            animation: slideIn 0.8s ease-out;
+        }
+        .ad-float {
+            animation: float 3s ease-in-out infinite;
+        }
+        .ad-glow {
+            animation: glow 2s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Top Header -->
+    <header class="bg-white border-b sticky top-0 z-50 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4">
+            <!-- Top Bar -->
+            <div class="flex items-center justify-between py-4">
+                <div id="shopLogo" class="flex items-center gap-2">
+                    <div class="text-3xl font-bold text-orange-600">Prime Tech</div>
+                </div>
+
+                <!-- Search Bar -->
+                <div class="flex-1 max-w-2xl mx-8">
+                    <div class="relative">
+                        <input type="text" id="searchInput" placeholder="Search for products..." 
+                            class="w-full px-4 py-2.5 border-2 border-orange-500 rounded-lg focus:outline-none focus:border-orange-600">
+                        <button onclick="searchProducts()" class="absolute right-0 top-0 bottom-0 px-6 bg-orange-500 hover:bg-orange-600 text-white rounded-r-lg transition">
+                            Search
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Right Actions -->
+                <div class="flex items-center gap-6">
+                    <button onclick="toggleWishlist()" class="relative hover:text-orange-600 transition" title="Wishlist">
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                        </svg>
+                        <span id="wishlistCount" class="absolute -top-2 -right-2 bg-pink-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold hidden">0</span>
+                    </button>
+                    <div onclick="openCart()" class="relative cursor-pointer hover:text-orange-600 transition">
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                        <span id="cartCount" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold hidden">0</span>
+                    </div>
+                    <button onclick="showAuthModal()" class="text-sm hover:text-orange-600 transition font-medium">Sign In / Register</button>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="flex items-center gap-8 py-3 border-t text-sm relative">
+                <div class="relative">
+                    <button onclick="toggleCategoryDropdown()" id="nav-all" class="flex items-center gap-1 hover:text-orange-600 transition font-medium text-orange-600">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                        All Categories
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+                    <!-- Dropdown Menu -->
+                    <div id="categoryDropdown" class="hidden absolute top-full left-0 mt-2 bg-white border rounded-lg shadow-lg w-64 max-h-96 overflow-y-auto z-50">
+                        <div class="p-2">
+                            <button onclick="filterByCategory('all'); toggleCategoryDropdown();" class="w-full text-left px-4 py-2 hover:bg-gray-100 rounded font-medium text-orange-600">
+                                All Products
+                            </button>
+                            <div id="categoryList" class="mt-2">
+                                <!-- Categories will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button onclick="filterByCategory('deals')" id="nav-deals" class="hover:text-orange-600 transition font-medium">SuperDeals</button>
+                <button onclick="filterByCategory('Electronics')" id="nav-Electronics" class="hover:text-orange-600 transition">Electronics</button>
+                <button onclick="filterByCategory('Computers')" id="nav-Computers" class="hover:text-orange-600 transition">Computers</button>
+                <button onclick="filterByCategory('Phones')" id="nav-Phones" class="hover:text-orange-600 transition">Phones</button>
+                <button onclick="filterByCategory('Accessories')" id="nav-Accessories" class="hover:text-orange-600 transition">Accessories</button>
+                <button onclick="filterByCategory('Gaming')" id="nav-Gaming" class="hover:text-orange-600 transition">Gaming</button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Banner -->
+    <section class="bg-gradient-to-r from-orange-50 to-pink-50 py-12">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-4xl font-bold mb-4">Welcome to Prime Tech Electronics</h1>
+                    <p class="text-xl text-gray-600 mb-6">Your trusted source for quality electronics</p>
+                    <button class="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-lg font-medium transition">
+                        Shop Now
+                    </button>
+                </div>
+                <div class="text-8xl">💻</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Loading State -->
+    <div id="loading" class="max-w-7xl mx-auto px-4 py-20 text-center">
+        <div class="inline-block w-16 h-16 border-4 border-gray-200 border-t-orange-500 rounded-full animate-spin"></div>
+        <p class="mt-4 text-gray-600">Loading products...</p>
+    </div>
+
+    <!-- Today's Deals Section -->
+    <section id="dealsSection" class="max-w-7xl mx-auto px-4 py-8 hidden">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-2xl font-bold">Today's deals</h2>
+            <a href="#" class="text-orange-600 hover:text-orange-700 font-medium">View all →</a>
+        </div>
+
+        <div class="grid grid-cols-2 gap-6 mb-8">
+            <!-- Bundle Deals -->
+            <div class="bg-white rounded-lg p-6 border">
+                <div class="flex items-center gap-2 mb-4">
+                    <span class="text-2xl">🎁</span>
+                    <div>
+                        <h3 class="font-bold text-lg">Bundle deals</h3>
+                        <p class="text-sm text-gray-600">Special combo offers</p>
+                    </div>
+                </div>
+                <div id="bundleDeals" class="grid grid-cols-3 gap-3"></div>
+            </div>
+
+            <!-- SuperDeals -->
+            <div class="bg-white rounded-lg p-6 border">
+                <div class="flex items-center gap-2 mb-4">
+                    <span class="text-2xl">⚡</span>
+                    <div>
+                        <h3 class="font-bold text-lg text-red-600">SuperDeals</h3>
+                        <p class="text-sm text-gray-600">Limited time offers</p>
+                    </div>
+                </div>
+                <div id="superDeals" class="grid grid-cols-3 gap-3"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- All Products Grid -->
+    <section id="productsSection" class="max-w-7xl mx-auto px-4 py-8 hidden">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-2xl font-bold">All Products</h2>
+            <div class="flex items-center gap-4">
+                <select id="sortSelect" onchange="sortProducts()" class="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
+                    <option value="default">Sort by: Default</option>
+                    <option value="price-low">Price: Low to High</option>
+                    <option value="price-high">Price: High to Low</option>
+                    <option value="name">Name: A to Z</option>
+                    <option value="newest">Newest First</option>
+                </select>
+                <div class="flex gap-2">
+                    <button onclick="setViewMode('grid')" id="viewGrid" class="p-2 border rounded hover:bg-gray-100 bg-orange-50 border-orange-500">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                        </svg>
+                    </button>
+                    <button onclick="setViewMode('list')" id="viewList" class="p-2 border rounded hover:bg-gray-100">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div id="productsGrid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4"></div>
+    </section>
+
+    <!-- Empty State -->
+    <div id="emptyState" class="max-w-7xl mx-auto px-4 py-20 text-center hidden">
+        <div class="text-6xl mb-4">📦</div>
+        <h3 class="text-xl font-bold mb-2">No Products Available</h3>
+        <p class="text-gray-600">Check back soon for new items!</p>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white mt-16">
+        <div class="max-w-7xl mx-auto px-4 py-12">
+            <div class="grid grid-cols-4 gap-8 mb-8">
+                <div>
+                    <h3 class="font-bold mb-4">Customer Service</h3>
+                    <ul class="space-y-2 text-sm text-gray-400">
+                        <li><a href="#" class="hover:text-white">Help Center</a></li>
+                        <li><a href="#" class="hover:text-white">Transaction Services</a></li>
+                        <li><a href="#" class="hover:text-white">Terms & Conditions</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="font-bold mb-4">Shopping with us</h3>
+                    <ul class="space-y-2 text-sm text-gray-400">
+                        <li><a href="#" class="hover:text-white">Making payments</a></li>
+                        <li><a href="#" class="hover:text-white">Delivery options</a></li>
+                        <li><a href="#" class="hover:text-white">Buyer Protection</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="font-bold mb-4">Collaborate with us</h3>
+                    <ul class="space-y-2 text-sm text-gray-400">
+                        <li><a href="#" class="hover:text-white">Partnerships</a></li>
+                        <li><a href="#" class="hover:text-white">Affiliate program</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="font-bold mb-4">Pay with</h3>
+                    <div class="flex gap-2 flex-wrap">
+                        <div class="bg-white rounded px-3 py-1 text-xs text-gray-900 font-medium">VISA</div>
+                        <div class="bg-white rounded px-3 py-1 text-xs text-gray-900 font-medium">Mastercard</div>
+                        <div class="bg-white rounded px-3 py-1 text-xs text-gray-900 font-medium">M-PESA</div>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-gray-800 pt-8 text-center text-sm text-gray-400">
+                <p>© 2026 Prime Tech Electronics. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        let allProducts = [];
+        let shopInfo = { name: 'Prime Tech Electronics', logo: null };
+
+        // Fetch products from API
+        async function loadProducts() {
+            try {
+                const response = await fetch('/api/ecommerce/products/simple?tenantSlug=prime-tech-electronics-ltd&limit=100');
+                const data = await response.json();
+                allProducts = data.products || [];
+                
+                if (allProducts.length === 0) {
+                    showEmptyState();
+                } else {
+                    renderProducts();
+                }
+            } catch (error) {
+                console.error('Error loading products:', error);
+                showEmptyState();
+            }
+        }
+
+        // Fetch shop settings (logo, name, etc.)
+        async function loadShopSettings() {
+            try {
+                const response = await fetch('/api/tenant/by-slug/prime-tech-electronics-ltd');
+                const data = await response.json();
+                if (data.tenant) {
+                    shopInfo.name = data.tenant.name || 'Prime Tech Electronics';
+                    shopInfo.logo = data.tenant.logo_url;
+                    updateShopBranding();
+                }
+            } catch (error) {
+                console.error('Error loading shop settings:', error);
+            }
+        }
+
+        function updateShopBranding() {
+            const logoContainer = document.getElementById('shopLogo');
+            if (shopInfo.logo) {
+                logoContainer.innerHTML = `<img src="${shopInfo.logo}" alt="${shopInfo.name}" class="h-12 w-auto object-contain">`;
+            } else {
+                logoContainer.innerHTML = `<div class="text-3xl font-bold text-orange-600">${shopInfo.name}</div>`;
+            }
+            
+            // Update page title
+            document.title = `${shopInfo.name} - Online Store`;
+        }
+
+        function showEmptyState() {
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('emptyState').classList.remove('hidden');
+        }
+
+        function renderProducts() {
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('dealsSection').classList.remove('hidden');
+            document.getElementById('productsSection').classList.remove('hidden');
+
+            // Extract unique categories from products
+            populateCategoryDropdown();
+
+            // Bundle deals (first 3)
+            const bundleContainer = document.getElementById('bundleDeals');
+            allProducts.slice(0, 3).forEach(product => {
+                bundleContainer.innerHTML += createMiniCard(product);
+            });
+
+            // Super deals (next 3)
+            const superContainer = document.getElementById('superDeals');
+            allProducts.slice(3, 6).forEach(product => {
+                superContainer.innerHTML += createMiniCard(product, true);
+            });
+
+            // All products grid
+            displayedProducts = allProducts;
+            renderProductGrid();
+        }
+
+        function populateCategoryDropdown() {
+            // Get unique categories from products
+            const categories = [...new Set(allProducts.map(p => p.category).filter(c => c))];
+            categories.sort();
+
+            const categoryList = document.getElementById('categoryList');
+            categoryList.innerHTML = categories.map(category => `
+                <button onclick="filterByCategory('${category}'); toggleCategoryDropdown();" class="w-full text-left px-4 py-2 hover:bg-gray-100 rounded text-sm">
+                    ${category} (${allProducts.filter(p => p.category === category).length})
+                </button>
+            `).join('');
+        }
+
+        function toggleCategoryDropdown() {
+            const dropdown = document.getElementById('categoryDropdown');
+            dropdown.classList.toggle('hidden');
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('categoryDropdown');
+            const button = document.getElementById('nav-all');
+            if (dropdown && button && !dropdown.contains(event.target) && !button.contains(event.target)) {
+                dropdown.classList.add('hidden');
+            }
+        });
+
+        function createMiniCard(product, isSuper = false) {
+            const discount = Math.floor(Math.random() * 50 + 20);
+            return `
+                <div onclick="viewProduct('${product.id}', '${product.name.replace(/'/g, "\\'")}', ${product.retail_price})" class="bg-gray-50 rounded-lg p-3 hover:shadow-md transition cursor-pointer relative">
+                    ${isSuper ? `<div class="absolute top-1 right-1 bg-red-500 text-white text-xs px-2 py-1 rounded-full font-bold">-${discount}%</div>` : ''}
+                    <div class="aspect-square bg-white rounded flex items-center justify-center mb-2">
+                        ${product.image_url ? `<img src="${product.image_url}" alt="${product.name}" class="w-full h-full object-cover rounded">` : '<span class="text-4xl">📦</span>'}
+                    </div>
+                    <div class="text-sm font-medium text-orange-600">KES${product.retail_price.toLocaleString()}</div>
+                </div>
+            `;
+        }
+
+        function createProductCard(product) {
+            const rating = (4 + Math.random()).toFixed(1);
+            const sold = Math.floor(Math.random() * 10000);
+            const badges = [];
+            
+            // Add random badges for visual appeal
+            if (Math.random() > 0.7) badges.push('<div class="badge-new text-white text-xs px-2 py-1 rounded-full font-bold">NEW</div>');
+            if (Math.random() > 0.8) badges.push('<div class="badge-hot text-white text-xs px-2 py-1 rounded-full font-bold">HOT</div>');
+            if (Math.random() > 0.6) badges.push('<div class="badge-sale text-white text-xs px-2 py-1 rounded-full font-bold">SALE</div>');
+            
+            return `
+                <div class="product-card bg-white rounded-lg border hover:shadow-lg transition cursor-pointer group" onclick="viewProduct('${product.id}', '${product.name.replace(/'/g, "\\'")}', ${product.retail_price})">
+                    <div class="relative aspect-square bg-gray-50 rounded-t-lg overflow-hidden">
+                        ${product.image_url ? 
+                            `<img src="${product.image_url}" alt="${product.name}" class="w-full h-full object-cover group-hover:scale-105 transition">` : 
+                            '<div class="w-full h-full flex items-center justify-center text-5xl">📦</div>'
+                        }
+                        ${badges.length > 0 ? `<div class="absolute top-2 left-2 flex flex-col gap-1">${badges.join('')}</div>` : ''}
+                        <button onclick="event.stopPropagation(); addToWishlist('${product.id}', '${product.name.replace(/'/g, "\\'")}', ${product.retail_price})" class="absolute top-2 right-2 bg-white rounded-full p-2 shadow-lg opacity-0 group-hover:opacity-100 transition hover:bg-pink-50 hover:text-pink-500">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                            </svg>
+                        </button>
+                        <button onclick="event.stopPropagation(); addToCart('${product.id}', '${product.name.replace(/'/g, "\\'")}', ${product.retail_price})" class="absolute bottom-2 right-2 bg-white rounded-full p-2 shadow-lg opacity-0 group-hover:opacity-100 transition hover:bg-orange-500 hover:text-white">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="p-3">
+                        <div class="text-sm line-clamp-2 h-10 mb-2 text-gray-700">${product.name}</div>
+                        <div class="text-lg font-bold text-orange-600 mb-1">KES${product.retail_price.toLocaleString()}</div>
+                        <div class="flex items-center justify-between text-xs">
+                            <div class="flex items-center gap-1 text-gray-500">
+                                <span class="text-yellow-400">★★★★★</span>
+                                <span>${rating}</span>
+                            </div>
+                            <span class="text-gray-400">${sold}+ sold</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function addToCart(productId, productName, price) {
+            let cart = JSON.parse(localStorage.getItem('cart_prime-tech') || '[]');
+            const existing = cart.find(i => i.product_id === productId);
+            if (existing) {
+                existing.quantity += 1;
+            } else {
+                cart.push({ 
+                    product_id: productId, 
+                    name: productName,
+                    price: price,
+                    quantity: 1 
+                });
+            }
+            localStorage.setItem('cart_prime-tech', JSON.stringify(cart));
+            updateCartCount();
+            showToast(`✓ ${productName} added to cart!`);
+        }
+
+        function viewProduct(productId, productName, price) {
+            // Show product details modal
+            const product = allProducts.find(p => p.id === productId);
+            if (!product) return;
+            
+            // Save to recently viewed
+            let recentlyViewed = JSON.parse(localStorage.getItem('recently_viewed_prime-tech') || '[]');
+            recentlyViewed = recentlyViewed.filter(id => id !== productId);
+            recentlyViewed.unshift(productId);
+            recentlyViewed = recentlyViewed.slice(0, 10); // Keep last 10
+            localStorage.setItem('recently_viewed_prime-tech', JSON.stringify(recentlyViewed));
+            
+            // Get related products (same category)
+            const relatedProducts = allProducts
+                .filter(p => p.category === product.category && p.id !== product.id)
+                .slice(0, 4);
+            
+            const modal = `
+                <div id="productModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4" onclick="closeModal()">
+                    <div class="bg-white rounded-lg max-w-5xl w-full max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+                        <div class="p-6">
+                            <div class="flex justify-between items-start mb-4">
+                                <h2 class="text-2xl font-bold">${product.name}</h2>
+                                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="grid md:grid-cols-2 gap-6">
+                                <div class="aspect-square bg-gray-100 rounded-lg flex items-center justify-center">
+                                    ${product.image_url ? 
+                                        `<img src="${product.image_url}" alt="${product.name}" class="w-full h-full object-cover rounded-lg">` : 
+                                        '<div class="text-9xl">📦</div>'
+                                    }
+                                </div>
+                                <div>
+                                    <div class="text-3xl font-bold text-orange-600 mb-4">KES${product.retail_price.toLocaleString()}</div>
+                                    <div class="mb-4">
+                                        <span class="text-yellow-400 text-xl">★★★★★</span>
+                                        <span class="text-gray-600 ml-2">${(4 + Math.random()).toFixed(1)} (${Math.floor(Math.random() * 1000)} reviews)</span>
+                                    </div>
+                                    <div class="mb-4 flex gap-2">
+                                        <span class="bg-green-100 text-green-800 text-xs px-3 py-1 rounded-full font-medium">In Stock</span>
+                                        <span class="bg-blue-100 text-blue-800 text-xs px-3 py-1 rounded-full font-medium">Fast Delivery</span>
+                                        <span class="bg-purple-100 text-purple-800 text-xs px-3 py-1 rounded-full font-medium">Warranty</span>
+                                    </div>
+                                    <div class="mb-4">
+                                        <span class="text-sm text-gray-600">Category:</span>
+                                        <span class="ml-2 font-medium">${product.category || 'Electronics'}</span>
+                                    </div>
+                                    <div class="mb-4">
+                                        <span class="text-sm text-gray-600">Stock:</span>
+                                        <span class="ml-2 font-medium text-green-600">${product.stock_quantity} available</span>
+                                    </div>
+                                    <div class="mb-6">
+                                        <h3 class="font-bold mb-2">Product Description</h3>
+                                        <p class="text-gray-700">${product.description || 'High-quality product from Prime Tech Electronics. Fast delivery and excellent customer service guaranteed.'}</p>
+                                    </div>
+                                    <div class="flex gap-2 mb-4">
+                                        <button onclick="addToCart('${product.id}', '${product.name.replace(/'/g, "\\'")}', ${product.retail_price}); closeModal();" class="flex-1 bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-medium transition">
+                                            Add to Cart
+                                        </button>
+                                        <button onclick="addToWishlist('${product.id}', '${product.name.replace(/'/g, "\\'")}', ${product.retail_price})" class="border-2 border-pink-500 text-pink-500 hover:bg-pink-50 px-6 py-3 rounded-lg font-medium transition">
+                                            ❤️ Wishlist
+                                        </button>
+                                    </div>
+                                    <div class="border-t pt-4">
+                                        <div class="flex items-center gap-4 text-sm text-gray-600">
+                                            <div class="flex items-center gap-2">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                                </svg>
+                                                <span>Buyer Protection</span>
+                                            </div>
+                                            <div class="flex items-center gap-2">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                                                </svg>
+                                                <span>Secure Payment</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            ${relatedProducts.length > 0 ? `
+                                <div class="mt-8 border-t pt-6">
+                                    <h3 class="font-bold text-lg mb-4">You may also like</h3>
+                                    <div class="grid grid-cols-4 gap-4">
+                                        ${relatedProducts.map(p => `
+                                            <div onclick="closeModal(); setTimeout(() => viewProduct('${p.id}', '${p.name.replace(/'/g, "\\'")}', ${p.retail_price}), 100);" class="bg-gray-50 rounded-lg p-3 hover:shadow-md transition cursor-pointer">
+                                                <div class="aspect-square bg-white rounded flex items-center justify-center mb-2">
+                                                    ${p.image_url ? `<img src="${p.image_url}" alt="${p.name}" class="w-full h-full object-cover rounded">` : '<span class="text-4xl">📦</span>'}
+                                                </div>
+                                                <div class="text-sm font-medium line-clamp-2 mb-1">${p.name}</div>
+                                                <div class="text-sm font-bold text-orange-600">KES${p.retail_price.toLocaleString()}</div>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', modal);
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('productModal');
+            if (modal) modal.remove();
+        }
+
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-fade-in';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        function updateCartCount() {
+            const cart = JSON.parse(localStorage.getItem('cart_prime-tech') || '[]');
+            const count = cart.reduce((sum, item) => sum + item.quantity, 0);
+            const badge = document.getElementById('cartCount');
+            if (count > 0) {
+                badge.textContent = count;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        function searchProducts() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            if (!query) return;
+            
+            const filtered = allProducts.filter(p => 
+                p.name.toLowerCase().includes(query) || 
+                (p.category && p.category.toLowerCase().includes(query))
+            );
+            
+            displayFilteredProducts(filtered);
+        }
+
+        function filterByCategory(category) {
+            // Update active nav button
+            document.querySelectorAll('nav button').forEach(btn => {
+                btn.classList.remove('text-orange-600');
+            });
+            const activeBtn = document.getElementById(`nav-${category}`);
+            if (activeBtn) activeBtn.classList.add('text-orange-600');
+
+            let filtered;
+            if (category === 'all') {
+                filtered = allProducts;
+            } else if (category === 'deals') {
+                // Show products with random "deals" (first 20 products)
+                filtered = allProducts.slice(0, 20);
+            } else {
+                // Filter by category
+                filtered = allProducts.filter(p => 
+                    p.category && p.category.toLowerCase() === category.toLowerCase()
+                );
+            }
+
+            displayFilteredProducts(filtered);
+        }
+
+        function displayFilteredProducts(products) {
+            displayedProducts = products;
+            const gridContainer = document.getElementById('productsGrid');
+            gridContainer.innerHTML = '';
+            
+            if (products.length === 0) {
+                gridContainer.innerHTML = '<div class="col-span-full text-center py-20"><div class="text-6xl mb-4">🔍</div><h3 class="text-xl font-bold mb-2">No Products Found</h3><p class="text-gray-600">Try a different category or search term</p></div>';
+                return;
+            }
+
+            renderProductGrid();
+        }
+
+        function openCart() {
+            const cart = JSON.parse(localStorage.getItem('cart_prime-tech') || '[]');
+            if (cart.length === 0) {
+                showToast('Your cart is empty');
+                return;
+            }
+
+            const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const cartItems = cart.map(item => `
+                <div class="flex items-center gap-4 py-4 border-b">
+                    <div class="w-20 h-20 bg-gray-100 rounded flex items-center justify-center text-3xl">📦</div>
+                    <div class="flex-1">
+                        <div class="font-medium">${item.name}</div>
+                        <div class="text-orange-600 font-bold">KES${item.price.toLocaleString()}</div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="updateQuantity('${item.product_id}', -1)" class="w-8 h-8 bg-gray-200 rounded hover:bg-gray-300">-</button>
+                        <span class="w-8 text-center font-medium">${item.quantity}</span>
+                        <button onclick="updateQuantity('${item.product_id}', 1)" class="w-8 h-8 bg-gray-200 rounded hover:bg-gray-300">+</button>
+                    </div>
+                    <button onclick="removeFromCart('${item.product_id}')" class="text-red-500 hover:text-red-700">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                    </button>
+                </div>
+            `).join('');
+
+            const modal = `
+                <div id="cartModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4" onclick="closeCartModal()">
+                    <div class="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+                        <div class="p-6">
+                            <div class="flex justify-between items-center mb-6">
+                                <h2 class="text-2xl font-bold">Shopping Cart (${cart.length} items)</h2>
+                                <button onclick="closeCartModal()" class="text-gray-400 hover:text-gray-600">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="mb-6">${cartItems}</div>
+                            <div class="border-t pt-4">
+                                <div class="flex justify-between items-center mb-4">
+                                    <span class="text-lg font-medium">Subtotal:</span>
+                                    <span class="text-2xl font-bold text-orange-600">KES${total.toLocaleString()}</span>
+                                </div>
+                                <button onclick="proceedToCheckout()" class="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-medium transition mb-2">
+                                    Proceed to Checkout
+                                </button>
+                                <button onclick="closeCartModal()" class="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 py-3 rounded-lg font-medium transition">
+                                    Continue Shopping
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', modal);
+        }
+
+        function closeCartModal() {
+            const modal = document.getElementById('cartModal');
+            if (modal) modal.remove();
+        }
+
+        function updateQuantity(productId, change) {
+            let cart = JSON.parse(localStorage.getItem('cart_prime-tech') || '[]');
+            const item = cart.find(i => i.product_id === productId);
+            if (item) {
+                item.quantity += change;
+                if (item.quantity <= 0) {
+                    cart = cart.filter(i => i.product_id !== productId);
+                }
+                localStorage.setItem('cart_prime-tech', JSON.stringify(cart));
+                updateCartCount();
+                closeCartModal();
+                if (cart.length > 0) {
+                    openCart();
+                }
+            }
+        }
+
+        function removeFromCart(productId) {
+            let cart = JSON.parse(localStorage.getItem('cart_prime-tech') || '[]');
+            cart = cart.filter(i => i.product_id !== productId);
+            localStorage.setItem('cart_prime-tech', JSON.stringify(cart));
+            updateCartCount();
+            closeCartModal();
+            if (cart.length > 0) {
+                openCart();
+            } else {
+                showToast('Cart is now empty');
+            }
+        }
+
+        function proceedToCheckout() {
+            closeCartModal();
+            const cart = JSON.parse(localStorage.getItem('cart_prime-tech') || '[]');
+            const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            
+            const checkoutModal = `
+                <div id="checkoutModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4" onclick="closeCheckoutModal()">
+                    <div class="bg-white rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+                        <div class="p-6">
+                            <div class="flex justify-between items-center mb-6">
+                                <h2 class="text-2xl font-bold">Checkout</h2>
+                                <button onclick="closeCheckoutModal()" class="text-gray-400 hover:text-gray-600">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+                            
+                            <div class="grid md:grid-cols-2 gap-6">
+                                <div>
+                                    <h3 class="font-bold text-lg mb-4">Shipping Information</h3>
+                                    <form id="checkoutForm" class="space-y-4">
+                                        <div>
+                                            <label class="block text-sm font-medium mb-1">Full Name *</label>
+                                            <input type="text" id="customerName" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium mb-1">Phone Number *</label>
+                                            <input type="tel" id="customerPhone" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="0712345678">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium mb-1">Email</label>
+                                            <input type="email" id="customerEmail" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium mb-1">Delivery Address *</label>
+                                            <textarea id="deliveryAddress" required rows="3" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"></textarea>
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium mb-1">City *</label>
+                                            <input type="text" id="city" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                        </div>
+                                    </form>
+                                </div>
+                                
+                                <div>
+                                    <h3 class="font-bold text-lg mb-4">Order Summary</h3>
+                                    <div class="bg-gray-50 rounded-lg p-4 mb-4">
+                                        ${cart.map(item => `
+                                            <div class="flex justify-between mb-2">
+                                                <span class="text-sm">${item.name} x${item.quantity}</span>
+                                                <span class="text-sm font-medium">KES${(item.price * item.quantity).toLocaleString()}</span>
+                                            </div>
+                                        `).join('')}
+                                        <div class="border-t pt-2 mt-2">
+                                            <div class="flex justify-between mb-2">
+                                                <span class="text-sm">Subtotal:</span>
+                                                <span class="font-medium">KES${total.toLocaleString()}</span>
+                                            </div>
+                                            <div class="flex justify-between mb-2">
+                                                <span class="text-sm">Delivery:</span>
+                                                <span class="font-medium text-green-600">FREE</span>
+                                            </div>
+                                            <div class="flex justify-between text-lg font-bold border-t pt-2">
+                                                <span>Total:</span>
+                                                <span class="text-orange-600">KES${total.toLocaleString()}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <h3 class="font-bold text-lg mb-4">Payment Method</h3>
+                                    <div class="space-y-2 mb-6">
+                                        <label class="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                                            <input type="radio" name="payment" value="mpesa" checked class="mr-3">
+                                            <span class="font-medium">M-PESA</span>
+                                        </label>
+                                        <label class="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                                            <input type="radio" name="payment" value="cod" class="mr-3">
+                                            <span class="font-medium">Cash on Delivery</span>
+                                        </label>
+                                    </div>
+                                    
+                                    <button onclick="placeOrder()" class="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-medium transition">
+                                        Place Order
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', checkoutModal);
+        }
+
+        function closeCheckoutModal() {
+            const modal = document.getElementById('checkoutModal');
+            if (modal) modal.remove();
+        }
+
+        function placeOrder() {
+            const name = document.getElementById('customerName').value;
+            const phone = document.getElementById('customerPhone').value;
+            const email = document.getElementById('customerEmail').value;
+            const address = document.getElementById('deliveryAddress').value;
+            const city = document.getElementById('city').value;
+            const payment = document.querySelector('input[name="payment"]:checked').value;
+
+            if (!name || !phone || !address || !city) {
+                showToast('Please fill in all required fields');
+                return;
+            }
+
+            const cart = JSON.parse(localStorage.getItem('cart_prime-tech') || '[]');
+            const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const orderNumber = 'ORD-' + Date.now();
+
+            // Save order to localStorage (in production, this would go to the backend)
+            const order = {
+                orderNumber,
+                customer: { name, phone, email, address, city },
+                items: cart,
+                total,
+                payment,
+                status: 'pending',
+                date: new Date().toISOString()
+            };
+            
+            const orders = JSON.parse(localStorage.getItem('orders_prime-tech') || '[]');
+            orders.push(order);
+            localStorage.setItem('orders_prime-tech', JSON.stringify(orders));
+
+            // Clear cart
+            localStorage.removeItem('cart_prime-tech');
+            updateCartCount();
+            closeCheckoutModal();
+
+            // Show success
+            showOrderSuccess(orderNumber, total, payment);
+        }
+
+        function showOrderSuccess(orderNumber, total, payment) {
+            const successModal = `
+                <div id="successModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+                    <div class="bg-white rounded-lg max-w-md w-full p-8 text-center">
+                        <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-10 h-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                        </div>
+                        <h2 class="text-2xl font-bold mb-2">Order Placed Successfully!</h2>
+                        <p class="text-gray-600 mb-4">Thank you for your order</p>
+                        <div class="bg-gray-50 rounded-lg p-4 mb-6">
+                            <div class="text-sm text-gray-600 mb-1">Order Number</div>
+                            <div class="font-bold text-lg">${orderNumber}</div>
+                            <div class="text-sm text-gray-600 mt-3 mb-1">Total Amount</div>
+                            <div class="font-bold text-2xl text-orange-600">KES${total.toLocaleString()}</div>
+                            <div class="text-sm text-gray-600 mt-3">Payment: ${payment === 'mpesa' ? 'M-PESA' : 'Cash on Delivery'}</div>
+                        </div>
+                        ${payment === 'mpesa' ? '<p class="text-sm text-gray-600 mb-4">You will receive an M-PESA prompt shortly. Please complete the payment.</p>' : '<p class="text-sm text-gray-600 mb-4">Please have cash ready when your order arrives.</p>'}
+                        <p class="text-sm text-gray-600 mb-6">We will contact you shortly to confirm your order and delivery details.</p>
+                        <button onclick="closeSuccessModal()" class="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-medium transition">
+                            Continue Shopping
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', successModal);
+        }
+
+        function closeSuccessModal() {
+            const modal = document.getElementById('successModal');
+            if (modal) modal.remove();
+        }
+
+        // Wishlist functionality
+        function toggleWishlist() {
+            const wishlist = JSON.parse(localStorage.getItem('wishlist_prime-tech') || '[]');
+            if (wishlist.length === 0) {
+                showToast('Your wishlist is empty');
+                return;
+            }
+            showWishlistModal();
+        }
+
+        function addToWishlist(productId, productName, price) {
+            let wishlist = JSON.parse(localStorage.getItem('wishlist_prime-tech') || '[]');
+            const existing = wishlist.find(i => i.product_id === productId);
+            if (existing) {
+                showToast('Already in wishlist');
+                return;
+            }
+            wishlist.push({ product_id: productId, name: productName, price: price });
+            localStorage.setItem('wishlist_prime-tech', JSON.stringify(wishlist));
+            updateWishlistCount();
+            showToast('❤️ Added to wishlist!');
+        }
+
+        function removeFromWishlist(productId) {
+            let wishlist = JSON.parse(localStorage.getItem('wishlist_prime-tech') || '[]');
+            wishlist = wishlist.filter(i => i.product_id !== productId);
+            localStorage.setItem('wishlist_prime-tech', JSON.stringify(wishlist));
+            updateWishlistCount();
+            showWishlistModal();
+        }
+
+        function updateWishlistCount() {
+            const wishlist = JSON.parse(localStorage.getItem('wishlist_prime-tech') || '[]');
+            const badge = document.getElementById('wishlistCount');
+            if (wishlist.length > 0) {
+                badge.textContent = wishlist.length;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        function showWishlistModal() {
+            const wishlist = JSON.parse(localStorage.getItem('wishlist_prime-tech') || '[]');
+            const items = wishlist.map(item => `
+                <div class="flex items-center gap-4 py-4 border-b">
+                    <div class="w-20 h-20 bg-gray-100 rounded flex items-center justify-center text-3xl">❤️</div>
+                    <div class="flex-1">
+                        <div class="font-medium">${item.name}</div>
+                        <div class="text-orange-600 font-bold">KES${item.price.toLocaleString()}</div>
+                    </div>
+                    <button onclick="addToCart('${item.product_id}', '${item.name.replace(/'/g, "\\'")}', ${item.price}); removeFromWishlist('${item.product_id}');" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm">
+                        Add to Cart
+                    </button>
+                    <button onclick="removeFromWishlist('${item.product_id}')" class="text-red-500 hover:text-red-700">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            `).join('');
+
+            const modal = `
+                <div id="wishlistModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4" onclick="closeWishlistModal()">
+                    <div class="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+                        <div class="p-6">
+                            <div class="flex justify-between items-center mb-6">
+                                <h2 class="text-2xl font-bold">My Wishlist (${wishlist.length} items)</h2>
+                                <button onclick="closeWishlistModal()" class="text-gray-400 hover:text-gray-600">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+                            <div>${items}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', modal);
+        }
+
+        function closeWishlistModal() {
+            const modal = document.getElementById('wishlistModal');
+            if (modal) modal.remove();
+        }
+
+        // Sort and view mode
+        let currentViewMode = 'grid';
+        let displayedProducts = [];
+
+        function sortProducts() {
+            const sortValue = document.getElementById('sortSelect').value;
+            let sorted = [...displayedProducts];
+
+            switch(sortValue) {
+                case 'price-low':
+                    sorted.sort((a, b) => a.retail_price - b.retail_price);
+                    break;
+                case 'price-high':
+                    sorted.sort((a, b) => b.retail_price - a.retail_price);
+                    break;
+                case 'name':
+                    sorted.sort((a, b) => a.name.localeCompare(b.name));
+                    break;
+                case 'newest':
+                    sorted.reverse();
+                    break;
+            }
+
+            displayedProducts = sorted;
+            renderProductGrid();
+        }
+
+        function setViewMode(mode) {
+            currentViewMode = mode;
+            document.getElementById('viewGrid').classList.toggle('bg-orange-50', mode === 'grid');
+            document.getElementById('viewGrid').classList.toggle('border-orange-500', mode === 'grid');
+            document.getElementById('viewList').classList.toggle('bg-orange-50', mode === 'list');
+            document.getElementById('viewList').classList.toggle('border-orange-500', mode === 'list');
+            renderProductGrid();
+        }
+
+        function renderProductGrid() {
+            const gridContainer = document.getElementById('productsGrid');
+            gridContainer.className = currentViewMode === 'grid' 
+                ? 'grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4'
+                : 'flex flex-col gap-4';
+            
+            gridContainer.innerHTML = '';
+            displayedProducts.forEach(product => {
+                gridContainer.innerHTML += currentViewMode === 'grid' 
+                    ? createProductCard(product)
+                    : createProductListItem(product);
+            });
+        }
+
+        function createProductListItem(product) {
+            const rating = (4 + Math.random()).toFixed(1);
+            const sold = Math.floor(Math.random() * 10000);
+            return `
+                <div class="bg-white rounded-lg border hover:shadow-lg transition p-4 flex gap-4 cursor-pointer" onclick="viewProduct('${product.id}', '${product.name.replace(/'/g, "\\'")}', ${product.retail_price})">
+                    <div class="w-32 h-32 bg-gray-50 rounded flex-shrink-0">
+                        ${product.image_url ? 
+                            `<img src="${product.image_url}" alt="${product.name}" class="w-full h-full object-cover rounded">` : 
+                            '<div class="w-full h-full flex items-center justify-center text-4xl">📦</div>'
+                        }
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="font-medium text-lg mb-2">${product.name}</h3>
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="text-yellow-400">★★★★★</span>
+                            <span class="text-sm text-gray-600">${rating} (${sold}+ sold)</span>
+                        </div>
+                        <div class="text-2xl font-bold text-orange-600 mb-3">KES${product.retail_price.toLocaleString()}</div>
+                        <div class="flex gap-2">
+                            <button onclick="event.stopPropagation(); addToCart('${product.id}', '${product.name.replace(/'/g, "\\'")}', ${product.retail_price})" class="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg font-medium transition">
+                                Add to Cart
+                            </button>
+                            <button onclick="event.stopPropagation(); addToWishlist('${product.id}', '${product.name.replace(/'/g, "\\'")}', ${product.retail_price})" class="border border-gray-300 hover:border-pink-500 hover:text-pink-500 px-4 py-2 rounded-lg transition">
+                                ❤️
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Auth modal
+        let authMode = 'signin'; // 'signin' or 'register'
+        let currentUser = JSON.parse(localStorage.getItem('user_prime-tech') || 'null');
+        let adCarouselInterval = null;
+        let currentAdIndex = 0;
+
+        const techAds = [
+            {
+                title: "Latest Smartphones",
+                subtitle: "Stay Connected Anywhere",
+                description: "Experience lightning-fast 5G connectivity",
+                image: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600&h=800&fit=crop",
+                gradient: "from-blue-500 to-purple-600",
+                price: "From KES 25,000",
+                badge: "NEW ARRIVAL"
+            },
+            {
+                title: "Premium Laptops",
+                subtitle: "Work From Anywhere",
+                description: "Powerful performance for professionals",
+                image: "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=600&h=800&fit=crop",
+                gradient: "from-gray-700 to-gray-900",
+                price: "From KES 85,000",
+                badge: "HOT DEAL"
+            },
+            {
+                title: "Smart Watches",
+                subtitle: "Track Your Fitness",
+                description: "Monitor health and stay connected on the go",
+                image: "https://images.unsplash.com/photo-1434494878577-86c23bcb06b9?w=600&h=800&fit=crop",
+                gradient: "from-green-500 to-teal-600",
+                price: "From KES 12,000",
+                badge: "TRENDING"
+            },
+            {
+                title: "Wireless Audio",
+                subtitle: "Premium Sound Quality",
+                description: "Crystal clear audio with noise cancellation",
+                image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&h=800&fit=crop",
+                gradient: "from-orange-500 to-red-600",
+                price: "From KES 8,000",
+                badge: "BEST SELLER"
+            },
+            {
+                title: "Gaming Gear",
+                subtitle: "Level Up Your Game",
+                description: "Professional gaming equipment for winners",
+                image: "https://images.unsplash.com/photo-1593305841991-05c297ba4575?w=600&h=800&fit=crop",
+                gradient: "from-purple-500 to-pink-600",
+                price: "From KES 15,000",
+                badge: "MEGA SALE"
+            }
+        ];
+
+        function showAuthModal(mode = 'signin') {
+            authMode = mode;
+            const modal = `
+                <div id="authModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4" onclick="closeAuthModal()">
+                    <div class="bg-white rounded-lg max-w-4xl w-full overflow-hidden flex" onclick="event.stopPropagation()">
+                        <!-- Left side - Dynamic Advertising -->
+                        <div id="adCarousel" class="hidden md:block w-1/2 relative overflow-hidden">
+                            <!-- Background image with overlay -->
+                            <div id="adBackground" class="absolute inset-0 bg-cover bg-center transition-all duration-700" style="background-image: url('${techAds[0].image}');">
+                                <div class="absolute inset-0 bg-gradient-to-br ${techAds[0].gradient} opacity-80"></div>
+                            </div>
+                            
+                            <!-- Content overlay -->
+                            <div class="relative h-full p-8 text-white flex flex-col justify-between">
+                                <div>
+                                    <h2 class="text-2xl font-bold mb-2">Prime Tech Electronics</h2>
+                                    <p class="text-sm opacity-90">Your trusted source for quality electronics</p>
+                                </div>
+                                
+                                <!-- Dynamic ad content -->
+                                <div id="adSlideContainer" class="flex-1 flex items-end pb-12">
+                                    <div id="adSlide" class="ad-slide">
+                                        <div class="inline-block bg-white text-orange-600 text-xs px-3 py-1 rounded-full font-bold mb-3 ad-glow">
+                                            ${techAds[0].badge}
+                                        </div>
+                                        <h3 class="text-4xl font-bold mb-2">${techAds[0].title}</h3>
+                                        <p class="text-xl mb-3 opacity-90">${techAds[0].subtitle}</p>
+                                        <p class="text-sm mb-4 opacity-80 max-w-md">${techAds[0].description}</p>
+                                        <div class="text-2xl font-bold">${techAds[0].price}</div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Ad indicators -->
+                                <div class="flex justify-center gap-2 mb-4">
+                                    ${techAds.map((_, i) => `
+                                        <div class="w-2 h-2 rounded-full transition-all ${i === 0 ? 'bg-white w-6' : 'bg-white bg-opacity-50'}"></div>
+                                    `).join('')}
+                                </div>
+                                
+                                <!-- Trust badges -->
+                                <div class="space-y-2 text-sm">
+                                    <div class="flex items-center gap-3">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                        </svg>
+                                        <span>Secure checkout & data protection</span>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                        </svg>
+                                        <span>Genuine products with warranty</span>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <span>Fast delivery across Kenya</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Right side - Form -->
+                        <div class="w-full md:w-1/2 p-8">
+                            <div class="flex justify-between items-center mb-6">
+                                <h2 class="text-2xl font-bold" id="authTitle">${authMode === 'signin' ? 'Sign In' : 'Register'}</h2>
+                                <button onclick="closeAuthModal()" class="text-gray-400 hover:text-gray-600">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+                            
+                            <div class="mb-4 flex items-center gap-2 text-sm text-green-600">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                </svg>
+                                <span>Your information is protected</span>
+                            </div>
+                            
+                            <form id="authForm" class="space-y-4" onsubmit="handleAuth(event)">
+                                <div id="nameField" class="${authMode === 'signin' ? 'hidden' : ''}">
+                                    <label class="block text-sm font-medium mb-1">Full Name</label>
+                                    <input type="text" id="authName" class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="Enter your full name">
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Email</label>
+                                    <input type="email" id="authEmail" required class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="Enter your email">
+                                </div>
+                                
+                                <div id="phoneField" class="${authMode === 'signin' ? 'hidden' : ''}">
+                                    <label class="block text-sm font-medium mb-1">Phone Number (Optional)</label>
+                                    <input type="tel" id="authPhone" class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="0712345678">
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Password</label>
+                                    <input type="password" id="authPassword" required class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="Enter your password">
+                                </div>
+                                
+                                <div id="authError" class="hidden text-sm text-red-600 bg-red-50 p-3 rounded-lg"></div>
+                                
+                                <button type="submit" id="authSubmitBtn" class="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-medium transition">
+                                    ${authMode === 'signin' ? 'Sign In' : 'Create Account'}
+                                </button>
+                            </form>
+                            
+                            <div class="mt-4 text-center text-sm text-gray-600">
+                                <span id="authToggleText">${authMode === 'signin' ? "Don't have an account?" : "Already have an account?"}</span>
+                                <button onclick="toggleAuthMode()" class="text-orange-600 hover:text-orange-700 font-medium ml-1">
+                                    ${authMode === 'signin' ? 'Register' : 'Sign In'}
+                                </button>
+                            </div>
+                            
+                            <div class="mt-6">
+                                <div class="relative">
+                                    <div class="absolute inset-0 flex items-center">
+                                        <div class="w-full border-t border-gray-300"></div>
+                                    </div>
+                                    <div class="relative flex justify-center text-sm">
+                                        <span class="px-2 bg-white text-gray-500">Or continue with</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-4 grid grid-cols-2 gap-3">
+                                    <button class="flex items-center justify-center gap-2 px-4 py-2 border rounded-lg hover:bg-gray-50 transition">
+                                        <svg class="w-5 h-5" viewBox="0 0 24 24">
+                                            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                                            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                                            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                                            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                                        </svg>
+                                        <span class="text-sm font-medium">Google</span>
+                                    </button>
+                                    <button class="flex items-center justify-center gap-2 px-4 py-2 border rounded-lg hover:bg-gray-50 transition">
+                                        <svg class="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                                        </svg>
+                                        <span class="text-sm font-medium">Facebook</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', modal);
+            startAdCarousel();
+        }
+
+        function startAdCarousel() {
+            currentAdIndex = 0;
+            adCarouselInterval = setInterval(() => {
+                currentAdIndex = (currentAdIndex + 1) % techAds.length;
+                updateAdSlide();
+            }, 4000); // Change ad every 4 seconds
+        }
+
+        function updateAdSlide() {
+            const ad = techAds[currentAdIndex];
+            const slideContainer = document.getElementById('adSlideContainer');
+            const background = document.getElementById('adBackground');
+            
+            if (!slideContainer || !background) return;
+            
+            // Fade out current slide
+            const currentSlide = document.getElementById('adSlide');
+            if (currentSlide) {
+                currentSlide.style.opacity = '0';
+                currentSlide.style.transform = 'translateY(20px)';
+            }
+            
+            // Update background image with fade
+            background.style.opacity = '0';
+            
+            // Update content after a short delay
+            setTimeout(() => {
+                // Update background
+                background.style.backgroundImage = `url('${ad.image}')`;
+                background.querySelector('div').className = `absolute inset-0 bg-gradient-to-br ${ad.gradient} opacity-80`;
+                background.style.opacity = '1';
+                
+                // Update slide content
+                slideContainer.innerHTML = `
+                    <div id="adSlide" class="ad-slide">
+                        <div class="inline-block bg-white text-orange-600 text-xs px-3 py-1 rounded-full font-bold mb-3 ad-glow">
+                            ${ad.badge}
+                        </div>
+                        <h3 class="text-4xl font-bold mb-2">${ad.title}</h3>
+                        <p class="text-xl mb-3 opacity-90">${ad.subtitle}</p>
+                        <p class="text-sm mb-4 opacity-80 max-w-md">${ad.description}</p>
+                        <div class="text-2xl font-bold">${ad.price}</div>
+                    </div>
+                `;
+                
+                // Update indicators
+                const carousel = document.getElementById('adCarousel');
+                if (carousel) {
+                    const indicators = carousel.querySelectorAll('.flex.justify-center.gap-2 > div');
+                    indicators.forEach((indicator, i) => {
+                        if (i === currentAdIndex) {
+                            indicator.className = 'w-6 h-2 rounded-full bg-white transition-all';
+                        } else {
+                            indicator.className = 'w-2 h-2 rounded-full bg-white bg-opacity-50 transition-all';
+                        }
+                    });
+                }
+            }, 300);
+        }
+
+        function toggleAuthMode() {
+            authMode = authMode === 'signin' ? 'register' : 'signin';
+            closeAuthModal();
+            showAuthModal(authMode);
+        }
+
+        async function handleAuth(event) {
+            event.preventDefault();
+            
+            const email = document.getElementById('authEmail').value;
+            const password = document.getElementById('authPassword').value;
+            const name = document.getElementById('authName')?.value;
+            const phone = document.getElementById('authPhone')?.value;
+            
+            const submitBtn = document.getElementById('authSubmitBtn');
+            const errorDiv = document.getElementById('authError');
+            
+            submitBtn.disabled = true;
+            submitBtn.textContent = authMode === 'signin' ? 'Signing in...' : 'Creating account...';
+            errorDiv.classList.add('hidden');
+            
+            try {
+                const endpoint = authMode === 'signin' ? '/api/ecommerce/auth/login' : '/api/ecommerce/auth/register';
+                const body = authMode === 'signin' 
+                    ? { tenantSlug: 'prime-tech-electronics-ltd', email, password }
+                    : { tenantSlug: 'prime-tech-electronics-ltd', email, password, name, phone };
+                
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || 'Authentication failed');
+                }
+                
+                // Save user data and session
+                localStorage.setItem('user_prime-tech', JSON.stringify(data.customer));
+                localStorage.setItem('session_prime-tech', data.sessionToken);
+                currentUser = data.customer;
+                
+                // Update UI
+                updateUserUI();
+                closeAuthModal();
+                showToast(`✓ Welcome ${data.customer.name}!`);
+                
+            } catch (error) {
+                errorDiv.textContent = error.message;
+                errorDiv.classList.remove('hidden');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = authMode === 'signin' ? 'Sign In' : 'Create Account';
+            }
+        }
+
+        function updateUserUI() {
+            const signInBtn = document.querySelector('button[onclick="showAuthModal()"]');
+            if (currentUser && signInBtn) {
+                signInBtn.textContent = currentUser.name;
+                signInBtn.onclick = () => showUserMenu();
+            }
+        }
+
+        function showUserMenu() {
+            const menu = `
+                <div id="userMenu" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4" onclick="closeUserMenu()">
+                    <div class="bg-white rounded-lg max-w-sm w-full p-6" onclick="event.stopPropagation()">
+                        <div class="text-center mb-6">
+                            <div class="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                                <span class="text-3xl font-bold text-orange-600">${currentUser.name.charAt(0).toUpperCase()}</span>
+                            </div>
+                            <h3 class="font-bold text-lg">${currentUser.name}</h3>
+                            <p class="text-sm text-gray-600">${currentUser.email}</p>
+                        </div>
+                        <div class="space-y-2">
+                            <button class="w-full text-left px-4 py-2 hover:bg-gray-100 rounded-lg">My Orders</button>
+                            <button class="w-full text-left px-4 py-2 hover:bg-gray-100 rounded-lg">My Wishlist</button>
+                            <button class="w-full text-left px-4 py-2 hover:bg-gray-100 rounded-lg">Account Settings</button>
+                            <button onclick="logout()" class="w-full text-left px-4 py-2 hover:bg-red-50 text-red-600 rounded-lg">Sign Out</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', menu);
+        }
+
+        function closeUserMenu() {
+            const menu = document.getElementById('userMenu');
+            if (menu) menu.remove();
+        }
+
+        function logout() {
+            localStorage.removeItem('user_prime-tech');
+            localStorage.removeItem('session_prime-tech');
+            currentUser = null;
+            closeUserMenu();
+            location.reload();
+        }
+
+        function closeAuthModal() {
+            if (adCarouselInterval) {
+                clearInterval(adCarouselInterval);
+                adCarouselInterval = null;
+            }
+            const modal = document.getElementById('authModal');
+            if (modal) modal.remove();
+        }
+
+        // Initialize
+        loadShopSettings();
+        loadProducts();
+        updateCartCount();
+        updateWishlistCount();
+        updateUserUI();
+    </script>
+</body>
+</html>
