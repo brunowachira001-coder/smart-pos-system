@@ -9,6 +9,8 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  
+  // Force rebuild - May 8, 2026
 
   useEffect(() => {
     // Load theme from localStorage and apply it
