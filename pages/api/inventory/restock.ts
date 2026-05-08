@@ -65,7 +65,7 @@ export default secureRoute(async function handler(req: SecureRequest, res: NextA
       stockAfter: newStock,
       reason: 'Manual restock',
       notes: notes || undefined,
-      performedBy: req.user?.id,
+      performedBy: req.user?.userId,
       performedByName: req.user?.email
     });
 

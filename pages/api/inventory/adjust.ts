@@ -61,7 +61,7 @@ export default secureRoute(async function handler(req: SecureRequest, res: NextA
       stockBefore: currentStock,
       stockAfter: newStock,
       reason: reason || 'Manual adjustment',
-      performedBy: req.user?.id,
+      performedBy: req.user?.userId,
       performedByName: req.user?.email
     });
 
