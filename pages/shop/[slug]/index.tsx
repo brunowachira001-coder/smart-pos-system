@@ -2,7 +2,62 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import Head from 'next/head';
+import { GetServerSideProps } from 'next';
+import { createClient } from '@supabase/supabase-js';
 import { useShopTheme } from '@/hooks/useShopTheme';
+
+// Server-side: fetch shop info and initial products for SEO
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  const { slug } = context.params as { slug: string };
+
+  try {
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
+    // Fetch tenant info
+    const { data: tenant } = await supabase
+      .from('tenants')
+      .select('id, business_name, tagline, logo_url, primary_color')
+      .eq('subdomain', slug)
+      .eq('is_active', true)
+      .single();
+
+    if (!tenant) return { notFound: true };
+
+    // Fetch shop settings for richer branding
+    const { data: settings } = await supabase
+      .from('shop_settings')
+      .select('logo_url, business_tagline, primary_color')
+      .eq('tenant_id', tenant.id)
+      .single();
+
+    // Fetch first 12 products for SEO content
+    const { data: products } = await supabase
+      .from('products')
+      .select('id, name, retail_price, category, image_url, description')
+      .eq('tenant_id', tenant.id)
+      .gt('stock_quantity', 0)
+      .order('created_at', { ascending: false })
+      .limit(12);
+
+    return {
+      props: {
+        seo: {
+          shopName: tenant.business_name,
+          tagline: settings?.business_tagline || tenant.tagline || `Shop quality products at ${tenant.business_name}`,
+          logoUrl: settings?.logo_url || tenant.logo_url || null,
+          primaryColor: settings?.primary_color || tenant.primary_color || '#10b981',
+          productCount: products?.length || 0,
+          featuredProducts: (products || []).slice(0, 3).map(p => p.name),
+        },
+      },
+    };
+  } catch {
+    return { props: { seo: null } };
+  }
+};
 
 interface Product {
   id: string;
@@ -98,7 +153,7 @@ function Countdown({ endsIn }: { endsIn: number }) {
   return <span className="font-mono font-bold text-red-600">{h}:{m}:{s}</span>;
 }
 
-export default function ShopStorefront() {
+export default function ShopStorefront({ seo }: { seo: any }) {
   const router = useRouter();
   const { slug, q } = router.query;
   const theme = useShopTheme(slug);
@@ -148,8 +203,40 @@ export default function ShopStorefront() {
   return (
     <>
       <Head>
-        <title>{theme.name || String(slug)} - Online Store</title>
+        <title>{seo?.shopName || theme.name || String(slug)} - Online Store</title>
+        <meta name="description" content={seo?.tagline || `Shop at ${seo?.shopName || slug}. Discover amazing deals on quality products with fast delivery.`} />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+        {/* Open Graph - for WhatsApp, Facebook, Twitter previews */}
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content={`${seo?.shopName || theme.name || slug} - Online Store`} />
+        <meta property="og:description" content={seo?.tagline || `Shop at ${seo?.shopName || slug}. Fast delivery, great prices.`} />
+        {seo?.logoUrl && <meta property="og:image" content={seo.logoUrl} />}
+        <meta property="og:site_name" content={seo?.shopName || String(slug)} />
+
+        {/* Twitter Card */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={`${seo?.shopName || slug} - Online Store`} />
+        <meta name="twitter:description" content={seo?.tagline || `Shop at ${seo?.shopName || slug}`} />
+        {seo?.logoUrl && <meta name="twitter:image" content={seo.logoUrl} />}
+
+        {/* Tell Google this is indexable */}
+        <meta name="robots" content="index, follow" />
+
+        {/* Structured data for Google Shopping / rich results */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'Store',
+              name: seo?.shopName || String(slug),
+              description: seo?.tagline,
+              url: `https://${typeof window !== 'undefined' ? window.location.host : ''}/shop/${slug}`,
+              logo: seo?.logoUrl,
+            }),
+          }}
+        />
       </Head>
 
       <div className="min-h-screen bg-gray-50">
@@ -157,12 +244,13 @@ export default function ShopStorefront() {
         <header className="bg-white border-b sticky top-0 z-50 shadow-sm">
           <div className="max-w-7xl mx-auto px-4">
             <div className="flex items-center gap-4 py-3">
-              <Link href={`/shop/${slug}`} className="shrink-0">
-                {theme.logo_url ? (
+              <Link href={`/shop/${slug}`} className="shrink-0 flex items-center gap-2">
+                {theme.logo_url && (
                   <img src={theme.logo_url} alt="logo" className="h-9 w-auto object-contain" />
-                ) : (
-                  <span className="text-2xl font-extrabold tracking-tight" style={{ color: p }}>{theme.name || slug}</span>
                 )}
+                <span className="text-xl font-extrabold tracking-tight" style={{ color: p }}>
+                  {theme.name || slug}
+                </span>
               </Link>
 
               <form onSubmit={handleSearch} className="flex-1 flex max-w-2xl">

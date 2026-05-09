@@ -2,7 +2,55 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import Head from 'next/head';
+import { GetServerSideProps } from 'next';
+import { createClient } from '@supabase/supabase-js';
 import { useShopTheme } from '@/hooks/useShopTheme';
+
+// Server-side fetch for SEO — Google sees real product data
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  const { slug, id } = context.params as { slug: string; id: string };
+
+  try {
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
+    const { data: tenant } = await supabase
+      .from('tenants')
+      .select('id, business_name')
+      .eq('subdomain', slug)
+      .eq('is_active', true)
+      .single();
+
+    if (!tenant) return { notFound: true };
+
+    const { data: product } = await supabase
+      .from('products')
+      .select('id, name, description, retail_price, stock_quantity, category, image_url')
+      .eq('id', id)
+      .eq('tenant_id', tenant.id)
+      .single();
+
+    if (!product) return { notFound: true };
+
+    return {
+      props: {
+        seo: {
+          shopName: tenant.business_name,
+          productName: product.name,
+          description: product.description || `Buy ${product.name} at ${tenant.business_name}. Great price: KES ${product.retail_price.toLocaleString()}.`,
+          price: product.retail_price,
+          imageUrl: product.image_url || null,
+          category: product.category || null,
+          inStock: product.stock_quantity > 0,
+        },
+      },
+    };
+  } catch {
+    return { props: { seo: null } };
+  }
+};
 
 interface Product {
   id: string;
@@ -20,7 +68,7 @@ function seededRandom(seed: string, min: number, max: number) {
   return Math.floor(((h >>> 0) / 0xffffffff) * (max - min + 1)) + min;
 }
 
-export default function ProductDetail() {
+export default function ProductDetail({ seo }: { seo: any }) {
   const router = useRouter();
   const { slug, id } = router.query;
   const theme = useShopTheme(slug);
@@ -83,13 +131,57 @@ export default function ProductDetail() {
 
   return (
     <>
-      <Head><title>{product.name} – {theme.name || slug}</title></Head>
+      <Head>
+        <title>{seo?.productName || product.name} – {seo?.shopName || theme.name || slug}</title>
+        <meta name="description" content={seo?.description || `Buy ${product.name} at ${theme.name || slug}. KES ${product.retail_price.toLocaleString()}.`} />
+        <meta name="robots" content="index, follow" />
+
+        {/* Open Graph */}
+        <meta property="og:type" content="product" />
+        <meta property="og:title" content={`${seo?.productName || product.name} – ${seo?.shopName || slug}`} />
+        <meta property="og:description" content={seo?.description || `KES ${product.retail_price.toLocaleString()}`} />
+        {(seo?.imageUrl || product.image_url) && <meta property="og:image" content={seo?.imageUrl || product.image_url} />}
+
+        {/* Product structured data for Google Shopping */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'Product',
+              name: product.name,
+              description: product.description,
+              image: product.image_url,
+              category: product.category,
+              offers: {
+                '@type': 'Offer',
+                price: product.retail_price,
+                priceCurrency: 'KES',
+                availability: product.stock_quantity > 0
+                  ? 'https://schema.org/InStock'
+                  : 'https://schema.org/OutOfStock',
+                seller: { '@type': 'Organization', name: seo?.shopName || String(slug) },
+              },
+            }),
+          }}
+        />
+      </Head>
       <div className="min-h-screen bg-gray-50">
         {/* Header */}
         <header className="bg-white border-b sticky top-0 z-40 shadow-sm">
           <div className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-4">
-            <Link href={`/shop/${slug}`} className="text-2xl font-extrabold tracking-tight" style={{ color: p }}>
-              {theme.logo_url ? <img src={theme.logo_url} alt="logo" className="h-8 w-auto object-contain" /> : (theme.name || slug)}
+            <button
+              onClick={() => router.back()}
+              className="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-gray-900 transition shrink-0"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              Back
+            </button>
+            <Link href={`/shop/${slug}`} className="text-2xl font-extrabold tracking-tight flex items-center gap-2" style={{ color: p }}>
+              {theme.logo_url && <img src={theme.logo_url} alt="logo" className="h-8 w-auto object-contain" />}
+              <span>{theme.name || slug}</span>
             </Link>
             <nav className="hidden sm:flex items-center gap-1 text-xs text-gray-500">
               <Link href={`/shop/${slug}`} className="hover:underline" style={{ color: p }}>Home</Link>

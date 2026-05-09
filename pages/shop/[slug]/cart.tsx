@@ -71,7 +71,19 @@ export default function CartPage() {
         {/* Header */}
         <header className="bg-white border-b sticky top-0 z-40 shadow-sm">
           <div className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-4">
-            <Link href={`/shop/${slug}`} className="text-2xl font-extrabold text-orange-600">{slug}</Link>
+            <button
+              onClick={() => router.back()}
+              className="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-gray-900 transition shrink-0"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              Back
+            </button>
+            <Link href={`/shop/${slug}`} className="flex items-center gap-2 font-extrabold text-xl" style={{ color: p }}>
+              {theme.logo_url && <img src={theme.logo_url} alt="logo" className="h-8 w-auto object-contain" />}
+              <span>{theme.name || slug}</span>
+            </Link>
             <span className="text-gray-300">|</span>
             <span className="text-lg font-semibold text-gray-700">Cart</span>
           </div>

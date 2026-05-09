@@ -171,6 +171,15 @@ export default function ShopAuth() {
           <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8 relative">
             {/* Close / back */}
             <Link href={`/shop/${slug}`} className="absolute top-5 right-5 text-gray-400 hover:text-gray-600 text-xl leading-none">×</Link>
+            <button
+              onClick={() => router.back()}
+              className="absolute top-5 left-5 flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-gray-800 transition"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              Back
+            </button>
 
             {/* Title */}
             <h1 className="text-2xl font-bold text-gray-900 mb-1">
