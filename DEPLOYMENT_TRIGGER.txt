@@ -1,0 +1,9 @@
+Deployment trigger - May 9, 2026 7:59 PM
+
+This file triggers a new Vercel deployment to ensure all shop pages are live.
+
+Shop URLs:
+- https://smart-pos-system.vercel.app/shop/nylawigs
+- https://smart-pos-system.vercel.app/m/nylawigs
+
+Status: Triggering deployment...
