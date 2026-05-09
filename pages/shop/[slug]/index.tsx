@@ -1,12 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import Head from 'next/head';
-import FlashDealBanner from '@/components/Ecommerce/FlashDealBanner';
-import RecommendedProducts from '@/components/Ecommerce/RecommendedProducts';
-import BundleDeals from '@/components/Ecommerce/BundleDeals';
-import TrustBadges from '@/components/Ecommerce/TrustBadges';
-import GamificationWidget from '@/components/Ecommerce/GamificationWidget';
 
 interface Product {
   id: string;
@@ -16,412 +11,387 @@ interface Product {
   category: string;
   image_url?: string;
   description?: string;
+  sku?: string;
 }
 
-interface ShopSettings {
+interface ShopInfo {
   business_name: string;
   logo_url?: string;
+  primary_color?: string;
 }
 
-export default function DesktopStorefront() {
-  const router = useRouter();
-  const { slug } = router.query;
-  const [products, setProducts] = useState<Product[]>([]);
-  const [shopSettings, setShopSettings] = useState<ShopSettings | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [cartCount, setCartCount] = useState(0);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [flashDeals, setFlashDeals] = useState([]);
-  const [bundles, setBundles] = useState([]);
-  const [recommendations, setRecommendations] = useState<Product[]>([]);
+// Stable pseudo-random from product id (no Math.random on render)
+function seededRandom(seed: string, min: number, max: number) {
+  let h = 0;
+  for (let i = 0; i < seed.length; i++) h = (Math.imul(31, h) + seed.charCodeAt(i)) | 0;
+  const r = ((h >>> 0) / 0xffffffff);
+  return Math.floor(r * (max - min + 1)) + min;
+}
 
+function ProductCard({ product, slug }: { product: Product; slug: string }) {
+  const discount = seededRandom(product.id, 20, 85);
+  const rating = (3.5 + seededRandom(product.id + 'r', 0, 15) / 10).toFixed(1);
+  const sold = seededRandom(product.id + 's', 100, 50000);
+  const originalPrice = Math.round(product.retail_price / (1 - discount / 100));
+  const savings = Math.round(product.retail_price * seededRandom(product.id + 'sv', 5, 30) / 100);
+  const isNew = seededRandom(product.id + 'n', 0, 4) === 0;
+  const isChoice = seededRandom(product.id + 'c', 0, 3) === 0;
+
+  const addToCart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const cart = JSON.parse(localStorage.getItem(`cart_${slug}`) || '[]');
+    const existing = cart.find((i: any) => i.product_id === product.id);
+    if (existing) existing.quantity += 1;
+    else cart.push({ product_id: product.id, product_name: product.name, product_price: product.retail_price, quantity: 1, image_url: product.image_url });
+    localStorage.setItem(`cart_${slug}`, JSON.stringify(cart));
+    // Dispatch event so header updates
+    window.dispatchEvent(new Event('cart-updated'));
+  };
+
+  return (
+    <Link href={`/shop/${slug}/product/${product.id}`}>
+      <div className="bg-white border border-gray-200 hover:shadow-lg transition-shadow cursor-pointer group relative">
+        {/* Image */}
+        <div className="relative aspect-square overflow-hidden bg-gray-50">
+          {product.image_url ? (
+            <img src={product.image_url} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-5xl bg-gray-100">📦</div>
+          )}
+          {isNew && (
+            <div className="absolute top-0 left-0 right-0 bg-orange-500 text-white text-xs text-center py-0.5 font-medium">
+              WELCOME DEAL · Free shipping
+            </div>
+          )}
+          <button
+            onClick={addToCart}
+            className="absolute bottom-2 right-2 bg-orange-500 text-white rounded-full p-2 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg hover:bg-orange-600"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Info */}
+        <div className="p-2">
+          {/* Badges */}
+          <div className="flex gap-1 mb-1 flex-wrap">
+            {isChoice && <span className="bg-orange-100 text-orange-700 text-xs px-1.5 py-0.5 rounded font-medium">Choice</span>}
+            <span className="bg-red-100 text-red-600 text-xs px-1.5 py-0.5 rounded font-medium">Sale</span>
+          </div>
+
+          <p className="text-xs text-gray-700 line-clamp-2 h-8 mb-1 leading-4">{product.name}</p>
+
+          {/* Price */}
+          <div className="flex items-baseline gap-1 mb-0.5">
+            <span className="text-base font-bold text-black">KES{product.retail_price.toLocaleString()}</span>
+            <span className="text-xs text-gray-400 line-through">KES{originalPrice.toLocaleString()}</span>
+            <span className="text-xs text-red-500 font-medium">-{discount}%</span>
+          </div>
+
+          {/* Rating & Sold */}
+          <div className="flex items-center gap-1 text-xs text-gray-500 mb-0.5">
+            <span className="text-yellow-400">{'★'.repeat(Math.round(parseFloat(rating)))}</span>
+            <span>{rating}</span>
+            <span>|</span>
+            <span>{sold.toLocaleString()}+ sold</span>
+          </div>
+
+          {/* Savings */}
+          <p className="text-xs text-orange-600">New shoppers save KES{savings.toLocaleString()}</p>
+
+          {/* Shipping */}
+          <p className="text-xs text-gray-400 mt-0.5">Free shipping</p>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+// Countdown timer
+function Countdown({ endsIn }: { endsIn: number }) {
+  const [secs, setSecs] = useState(endsIn);
   useEffect(() => {
-    if (slug) {
-      fetchShopSettings();
-      fetchProducts();
-      loadCartCount();
-      fetchFlashDeals();
-      fetchBundles();
-      fetchRecommendations();
-    }
+    const t = setInterval(() => setSecs(s => Math.max(0, s - 1)), 1000);
+    return () => clearInterval(t);
+  }, []);
+  const h = Math.floor(secs / 3600).toString().padStart(2, '0');
+  const m = Math.floor((secs % 3600) / 60).toString().padStart(2, '0');
+  const s = (secs % 60).toString().padStart(2, '0');
+  return <span className="font-mono font-bold text-red-600">{h}:{m}:{s}</span>;
+}
+
+export default function ShopStorefront() {
+  const router = useRouter();
+  const { slug, category: catParam, q } = router.query;
+  const [products, setProducts] = useState<Product[]>([]);
+  const [shopInfo, setShopInfo] = useState<ShopInfo>({ business_name: 'ShopMart' });
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState((q as string) || '');
+  const [activeCategory, setActiveCategory] = useState((catParam as string) || 'All');
+  const [cartCount, setCartCount] = useState(0);
+
+  const updateCartCount = useCallback(() => {
+    const cart = JSON.parse(localStorage.getItem(`cart_${slug}`) || '[]');
+    setCartCount(cart.reduce((s: number, i: any) => s + i.quantity, 0));
   }, [slug]);
 
-  const fetchShopSettings = async () => {
-    try {
-      const res = await fetch(`/api/tenant/by-slug/${slug}`);
-      const data = await res.json();
-      setShopSettings({
-        business_name: data.tenant?.name || 'ShopMart',
-        logo_url: data.tenant?.logo_url
-      });
-    } catch (error) {
-      console.error('Failed to load shop settings:', error);
-      setShopSettings({ business_name: 'ShopMart' });
-    }
-  };
+  useEffect(() => {
+    if (!slug) return;
+    // Fetch shop info
+    fetch(`/api/tenant/by-slug/${slug}`)
+      .then(r => r.json())
+      .then(d => setShopInfo({ business_name: d.tenant?.name || 'ShopMart', logo_url: d.tenant?.logo_url }))
+      .catch(() => {});
 
-  const fetchProducts = async () => {
-    try {
-      setLoading(true);
-      const res = await fetch(`/api/ecommerce/products/simple?tenantSlug=${slug}&limit=100`);
-      const data = await res.json();
-      setProducts(data.products || []);
-    } catch (error) {
-      console.error('Failed to load products:', error);
-      setProducts([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+    // Fetch products
+    setLoading(true);
+    fetch(`/api/ecommerce/products/simple?tenantSlug=${slug}&limit=100`)
+      .then(r => r.json())
+      .then(d => setProducts(d.products || []))
+      .catch(() => setProducts([]))
+      .finally(() => setLoading(false));
 
-  const loadCartCount = () => {
-    const cart = localStorage.getItem(`cart_${slug}`);
-    if (cart) {
-      const items = JSON.parse(cart);
-      setCartCount(items.reduce((sum: number, item: any) => sum + item.quantity, 0));
-    }
-  };
+    updateCartCount();
+    window.addEventListener('cart-updated', updateCartCount);
+    return () => window.removeEventListener('cart-updated', updateCartCount);
+  }, [slug, updateCartCount]);
 
-  const fetchFlashDeals = async () => {
-    try {
-      const res = await fetch(`/api/ecommerce/flash-deals?tenantSlug=${slug}`);
-      const data = await res.json();
-      setFlashDeals(data.deals || []);
-    } catch (error) {
-      console.error('Failed to load flash deals:', error);
-    }
-  };
+  // Derived data
+  const categories = ['All', ...Array.from(new Set(products.map(p => p.category).filter(Boolean)))];
+  const filtered = products.filter(p => {
+    const matchCat = activeCategory === 'All' || p.category === activeCategory;
+    const matchSearch = !search || p.name.toLowerCase().includes(search.toLowerCase());
+    return matchCat && matchSearch;
+  });
 
-  const fetchBundles = async () => {
-    try {
-      const res = await fetch(`/api/ecommerce/bundles?tenantSlug=${slug}`);
-      const data = await res.json();
-      setBundles(data.bundles || []);
-    } catch (error) {
-      console.error('Failed to load bundles:', error);
-    }
-  };
+  const bundleProducts = filtered.slice(0, 4);
+  const superDealProducts = filtered.slice(4, 8);
+  const mainProducts = filtered.slice(8);
 
-  const fetchRecommendations = async () => {
-    try {
-      const res = await fetch(`/api/ecommerce/recommendations?tenantSlug=${slug}&limit=6`);
-      const data = await res.json();
-      setRecommendations(data.products || []);
-    } catch (error) {
-      console.error('Failed to load recommendations:', error);
-    }
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    router.push(`/shop/${slug}?q=${encodeURIComponent(search)}`, undefined, { shallow: true });
   };
-
-  const addToCart = (productId: string) => {
-    const cart = localStorage.getItem(`cart_${slug}`);
-    const items = cart ? JSON.parse(cart) : [];
-    const existing = items.find((i: any) => i.product_id === productId);
-    if (existing) {
-      existing.quantity += 1;
-    } else {
-      items.push({ product_id: productId, quantity: 1 });
-    }
-    localStorage.setItem(`cart_${slug}`, JSON.stringify(items));
-    loadCartCount();
-  };
-
-  const categories = ['Electronics', 'Fashion', 'Home & Garden', 'Sports', 'Beauty', 'Toys', 'Automotive', 'Books'];
-  const featuredProducts = products.slice(0, 6);
-  const superDeals = products.slice(6, 12);
-  const allProducts = products.slice(12);
 
   return (
     <>
       <Head>
-        <title>{shopSettings?.business_name || 'ShopMart'} - Online Store</title>
+        <title>{shopInfo.business_name} - Online Store</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
-      
+
       <div className="min-h-screen bg-gray-50">
-        {/* Top Header */}
-        <header className="bg-white border-b sticky top-0 z-50">
+        {/* ── HEADER ── */}
+        <header className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
           <div className="max-w-7xl mx-auto px-4">
-            {/* Top Bar */}
-            <div className="flex items-center justify-between py-4">
-              <Link href={`/shop/${slug}`}>
-                <div className="flex items-center gap-2 cursor-pointer">
-                  {shopSettings?.logo_url ? (
-                    <img src={shopSettings.logo_url} alt="Logo" className="h-10 w-10 object-contain" />
-                  ) : (
-                    <div className="text-3xl font-bold text-orange-600">{shopSettings?.business_name || 'ShopMart'}</div>
-                  )}
-                </div>
+            {/* Top row */}
+            <div className="flex items-center gap-4 py-3">
+              {/* Logo */}
+              <Link href={`/shop/${slug}`} className="shrink-0">
+                {shopInfo.logo_url ? (
+                  <img src={shopInfo.logo_url} alt="logo" className="h-9 w-auto object-contain" />
+                ) : (
+                  <span className="text-2xl font-extrabold text-orange-600 tracking-tight">{shopInfo.business_name}</span>
+                )}
               </Link>
 
-              {/* Search Bar */}
-              <div className="flex-1 max-w-2xl mx-8">
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder="Search for products..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full px-4 py-2.5 border-2 border-orange-500 rounded-lg focus:outline-none focus:border-orange-600"
-                  />
-                  <button className="absolute right-0 top-0 bottom-0 px-6 bg-orange-500 hover:bg-orange-600 text-white rounded-r-lg transition">
-                    Search
-                  </button>
-                </div>
-              </div>
+              {/* Search */}
+              <form onSubmit={handleSearch} className="flex-1 flex max-w-2xl">
+                <input
+                  type="text"
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  placeholder="Search products..."
+                  className="flex-1 border-2 border-orange-500 rounded-l-md px-4 py-2 text-sm focus:outline-none focus:border-orange-600"
+                />
+                <button type="submit" className="bg-orange-500 hover:bg-orange-600 text-white px-5 py-2 rounded-r-md text-sm font-medium transition">
+                  Search
+                </button>
+              </form>
 
-              {/* Right Actions */}
-              <div className="flex items-center gap-6">
-                <Link href={`/shop/${slug}/cart`}>
-                  <div className="relative cursor-pointer hover:text-orange-600 transition">
-                    <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                    </svg>
-                    {cartCount > 0 && (
-                      <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
-                        {cartCount}
-                      </span>
-                    )}
-                  </div>
+              {/* Right */}
+              <div className="flex items-center gap-5 shrink-0">
+                <Link href={`/shop/${slug}/auth`} className="text-sm text-gray-600 hover:text-orange-600 hidden sm:block">
+                  Sign in / Register
                 </Link>
-                <button className="text-sm hover:text-orange-600 transition">Sign In / Register</button>
+                <Link href={`/shop/${slug}/cart`} className="relative">
+                  <svg className="w-7 h-7 text-gray-700 hover:text-orange-600 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                  {cartCount > 0 && (
+                    <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center font-bold leading-none">
+                      {cartCount > 9 ? '9+' : cartCount}
+                    </span>
+                  )}
+                </Link>
               </div>
             </div>
 
-            {/* Navigation */}
-            <nav className="flex items-center gap-8 py-3 border-t text-sm">
-              <button className="flex items-center gap-1 hover:text-orange-600 transition font-medium">
+            {/* Category nav */}
+            <nav className="flex items-center gap-1 py-2 border-t border-gray-100 overflow-x-auto scrollbar-hide">
+              <button className="flex items-center gap-1 text-sm font-medium px-3 py-1.5 hover:text-orange-600 whitespace-nowrap shrink-0">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
                 All Categories
               </button>
-              <Link href={`/shop/${slug}`} className="hover:text-orange-600 transition text-orange-600 font-medium">SuperDeals</Link>
-              {categories.slice(0, 6).map((cat) => (
-                <Link key={cat} href={`/shop/${slug}?category=${cat}`} className="hover:text-orange-600 transition">{cat}</Link>
+              <span className="text-gray-300">|</span>
+              {categories.map(cat => (
+                <button
+                  key={cat}
+                  onClick={() => setActiveCategory(cat)}
+                  className={`text-sm px-3 py-1.5 whitespace-nowrap shrink-0 transition ${activeCategory === cat ? 'text-orange-600 font-semibold' : 'text-gray-600 hover:text-orange-600'}`}
+                >
+                  {cat === 'All' ? 'SuperDeals' : cat}
+                </button>
               ))}
-              <button className="hover:text-orange-600 transition">More ▼</button>
             </nav>
           </div>
         </header>
 
-        {/* Flash Deal Banner */}
-        {flashDeals.length > 0 && (
-          <FlashDealBanner slug={slug as string} deals={flashDeals} />
+        {/* ── HERO BANNER ── */}
+        <section className="bg-gradient-to-r from-amber-50 via-orange-50 to-pink-50 border-b">
+          <div className="max-w-7xl mx-auto px-4 py-8 flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">{shopInfo.business_name}</h1>
+              <p className="text-gray-600 mb-4">Discover amazing deals on quality products</p>
+              <button
+                onClick={() => document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' })}
+                className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2.5 rounded font-medium text-sm transition"
+              >
+                Shop now
+              </button>
+            </div>
+            <div className="text-7xl hidden sm:block">🛍️</div>
+          </div>
+        </section>
+
+        {/* ── TODAY'S DEALS ── */}
+        {filtered.length > 0 && (
+          <section className="max-w-7xl mx-auto px-4 py-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-gray-900">Today's deals</h2>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              {/* Bundle Deals */}
+              <div className="bg-white border border-gray-200 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-xl">🎁</span>
+                  <div>
+                    <h3 className="font-bold text-gray-900">Bundle deals</h3>
+                    <p className="text-xs text-gray-500">3+ from KES {bundleProducts[0] ? Math.round(bundleProducts[0].retail_price * 0.8).toLocaleString() : '—'} each</p>
+                  </div>
+                  <span className="ml-auto text-orange-500 text-sm">›</span>
+                </div>
+                <div className="grid grid-cols-4 gap-2">
+                  {bundleProducts.map(p => (
+                    <Link key={p.id} href={`/shop/${slug}/product/${p.id}`}>
+                      <div className="aspect-square bg-gray-50 rounded overflow-hidden hover:opacity-80 transition">
+                        {p.image_url ? <img src={p.image_url} alt={p.name} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-2xl">📦</div>}
+                      </div>
+                      <p className="text-xs text-orange-600 font-medium mt-1">KES{p.retail_price.toLocaleString()}</p>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+
+              {/* SuperDeals */}
+              <div className="bg-white border border-gray-200 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-xl">⚡</span>
+                  <div>
+                    <h3 className="font-bold text-red-600">SuperDeals</h3>
+                    <p className="text-xs text-gray-500 flex items-center gap-1">Ends in: <Countdown endsIn={53046} /></p>
+                  </div>
+                  <span className="ml-auto text-orange-500 text-sm">›</span>
+                </div>
+                <div className="grid grid-cols-4 gap-2">
+                  {superDealProducts.map(p => {
+                    const disc = seededRandom(p.id, 40, 85);
+                    return (
+                      <Link key={p.id} href={`/shop/${slug}/product/${p.id}`}>
+                        <div className="relative aspect-square bg-gray-50 rounded overflow-hidden hover:opacity-80 transition">
+                          {p.image_url ? <img src={p.image_url} alt={p.name} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-2xl">📦</div>}
+                          <span className="absolute bottom-0 left-0 right-0 bg-red-500 text-white text-xs text-center py-0.5 font-bold">-{disc}%</span>
+                        </div>
+                        <p className="text-xs text-orange-600 font-medium mt-1">KES{p.retail_price.toLocaleString()}</p>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </section>
         )}
 
-        {/* Hero Banner */}
-        <section className="bg-gradient-to-r from-orange-50 to-pink-50 py-12">
-          <div className="max-w-7xl mx-auto px-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-4xl font-bold mb-4">Welcome to {shopSettings?.business_name}</h1>
-                <p className="text-xl text-gray-600 mb-6">Discover amazing deals on quality products</p>
-                <button className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-lg font-medium transition">
-                  Shop Now
-                </button>
-              </div>
-              <div className="text-8xl">🛍️</div>
-            </div>
-          </div>
-        </section>
-
-        {/* Today's Deals Section */}
-        <section className="max-w-7xl mx-auto px-4 py-8">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold">Today's deals</h2>
-            <Link href={`/shop/${slug}/deals`} className="text-orange-600 hover:text-orange-700 font-medium">View all →</Link>
-          </div>
-
-          <div className="grid grid-cols-2 gap-6 mb-8">
-            {/* Bundle Deals */}
-            <div className="bg-white rounded-lg p-6 border">
-              <div className="flex items-center gap-2 mb-4">
-                <span className="text-2xl">🎁</span>
-                <div>
-                  <h3 className="font-bold text-lg">Bundle deals</h3>
-                  <p className="text-sm text-gray-600">3+ from KES 2,39 each</p>
-                </div>
-              </div>
-              <div className="grid grid-cols-3 gap-3">
-                {featuredProducts.slice(0, 3).map((product) => (
-                  <Link key={product.id} href={`/shop/${slug}/product/${product.id}`}>
-                    <div className="bg-gray-50 rounded-lg p-3 hover:shadow-md transition cursor-pointer">
-                      <div className="aspect-square bg-white rounded flex items-center justify-center mb-2">
-                        {product.image_url ? (
-                          <img src={product.image_url} alt={product.name} className="w-full h-full object-cover rounded" />
-                        ) : (
-                          <span className="text-4xl">📦</span>
-                        )}
-                      </div>
-                      <div className="text-sm font-medium text-orange-600">KES{product.retail_price.toLocaleString()}</div>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </div>
-
-            {/* SuperDeals */}
-            <div className="bg-white rounded-lg p-6 border">
-              <div className="flex items-center gap-2 mb-4">
-                <span className="text-2xl">⚡</span>
-                <div>
-                  <h3 className="font-bold text-lg text-red-600">SuperDeals</h3>
-                  <p className="text-sm text-gray-600">Ends in: 14:54:06</p>
-                </div>
-              </div>
-              <div className="grid grid-cols-3 gap-3">
-                {featuredProducts.slice(3, 6).map((product) => (
-                  <Link key={product.id} href={`/shop/${slug}/product/${product.id}`}>
-                    <div className="bg-gray-50 rounded-lg p-3 hover:shadow-md transition cursor-pointer relative">
-                      <div className="absolute top-1 right-1 bg-red-500 text-white text-xs px-2 py-1 rounded-full font-bold">
-                        -{Math.floor(Math.random() * 50 + 20)}%
-                      </div>
-                      <div className="aspect-square bg-white rounded flex items-center justify-center mb-2">
-                        {product.image_url ? (
-                          <img src={product.image_url} alt={product.name} className="w-full h-full object-cover rounded" />
-                        ) : (
-                          <span className="text-4xl">📦</span>
-                        )}
-                      </div>
-                      <div className="text-sm font-medium text-orange-600">KES{product.retail_price.toLocaleString()}</div>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* All Products Grid */}
-        <section className="max-w-7xl mx-auto px-4 py-8">
-          <h2 className="text-2xl font-bold mb-6">All Products</h2>
-          
+        {/* ── MAIN PRODUCT GRID ── */}
+        <section id="products" className="max-w-7xl mx-auto px-4 pb-12">
           {loading ? (
             <div className="text-center py-20">
-              <div className="inline-block w-16 h-16 border-4 border-gray-200 border-t-orange-500 rounded-full animate-spin"></div>
-              <p className="mt-4 text-gray-600">Loading products...</p>
+              <div className="inline-block w-12 h-12 border-4 border-gray-200 border-t-orange-500 rounded-full animate-spin" />
+              <p className="mt-4 text-gray-500 text-sm">Loading products...</p>
             </div>
-          ) : products.length === 0 ? (
-            <div className="text-center py-20 bg-white rounded-lg">
-              <div className="text-6xl mb-4">📦</div>
-              <h3 className="text-xl font-bold mb-2">No Products Available</h3>
-              <p className="text-gray-600">Check back soon for new items!</p>
+          ) : filtered.length === 0 ? (
+            <div className="text-center py-20 bg-white rounded-lg border">
+              <div className="text-6xl mb-4">🔍</div>
+              <h3 className="text-lg font-bold mb-2">No products found</h3>
+              <p className="text-gray-500 text-sm mb-4">Try a different search or category</p>
+              <button onClick={() => { setSearch(''); setActiveCategory('All'); }} className="text-orange-600 underline text-sm">Clear filters</button>
             </div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-              {allProducts.map((product) => {
-                const rating = (4 + Math.random()).toFixed(1);
-                const sold = Math.floor(Math.random() * 10000);
-                return (
-                  <Link key={product.id} href={`/shop/${slug}/product/${product.id}`}>
-                    <div className="bg-white rounded-lg border hover:shadow-lg transition cursor-pointer group">
-                      <div className="relative aspect-square bg-gray-50 rounded-t-lg overflow-hidden">
-                        {product.image_url ? (
-                          <img src={product.image_url} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition" />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-5xl">📦</div>
-                        )}
-                        <button 
-                          onClick={(e) => {
-                            e.preventDefault();
-                            addToCart(product.id);
-                          }}
-                          className="absolute bottom-2 right-2 bg-white rounded-full p-2 shadow-lg opacity-0 group-hover:opacity-100 transition hover:bg-orange-500 hover:text-white"
-                        >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                          </svg>
-                        </button>
-                      </div>
-                      <div className="p-3">
-                        <div className="text-sm line-clamp-2 h-10 mb-2 text-gray-700">{product.name}</div>
-                        <div className="text-lg font-bold text-orange-600 mb-1">
-                          KES{product.retail_price.toLocaleString()}
-                        </div>
-                        <div className="flex items-center justify-between text-xs">
-                          <div className="flex items-center gap-1 text-gray-500">
-                            <span className="text-yellow-400">★★★★★</span>
-                            <span>{rating}</span>
-                          </div>
-                          <span className="text-gray-400">{sold}+ sold</span>
-                        </div>
-                      </div>
-                    </div>
-                  </Link>
-                );
-              })}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-px bg-gray-200">
+              {(mainProducts.length > 0 ? mainProducts : filtered).map(p => (
+                <ProductCard key={p.id} product={p} slug={slug as string} />
+              ))}
             </div>
           )}
         </section>
 
-        {/* Recommended Products */}
-        {recommendations.length > 0 && (
-          <section className="max-w-7xl mx-auto px-4 py-8">
-            <RecommendedProducts 
-              slug={slug as string} 
-              products={recommendations}
-              title="Recommended for You"
-              subtitle="Based on your browsing history"
-            />
-          </section>
-        )}
-
-        {/* Bundle Deals */}
-        {bundles.length > 0 && (
-          <section className="max-w-7xl mx-auto px-4 py-8">
-            <BundleDeals slug={slug as string} bundles={bundles} />
-          </section>
-        )}
-
-        {/* Trust Badges */}
-        <section className="max-w-7xl mx-auto px-4 py-8">
-          <TrustBadges />
-        </section>
-
-        {/* Footer */}
-        <footer className="bg-gray-900 text-white mt-16">
-          <div className="max-w-7xl mx-auto px-4 py-12">
-            <div className="grid grid-cols-4 gap-8 mb-8">
+        {/* ── FOOTER ── */}
+        <footer className="bg-gray-900 text-white">
+          <div className="max-w-7xl mx-auto px-4 py-10">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
               <div>
-                <h3 className="font-bold mb-4">Customer Service</h3>
-                <ul className="space-y-2 text-sm text-gray-400">
+                <h4 className="font-semibold mb-3 text-sm">Customer service</h4>
+                <ul className="space-y-2 text-xs text-gray-400">
                   <li><a href="#" className="hover:text-white">Help Center</a></li>
                   <li><a href="#" className="hover:text-white">Transaction Services</a></li>
-                  <li><a href="#" className="hover:text-white">Terms & Conditions</a></li>
+                  <li><a href="#" className="hover:text-white">Return & Refund Policy</a></li>
                 </ul>
               </div>
               <div>
-                <h3 className="font-bold mb-4">Shopping with us</h3>
-                <ul className="space-y-2 text-sm text-gray-400">
+                <h4 className="font-semibold mb-3 text-sm">Shopping with us</h4>
+                <ul className="space-y-2 text-xs text-gray-400">
                   <li><a href="#" className="hover:text-white">Making payments</a></li>
                   <li><a href="#" className="hover:text-white">Delivery options</a></li>
                   <li><a href="#" className="hover:text-white">Buyer Protection</a></li>
                 </ul>
               </div>
               <div>
-                <h3 className="font-bold mb-4">Collaborate with us</h3>
-                <ul className="space-y-2 text-sm text-gray-400">
-                  <li><a href="#" className="hover:text-white">Partnerships</a></li>
-                  <li><a href="#" className="hover:text-white">Affiliate program</a></li>
-                </ul>
+                <h4 className="font-semibold mb-3 text-sm">Pay with</h4>
+                <div className="flex flex-wrap gap-2">
+                  {['VISA', 'Mastercard', 'M-PESA', 'Airtel'].map(m => (
+                    <span key={m} className="bg-white text-gray-900 text-xs px-2 py-1 rounded font-medium">{m}</span>
+                  ))}
+                </div>
               </div>
               <div>
-                <h3 className="font-bold mb-4">Pay with</h3>
-                <div className="flex gap-2 flex-wrap">
-                  <div className="bg-white rounded px-3 py-1 text-xs text-gray-900 font-medium">VISA</div>
-                  <div className="bg-white rounded px-3 py-1 text-xs text-gray-900 font-medium">Mastercard</div>
-                  <div className="bg-white rounded px-3 py-1 text-xs text-gray-900 font-medium">M-PESA</div>
+                <h4 className="font-semibold mb-3 text-sm">Stay connected</h4>
+                <div className="flex gap-3 text-gray-400">
+                  <a href="#" className="hover:text-white text-lg">f</a>
+                  <a href="#" className="hover:text-white text-lg">𝕏</a>
+                  <a href="#" className="hover:text-white text-lg">📷</a>
                 </div>
               </div>
             </div>
-            <div className="border-t border-gray-800 pt-8 text-center text-sm text-gray-400">
-              <p>© 2026 {shopSettings?.business_name || 'ShopMart'}. All rights reserved.</p>
+            <div className="border-t border-gray-800 pt-6 text-center text-xs text-gray-500">
+              © {new Date().getFullYear()} {shopInfo.business_name}. All rights reserved.
             </div>
           </div>
         </footer>
-
-        {/* Gamification Widget */}
-        <GamificationWidget slug={slug as string} customerId={undefined} />
       </div>
     </>
   );
