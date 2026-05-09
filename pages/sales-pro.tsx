@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/router';
+import ResponsiveGrid, { ResponsiveCard } from '../components/ResponsiveGrid';
+import ResponsiveFilters from '../components/ResponsiveFilters';
 
 export default function SalesPro() {
   const router = useRouter();

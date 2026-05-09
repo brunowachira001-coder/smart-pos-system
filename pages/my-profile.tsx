@@ -3,6 +3,8 @@ import { useAuth } from '../hooks/useAuth';
 import { applyTheme, getCurrentTheme } from '../lib/themes';
 import Toast from '../components/Toast';
 import { useToast } from '../hooks/useToast';
+import ResponsiveGrid, { ResponsiveCard } from '../components/ResponsiveGrid';
+import ResponsiveFilters from '../components/ResponsiveFilters';
 
 interface Profile {
   id: string;

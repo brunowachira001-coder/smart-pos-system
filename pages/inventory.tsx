@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import Toast from '../components/Toast';
 import Pagination from '../components/Pagination';
+import ResponsiveGrid, { ResponsiveCard } from '../components/ResponsiveGrid';
+import ResponsiveFilters from '../components/ResponsiveFilters';
 
 interface Product {
   id: string;
@@ -486,50 +488,52 @@ export default function InventoryPage() {
         />
       )}
       
-      <div className="p-6">
+      <div className="p-4 sm:p-5 lg:p-6">
         {/* Header */}
-        <div className="flex justify-between items-start mb-6">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight mb-1">Inventory</h1>
-            <p className="text-sm text-[var(--text-secondary)]">Manage your product inventory and stock levels.</p>
-          </div>
-          <div className="flex gap-3">
-            <button
-              onClick={exportInventory}
-              className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg px-4 py-2 text-sm hover:bg-[var(--bg-primary)] transition-colors flex items-center gap-2"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              Export
-            </button>
-            {filterTab === 'archived' && (
+        <ResponsiveFilters
+          title="Inventory"
+          subtitle="Manage your product inventory and stock levels"
+          actions={
+            <>
               <button
-                onClick={() => setFilterTab('all')}
-                className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg px-4 py-2 text-sm hover:bg-[var(--bg-primary)] transition-colors"
+                onClick={exportInventory}
+                className="w-full sm:w-auto bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg px-4 py-2 sm:py-2.5 text-sm hover:bg-[var(--bg-primary)] transition-colors flex items-center gap-2 justify-center min-h-[44px] sm:min-h-[36px]"
               >
-                View Active
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Export
               </button>
-            )}
-            {filterTab !== 'archived' && (
+              {filterTab === 'archived' && (
+                <button
+                  onClick={() => setFilterTab('all')}
+                  className="w-full sm:w-auto bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg px-4 py-2 sm:py-2.5 text-sm hover:bg-[var(--bg-primary)] transition-colors min-h-[44px] sm:min-h-[36px]"
+                >
+                  View Active
+                </button>
+              )}
+              {filterTab !== 'archived' && (
+                <button
+                  onClick={() => setFilterTab('archived')}
+                  className="w-full sm:w-auto bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg px-4 py-2 sm:py-2.5 text-sm hover:bg-[var(--bg-primary)] transition-colors min-h-[44px] sm:min-h-[36px]"
+                >
+                  View Archived
+                </button>
+              )}
               <button
-                onClick={() => setFilterTab('archived')}
-                className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg px-4 py-2 text-sm hover:bg-[var(--bg-primary)] transition-colors"
+                onClick={() => setShowAddModal(true)}
+                className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg px-4 py-2 sm:py-2.5 text-sm font-medium transition-colors flex items-center gap-2 justify-center min-h-[44px] sm:min-h-[36px]"
               >
-                View Archived
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                Add Product
               </button>
-            )}
-            <button
-              onClick={() => setShowAddModal(true)}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg px-4 py-2 text-sm font-medium transition-colors flex items-center gap-2"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              Add Product
-            </button>
-          </div>
-        </div>
+            </>
+          }
+        >
+          <></>
+        </ResponsiveFilters>
 
         {/* Filter Tabs */}
         <div className="flex gap-4 mb-6 border-b border-[var(--border-color)]">
@@ -594,7 +598,7 @@ export default function InventoryPage() {
         {/* Products Table */}
         <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="min-w-full">
               <thead className="bg-[var(--bg-primary)] border-b border-[var(--border-color)]">
                 <tr>
                   <th className="px-6 py-3 text-left text-sm font-medium text-[var(--text-secondary)]">

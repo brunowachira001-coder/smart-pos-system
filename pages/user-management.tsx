@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import ResponsiveGrid, { ResponsiveCard } from '../components/ResponsiveGrid';
+import ResponsiveFilters from '../components/ResponsiveFilters';
 
 interface User {
   id: string;

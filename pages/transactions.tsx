@@ -3,6 +3,8 @@ import { useRouter } from 'next/router';
 import DateRangeFilter, { getDateRange, formatDateLocal } from '../components/DateRangeFilter';
 import Pagination from '../components/Pagination';
 import ReceiptPrint from '../components/ReceiptPrint';
+import ResponsiveGrid, { ResponsiveCard } from '../components/ResponsiveGrid';
+import ResponsiveFilters from '../components/ResponsiveFilters';
 
 interface Transaction {
   id: string;
@@ -282,7 +284,7 @@ export default function TransactionsPage() {
 
   return (
     <div className="min-h-screen bg-[var(--bg-secondary)]">
-      <div className="p-6">
+      <div className="p-4 sm:p-5 lg:p-6">
         {/* Header */}
         <div className="mb-6">
           <h1 className="text-2xl font-semibold tracking-tight mb-1">Transactions</h1>
@@ -400,7 +402,7 @@ export default function TransactionsPage() {
         {/* Transactions Table */}
         <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="min-w-full">
               <thead className="bg-[var(--bg-primary)] border-b border-[var(--border-color)]">
                 <tr>
                   <th className="px-6 py-3 text-left text-sm font-medium text-[var(--text-secondary)]">Transaction ID</th>

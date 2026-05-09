@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import Toast from '../components/Toast';
 import { useToast } from '../hooks/useToast';
+import ResponsiveGrid, { ResponsiveCard } from '../components/ResponsiveGrid';
+import ResponsiveFilters from '../components/ResponsiveFilters';
 
 export default function CustomersPro() {
   const [showAddModal, setShowAddModal] = useState(false);

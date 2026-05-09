@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import DateRangeFilter, { getDateRange, formatDateLocal } from '../components/DateRangeFilter';
 import { useToast } from '../hooks/useToast';
 import Toast from '../components/Toast';
+import ResponsiveGrid, { ResponsiveCard } from '../components/ResponsiveGrid';
+import ResponsiveFilters from '../components/ResponsiveFilters';
 
 interface Debt {
   id: string;
@@ -135,7 +137,7 @@ export default function DebtManagement() {
   const outstandingDebts = debts.filter(d => d.amount_remaining > 0);
 
   return (
-    <div className="min-h-screen bg-[var(--bg-secondary)] p-4 md:p-6">
+    <div className="min-h-screen bg-[var(--bg-secondary)] p-4 sm:p-5 lg:p-6">
       {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} />}
       <div className="space-y-6">
         {/* Header */}
@@ -339,7 +341,7 @@ export default function DebtManagement() {
                 <div className="p-8 text-center text-[var(--text-secondary)]">No debts found</div>
               ) : (
                 <div className="overflow-x-auto">
-                  <table className="w-full">
+                  <table className="min-w-full">
                     <thead className="bg-[var(--bg-secondary)] border-b border-[var(--border-color)]">
                       <tr>
                         <th className="px-4 py-3 text-left text-sm font-semibold text-[var(--text-primary)]">Customer</th>

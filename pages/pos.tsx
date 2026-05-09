@@ -5,6 +5,8 @@ import Toast from '../components/Toast';
 import { useToast } from '../hooks/useToast';
 import Pagination from '../components/Pagination';
 import ReceiptPrint from '../components/ReceiptPrint';
+import ResponsiveGrid, { ResponsiveCard } from '../components/ResponsiveGrid';
+import ResponsiveFilters from '../components/ResponsiveFilters';
 
 interface Product {
   id: string;
@@ -582,7 +584,7 @@ export default function POSPage() {
         />
       )}
       
-      <div className="p-6">
+      <div className="p-4 sm:p-5 lg:p-6">
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-4 flex-1">
@@ -616,7 +618,7 @@ export default function POSPage() {
         </div>
 
         {/* Products Grid - Full Width */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+        <ResponsiveGrid cols={{ default: 2, sm: 3, lg: 4, xl: 6 }} gap={4}>
               {products.map((product) => (
                 <div
                   key={product.id}
@@ -724,7 +726,7 @@ export default function POSPage() {
                   )}
                 </div>
               ))}
-        </div>
+        </ResponsiveGrid>
         
         {/* Pagination */}
         {totalProducts > 0 && (

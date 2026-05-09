@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import DateRangeFilter, { getDateRange, formatDateLocal } from '../components/DateRangeFilter';
+import ResponsiveGrid, { ResponsiveCard } from '../components/ResponsiveGrid';
+import ResponsiveFilters from '../components/ResponsiveFilters';
 
 interface AnalyticsData {
   overview: {
@@ -118,7 +120,7 @@ export default function SalesAnalyticsPage() {
 
   return (
     <div className="min-h-screen bg-[var(--bg-secondary)]">
-      <div className="p-6">
+      <div className="p-4 sm:p-5 lg:p-6">
         <div className="flex justify-between items-start mb-6">
           <div>
             <h1 className="text-2xl font-semibold tracking-tight mb-1">Sales Analytics</h1>

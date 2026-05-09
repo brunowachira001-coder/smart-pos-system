@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import DateRangeFilter, { getDateRange } from '../components/DateRangeFilter';
+import ResponsiveGrid, { ResponsiveCard } from '../components/ResponsiveGrid';
+import ResponsiveFilters from '../components/ResponsiveFilters';
 
 interface ProductPerformance {
   id: string;
@@ -165,7 +167,7 @@ export default function ProductPerformancePage() {
 
   return (
     <div className="min-h-screen bg-[var(--bg-secondary)]">
-      <div className="p-6">
+      <div className="p-4 sm:p-5 lg:p-6">
         {/* Header */}
         <div className="mb-6">
           <h1 className="text-2xl font-semibold tracking-tight mb-1">Product Performance (New)</h1>

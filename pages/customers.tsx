@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useToast } from '../hooks/useToast';
 import Toast from '../components/Toast';
 import Pagination from '../components/Pagination';
+import ResponsiveGrid, { ResponsiveCard } from '../components/ResponsiveGrid';
+import ResponsiveFilters from '../components/ResponsiveFilters';
 
 interface Customer {
   id: string;
@@ -261,34 +263,36 @@ export default function CustomersPage() {
   return (
     <div className="min-h-screen bg-[var(--bg-secondary)]">
       {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} />}
-      <div className="p-6">
+      <div className="p-4 sm:p-5 lg:p-6">
         {/* Header */}
-        <div className="flex justify-between items-start mb-6">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight mb-1">Customers</h1>
-            <p className="text-sm text-[var(--text-secondary)]">Manage your customer base and view their details.</p>
-          </div>
-          <div className="flex gap-3">
-            <button
-              onClick={exportCustomers}
-              className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg px-4 py-2 text-sm hover:bg-[var(--bg-primary)] transition-colors flex items-center gap-2"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              Export
-            </button>
-            <button
-              onClick={() => setShowAddModal(true)}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg px-4 py-2 text-sm font-medium transition-colors flex items-center gap-2"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              Add Customer
-            </button>
-          </div>
-        </div>
+        <ResponsiveFilters
+          title="Customers"
+          subtitle="Manage your customer base and view their details"
+          actions={
+            <>
+              <button
+                onClick={exportCustomers}
+                className="w-full sm:w-auto bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg px-4 py-2 sm:py-2.5 text-sm hover:bg-[var(--bg-primary)] transition-colors flex items-center gap-2 justify-center min-h-[44px] sm:min-h-[36px]"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Export
+              </button>
+              <button
+                onClick={() => setShowAddModal(true)}
+                className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg px-4 py-2 sm:py-2.5 text-sm font-medium transition-colors flex items-center gap-2 justify-center min-h-[44px] sm:min-h-[36px]"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                Add Customer
+              </button>
+            </>
+          }
+        >
+          <></>
+        </ResponsiveFilters>
 
         {/* Search Bar */}
         <div className="mb-6">
@@ -309,7 +313,7 @@ export default function CustomersPage() {
         {/* Customers Table */}
         <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full relative">
+            <table className="min-w-full relative">
               <thead className="bg-[var(--bg-primary)] border-b border-[var(--border-color)]">
                 <tr>
                   <th className="px-6 py-3 text-left text-sm font-medium text-[var(--text-secondary)]">Name</th>

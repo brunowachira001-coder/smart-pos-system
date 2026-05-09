@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import DateRangeFilter, { getDateRange, formatDateLocal } from '../components/DateRangeFilter';
 import Pagination from '../components/Pagination';
+import ResponsiveGrid, { ResponsiveCard } from '../components/ResponsiveGrid';
+import ResponsiveFilters from '../components/ResponsiveFilters';
 
 interface Return {
   id: string;
@@ -382,7 +384,7 @@ export default function Returns() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-5 lg:space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
@@ -457,7 +459,7 @@ export default function Returns() {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="min-w-full">
             <thead className="border-b border-[var(--border-color)]">
               <tr>
                 <th className="px-4 py-3 text-left text-sm font-semibold text-[var(--text-secondary)]">Return ID</th>

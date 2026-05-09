@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import DateRangeFilter, { getDateRange, formatDateLocal } from '../components/DateRangeFilter';
 import Pagination from '../components/Pagination';
+import ResponsiveGrid, { ResponsiveCard } from '../components/ResponsiveGrid';
+import ResponsiveFilters from '../components/ResponsiveFilters';
 
 interface Expense {
   id: string;
@@ -234,7 +236,7 @@ export default function Expenses() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-5 lg:space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
@@ -384,7 +386,7 @@ export default function Expenses() {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="min-w-full">
             <thead className="border-b border-[var(--border-color)]">
               <tr>
                 <th className="px-4 py-3 text-left text-sm font-semibold text-[var(--text-secondary)]">Expense ID</th>

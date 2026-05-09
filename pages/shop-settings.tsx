@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useToast } from '../hooks/useToast';
 import Toast from '../components/Toast';
+import ResponsiveGrid, { ResponsiveCard } from '../components/ResponsiveGrid';
+import ResponsiveFilters from '../components/ResponsiveFilters';
 
 export default function ShopSettingsPage() {
   const [settings, setSettings] = useState({

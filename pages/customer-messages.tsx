@@ -1,6 +1,8 @@
 // Customer Messages Dashboard
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
+import ResponsiveGrid, { ResponsiveCard } from '../components/ResponsiveGrid';
+import ResponsiveFilters from '../components/ResponsiveFilters';
 
 interface Stats {
   total_sent: number;
