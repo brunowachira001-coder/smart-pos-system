@@ -2,10 +2,13 @@ import { useState } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import Head from 'next/head';
+import { useShopTheme } from '@/hooks/useShopTheme';
 
 export default function ShopAuth() {
   const router = useRouter();
   const { slug } = router.query;
+  const theme = useShopTheme(slug);
+  const p = theme.primary;
   const [mode, setMode] = useState<'login' | 'register'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -53,7 +56,7 @@ export default function ShopAuth() {
       <Head><title>{mode === 'login' ? 'Sign In' : 'Register'} – {slug}</title></Head>
       <div className="min-h-screen flex">
         {/* Left — image panel */}
-        <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-orange-400 to-pink-500 items-center justify-center p-12 relative overflow-hidden">
+        <div className="hidden lg:flex lg:w-1/2 items-center justify-center p-12 relative overflow-hidden">
           <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, white 1px, transparent 1px), radial-gradient(circle at 80% 20%, white 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
           <div className="relative text-white text-center">
             <div className="text-8xl mb-6">🛍️</div>
@@ -71,7 +74,7 @@ export default function ShopAuth() {
         <div className="flex-1 flex items-center justify-center p-8 bg-white">
           <div className="w-full max-w-sm">
             {/* Logo */}
-            <Link href={`/shop/${slug}`} className="block text-2xl font-extrabold text-orange-600 mb-8">{slug}</Link>
+            <Link href={`/shop/${slug}`} className="block text-2xl font-extrabold  mb-8">{slug}</Link>
 
             <h1 className="text-2xl font-bold text-gray-900 mb-2">
               {mode === 'login' ? 'Register / Sign in' : 'Create account'}
@@ -95,14 +98,14 @@ export default function ShopAuth() {
                     value={name}
                     onChange={e => setName(e.target.value)}
                     required
-                    className="w-full border border-gray-300 rounded px-4 py-3 text-sm focus:outline-none focus:border-orange-500"
+                    className="w-full border border-gray-300 rounded px-4 py-3 text-sm focus:outline-none "
                   />
                   <input
                     type="tel"
                     placeholder="Phone number"
                     value={phone}
                     onChange={e => setPhone(e.target.value)}
-                    className="w-full border border-gray-300 rounded px-4 py-3 text-sm focus:outline-none focus:border-orange-500"
+                    className="w-full border border-gray-300 rounded px-4 py-3 text-sm focus:outline-none "
                   />
                 </>
               )}
@@ -112,7 +115,7 @@ export default function ShopAuth() {
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 required
-                className="w-full border border-gray-300 rounded px-4 py-3 text-sm focus:outline-none focus:border-orange-500"
+                className="w-full border border-gray-300 rounded px-4 py-3 text-sm focus:outline-none "
               />
               <input
                 type="password"
@@ -120,20 +123,20 @@ export default function ShopAuth() {
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 required
-                className="w-full border border-gray-300 rounded px-4 py-3 text-sm focus:outline-none focus:border-orange-500"
+                className="w-full border border-gray-300 rounded px-4 py-3 text-sm focus:outline-none "
               />
 
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded font-semibold text-sm transition disabled:opacity-60"
+                className="w-full  text-white py-3 rounded font-semibold text-sm transition disabled:opacity-60"
               >
                 {loading ? 'Please wait...' : 'Continue'}
               </button>
             </form>
 
             {mode === 'login' && (
-              <button className="w-full text-center text-xs text-orange-600 hover:underline mt-3">
+              <button className="w-full text-center text-xs  hover:underline mt-3">
                 Trouble signing in?
               </button>
             )}
@@ -160,7 +163,7 @@ export default function ShopAuth() {
             <div className="mt-6 flex items-center justify-between">
               <button
                 onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setError(''); }}
-                className="text-xs text-orange-600 hover:underline"
+                className="text-xs  hover:underline"
               >
                 {mode === 'login' ? 'Create new account' : 'Already have an account? Sign in'}
               </button>

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import Head from 'next/head';
+import { useShopTheme } from '@/hooks/useShopTheme';
 
 interface CartItem {
   product_id: string;
@@ -26,6 +27,8 @@ function Countdown({ endsIn }: { endsIn: number }) {
 export default function CartPage() {
   const router = useRouter();
   const { slug } = router.query;
+  const theme = useShopTheme(slug);
+  const p = theme.primary;
   const [items, setItems] = useState<CartItem[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
@@ -83,7 +86,7 @@ export default function CartPage() {
                 <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded px-4 py-2 mb-6 text-sm">
                   <span className="font-semibold text-green-700">SUMMER READY</span>
                   <span className="text-gray-600 flex items-center gap-2">Ends: <Countdown endsIn={53046} /></span>
-                  <span className="text-orange-500">›</span>
+                  <span className="">›</span>
                 </div>
 
                 <div className="text-center py-12">
@@ -91,7 +94,7 @@ export default function CartPage() {
                   <p className="text-gray-600 mb-6">Your cart is empty</p>
                   <div className="flex gap-3 justify-center">
                     <Link href={`/shop/${slug}/auth`}>
-                      <button className="px-8 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-full font-medium text-sm transition">Sign in</button>
+                      <button className="px-8 py-2.5 text-white rounded-full font-medium text-sm transition" style={{ backgroundColor: p }}>Sign in</button>
                     </Link>
                     <Link href={`/shop/${slug}`}>
                       <button className="px-8 py-2.5 bg-gray-900 hover:bg-gray-800 text-white rounded-full font-medium text-sm transition">Explore items</button>
@@ -124,7 +127,7 @@ export default function CartPage() {
                 <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded px-4 py-2 text-sm">
                   <span className="font-semibold text-green-700">SUMMER READY</span>
                   <span className="text-gray-600 flex items-center gap-2">Ends: <Countdown endsIn={53046} /></span>
-                  <span className="text-orange-500">›</span>
+                  <span className="">›</span>
                 </div>
 
                 {/* Select all */}
@@ -133,7 +136,7 @@ export default function CartPage() {
                     type="checkbox"
                     checked={selected.size === items.length}
                     onChange={() => setSelected(selected.size === items.length ? new Set() : new Set(items.map(i => i.product_id)))}
-                    className="w-4 h-4 accent-orange-500"
+                    className="w-4 h-4 "
                   />
                   <span className="text-sm font-medium">Select all ({items.length})</span>
                 </div>
@@ -145,7 +148,7 @@ export default function CartPage() {
                       type="checkbox"
                       checked={selected.has(item.product_id)}
                       onChange={() => toggleSelect(item.product_id)}
-                      className="w-4 h-4 accent-orange-500 mt-1 shrink-0"
+                      className="w-4 h-4  mt-1 shrink-0"
                     />
                     <div className="w-20 h-20 bg-gray-100 rounded overflow-hidden shrink-0">
                       {item.image_url ? <img src={item.image_url} alt={item.product_name} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-3xl">📦</div>}
@@ -185,7 +188,7 @@ export default function CartPage() {
                   <span>KES {total.toLocaleString()}</span>
                 </div>
                 <Link href={`/shop/${slug}/checkout`}>
-                  <button className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded font-bold text-sm transition">
+                  <button className="w-full text-white py-3 rounded font-bold text-sm transition" style={{ backgroundColor: p }}>
                     Checkout ({selectedItems.reduce((s, i) => s + i.quantity, 0)})
                   </button>
                 </Link>
