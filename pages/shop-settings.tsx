@@ -33,6 +33,19 @@ export default function ShopSettingsPage() {
     ? `${window.location.origin}/s/${slug}`
     : '';
 
+  const onlineShopUrl = typeof window !== 'undefined' && slug
+    ? `${window.location.origin}/shop/${slug}`
+    : '';
+
+  const [copiedShop, setCopiedShop] = useState(false);
+
+  const handleCopyShopUrl = () => {
+    if (!onlineShopUrl) return;
+    navigator.clipboard.writeText(onlineShopUrl);
+    setCopiedShop(true);
+    setTimeout(() => setCopiedShop(false), 2000);
+  };
+
   useEffect(() => {
     fetchSettings();
   }, []);
@@ -158,6 +171,49 @@ export default function ShopSettingsPage() {
         </div>
 
         <form onSubmit={handleSave} className="space-y-6">
+          {/* Online Shop Link — share with customers */}
+          {slug && (
+            <div className="bg-gradient-to-r from-emerald-900/40 to-teal-900/40 border-2 border-emerald-500/50 rounded-xl p-4 md:p-6">
+              <div className="flex items-start justify-between mb-3">
+                <div>
+                  <h2 className="text-lg font-bold text-emerald-400 flex items-center gap-2">
+                    🛍️ Your Online Shop
+                  </h2>
+                  <p className="text-sm text-[var(--text-secondary)] mt-1">
+                    Share this link with your customers so they can browse and buy online.
+                  </p>
+                </div>
+                <a
+                  href={onlineShopUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors whitespace-nowrap"
+                >
+                  Preview ↗
+                </a>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <div className="flex-1 bg-[var(--bg-primary)] border border-emerald-500/40 rounded-lg px-4 py-3 text-sm text-emerald-300 font-mono truncate select-all">
+                  {onlineShopUrl}
+                </div>
+                <button
+                  type="button"
+                  onClick={handleCopyShopUrl}
+                  className="px-4 py-3 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-lg transition-colors whitespace-nowrap min-w-[110px]"
+                >
+                  {copiedShop ? '✓ Copied!' : '📋 Copy Link'}
+                </button>
+              </div>
+
+              <div className="mt-3 flex flex-wrap gap-2 text-xs text-[var(--text-secondary)]">
+                <span className="bg-[var(--bg-primary)] px-2 py-1 rounded">📱 Works on mobile</span>
+                <span className="bg-[var(--bg-primary)] px-2 py-1 rounded">🔒 Secure checkout</span>
+                <span className="bg-[var(--bg-primary)] px-2 py-1 rounded">📦 Live inventory</span>
+              </div>
+            </div>
+          )}
+
           {/* Shop URL */}
           {slug && (
             <div className="bg-[var(--bg-tertiary)] border border-emerald-500/30 rounded-lg p-4 md:p-6">

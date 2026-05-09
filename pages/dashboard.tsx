@@ -1,6 +1,58 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 
+// ─── Online Shop Banner ───────────────────────────────────────────────────────
+function OnlineShopBanner() {
+  const [shopUrl, setShopUrl] = useState('');
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    fetch('/api/tenant', token ? { headers: { Authorization: `Bearer ${token}` } } : {})
+      .then(r => r.json())
+      .then(d => {
+        if (d.tenant?.slug) {
+          setShopUrl(`${window.location.origin}/shop/${d.tenant.slug}`);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  if (!shopUrl) return null;
+
+  const copy = () => {
+    navigator.clipboard.writeText(shopUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className="bg-gradient-to-r from-emerald-900/40 to-teal-900/40 border-2 border-emerald-500/50 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center gap-3">
+      <div className="text-2xl">🛍️</div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-semibold text-emerald-400">Your Online Shop</p>
+        <p className="text-xs text-[var(--text-secondary)] font-mono truncate">{shopUrl}</p>
+      </div>
+      <div className="flex gap-2 shrink-0">
+        <button
+          onClick={copy}
+          className="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg transition-colors"
+        >
+          {copied ? '✓ Copied!' : '📋 Copy Link'}
+        </button>
+        <a
+          href={shopUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="px-3 py-2 border border-emerald-500/40 hover:bg-emerald-900/30 text-emerald-400 text-xs font-semibold rounded-lg transition-colors"
+        >
+          Open Shop ↗
+        </a>
+      </div>
+    </div>
+  );
+}
+
 interface DashboardData {
   todaySales: number;
   todayTransactions: number;
@@ -142,6 +194,9 @@ export default function Dashboard() {
             {loading ? '🔄 Refreshing...' : '🔄 Refresh'}
           </button>
         </div>
+
+        {/* Online Shop Quick Access */}
+        <OnlineShopBanner />
 
         {/* Main Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
