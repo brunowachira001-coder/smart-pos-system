@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import DateRangeFilter, { getDateRange, formatDateLocal } from '../components/DateRangeFilter';
-import ResponsiveGrid, { ResponsiveCard } from '../components/ResponsiveGrid';
-import ResponsiveFilters from '../components/ResponsiveFilters';
 
 interface AnalyticsData {
   overview: {
@@ -119,64 +117,72 @@ export default function SalesAnalyticsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--bg-secondary)]">
-      <div className="p-4 sm:p-5 lg:p-6">
-        <div className="flex justify-between items-start mb-6">
+    <div className="space-y-3 sm:space-y-4">
+      {/* Header - Mobile First: Stack on mobile, side-by-side on larger screens */}
+      <div className="space-y-3 sm:space-y-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight mb-1">Sales Analytics</h1>
-            <p className="text-sm text-[var(--text-secondary)]">
-              A deep dive into your sales performance.
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[var(--text-primary)]">Sales Analytics</h1>
+            <p className="text-sm sm:text-base text-[var(--text-secondary)] mt-1">
+              A deep dive into your sales performance
             </p>
           </div>
-          <DateRangeFilter 
-            value={dateFilter}
-            onChange={setDateFilter}
-            startDate={startDate}
-            endDate={endDate}
-            onDateChange={handleDateChange}
-          />
+          <div className="w-full sm:w-auto">
+            <DateRangeFilter 
+              value={dateFilter}
+              onChange={setDateFilter}
+              startDate={startDate}
+              endDate={endDate}
+              onDateChange={handleDateChange}
+            />
+          </div>
         </div>
+      </div>
 
         {loading ? (
-          <div className="flex items-center justify-center h-64">
-            <div className="text-[var(--text-secondary)]">Loading analytics...</div>
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="text-center">
+              <div className="animate-spin h-8 w-8 border-4 border-emerald-500 border-t-transparent rounded-full mx-auto mb-3"></div>
+              <div className="text-sm text-[var(--text-secondary)]">Loading analytics...</div>
+            </div>
           </div>
         ) : analytics ? (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-              <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-5">
+            {/* Metrics Grid - Mobile First: 1 col mobile → 2 cols tablet */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-xl p-4 hover:border-[var(--text-secondary)] transition-colors">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm text-[var(--text-secondary)]">Total Transactions</span>
-                  <span className="text-xl">#</span>
+                  <span className="text-xs sm:text-sm text-[var(--text-secondary)]">Total Transactions</span>
+                  <span className="text-lg sm:text-xl">#</span>
                 </div>
-                <div className="text-3xl font-semibold mb-1">{analytics.overview.totalTransactions}</div>
+                <div className="text-xl sm:text-2xl font-bold mb-1 text-[var(--text-primary)]">{analytics.overview.totalTransactions}</div>
                 <div className="text-xs text-[var(--text-secondary)]">Number of sales in period</div>
               </div>
 
-              <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-5">
+              <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-xl p-4 hover:border-[var(--text-secondary)] transition-colors">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm text-[var(--text-secondary)]">Average Transaction Value</span>
-                  <span className="text-xl">📊</span>
+                  <span className="text-xs sm:text-sm text-[var(--text-secondary)]">Average Transaction Value</span>
+                  <span className="text-lg sm:text-xl">📊</span>
                 </div>
-                <div className="text-3xl font-semibold mb-1">KSH {analytics.overview.averageTransactionValue}</div>
+                <div className="text-xl sm:text-2xl font-bold mb-1 text-[var(--text-primary)] truncate">KSH {analytics.overview.averageTransactionValue}</div>
                 <div className="text-xs text-[var(--text-secondary)]">Average spend per sale</div>
               </div>
 
-              <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-5">
+              <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-xl p-4 hover:border-[var(--text-secondary)] transition-colors">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm text-[var(--text-secondary)]">Total Discounts</span>
-                  <span className="text-xl">%</span>
+                  <span className="text-xs sm:text-sm text-[var(--text-secondary)]">Total Discounts</span>
+                  <span className="text-lg sm:text-xl">%</span>
                 </div>
-                <div className="text-3xl font-semibold mb-1 text-red-500">KSH {analytics.overview.totalDiscounts}</div>
+                <div className="text-xl sm:text-2xl font-bold mb-1 text-red-500 truncate">KSH {analytics.overview.totalDiscounts}</div>
                 <div className="text-xs text-[var(--text-secondary)]">Total value of discounts given</div>
               </div>
 
-              <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-5">
+              <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-xl p-4 hover:border-[var(--text-secondary)] transition-colors">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm text-[var(--text-secondary)]">Gross Sales Revenue</span>
-                  <span className="text-xl">📈</span>
+                  <span className="text-xs sm:text-sm text-[var(--text-secondary)]">Gross Sales Revenue</span>
+                  <span className="text-lg sm:text-xl">📈</span>
                 </div>
-                <div className="text-3xl font-semibold mb-1">KSH {analytics.overview.grossSalesRevenue}</div>
+                <div className="text-xl sm:text-2xl font-bold mb-1 text-[var(--text-primary)] truncate">KSH {analytics.overview.grossSalesRevenue}</div>
                 <div className="text-xs text-[var(--text-secondary)]">
                   Retail: KSH {analytics.overview.retailRevenue} | Wholesale: KSH {analytics.overview.wholesaleRevenue}
                 </div>
@@ -186,17 +192,22 @@ export default function SalesAnalyticsPage() {
               </div>
             </div>
 
-            <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-6">
-              <h2 className="text-lg font-semibold mb-2">Payment Methods</h2>
-              <p className="text-sm text-[var(--text-secondary)] mb-6">Breakdown of transactions by payment method.</p>
+            {/* Payment Methods Chart - Mobile Optimized */}
+            <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-xl overflow-hidden">
+              <div className="p-4 sm:p-6 border-b border-[var(--border-color)]">
+                <h2 className="text-base sm:text-lg font-bold text-[var(--text-primary)] mb-1">Payment Methods</h2>
+                <p className="text-xs sm:text-sm text-[var(--text-secondary)]">Breakdown of transactions by payment method</p>
+              </div>
 
+              <div className="p-4 sm:p-6">
               {analytics.paymentMethods && analytics.paymentMethods.length > 0 ? (
                 <>
-                  <div className="flex items-center justify-center py-8">
-                    <div className="relative w-96 h-96 flex items-center justify-center">
+                  {/* Pie Chart - Responsive sizing */}
+                  <div className="flex items-center justify-center py-6 sm:py-8">
+                    <div className="relative w-full max-w-[280px] sm:max-w-[320px] lg:max-w-[400px] aspect-square flex items-center justify-center">
                       {/* Pie Chart using conic-gradient */}
                       <div 
-                        className="w-80 h-80 rounded-full relative shadow-lg"
+                        className="w-full h-full rounded-full relative shadow-lg"
                         style={{
                           background: `conic-gradient(${analytics.paymentMethods.map((pm, index) => {
                             const prevPercentage = analytics.paymentMethods
@@ -207,70 +218,80 @@ export default function SalesAnalyticsPage() {
                           }).join(', ')})`
                         }}
                       >
-                        {/* Labels positioned around the chart */}
-                        {analytics.paymentMethods.map((pm, index) => {
-                          const prevPercentage = analytics.paymentMethods
-                            .slice(0, index)
-                            .reduce((sum, p) => sum + parseFloat(p.percentage), 0);
-                          const currentPercentage = parseFloat(pm.percentage);
-                          const midPercentage = prevPercentage + (currentPercentage / 2);
-                          const angle = (midPercentage / 100) * 360 - 90;
-                          const radian = (angle * Math.PI) / 180;
-                          const radius = 200;
-                          const x = Math.cos(radian) * radius;
-                          const y = Math.sin(radian) * radius;
+                        {/* Labels positioned around the chart - Hidden on mobile for clarity */}
+                        <div className="hidden sm:block">
+                          {analytics.paymentMethods.map((pm, index) => {
+                            const prevPercentage = analytics.paymentMethods
+                              .slice(0, index)
+                              .reduce((sum, p) => sum + parseFloat(p.percentage), 0);
+                            const currentPercentage = parseFloat(pm.percentage);
+                            const midPercentage = prevPercentage + (currentPercentage / 2);
+                            const angle = (midPercentage / 100) * 360 - 90;
+                            const radian = (angle * Math.PI) / 180;
+                            const radius = 140;
+                            const x = Math.cos(radian) * radius;
+                            const y = Math.sin(radian) * radius;
 
-                          return (
-                            <div
-                              key={pm.method}
-                              className="absolute text-sm font-bold whitespace-nowrap bg-white px-2 py-1 rounded shadow-md"
-                              style={{
-                                left: '50%',
-                                top: '50%',
-                                transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`,
-                                color: '#1F2937'
-                              }}
-                            >
-                              {pm.method} {pm.percentage}%
-                            </div>
-                          );
-                        })}
+                            return (
+                              <div
+                                key={pm.method}
+                                className="absolute text-xs sm:text-sm font-bold whitespace-nowrap bg-white px-2 py-1 rounded shadow-md"
+                                style={{
+                                  left: '50%',
+                                  top: '50%',
+                                  transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`,
+                                  color: '#1F2937'
+                                }}
+                              >
+                                {pm.method} {pm.percentage}%
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
                     </div>
                   </div>
 
-                  <div className="mt-8 flex flex-wrap justify-center gap-6">
+                  {/* Legend - Mobile First: Stack on mobile, wrap on larger screens */}
+                  <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row sm:flex-wrap justify-center gap-3 sm:gap-6">
                     {analytics.paymentMethods.map(pm => (
-                      <div key={pm.method} className="flex items-center gap-2">
+                      <div key={pm.method} className="flex items-center gap-2 bg-[var(--bg-tertiary)] px-3 py-2 rounded-lg">
                         <div
-                          className="w-4 h-4 rounded"
+                          className="w-4 h-4 rounded shrink-0"
                           style={{ backgroundColor: getPaymentMethodColor(pm.method) }}
                         />
-                        <span className="text-sm capitalize text-[var(--text-primary)]">
-                          {pm.method}: {pm.count} transactions ({pm.percentage}%)
+                        <span className="text-xs sm:text-sm capitalize text-[var(--text-primary)]">
+                          {pm.method}: {pm.count} ({pm.percentage}%)
                         </span>
                       </div>
                     ))}
                   </div>
                 </>
               ) : (
-                <div className="flex flex-col items-center justify-center py-16">
-                  <div className="text-6xl mb-4">📊</div>
-                  <p className="text-[var(--text-secondary)] text-center">
+                <div className="flex flex-col items-center justify-center py-12 sm:py-16">
+                  <svg className="w-16 h-16 sm:w-20 sm:h-20 text-[var(--text-secondary)] opacity-50 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                  <p className="text-sm text-[var(--text-secondary)] text-center max-w-md px-4">
                     No payment data available for the selected period.
-                    <br />
+                    <br className="hidden sm:block" />
                     Make some sales to see payment method analytics.
                   </p>
                 </div>
               )}
+              </div>
             </div>
           </>
         ) : (
-          <div className="flex items-center justify-center h-64">
-            <div className="text-[var(--text-secondary)]">No data available</div>
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="text-center">
+              <svg className="w-12 h-12 text-[var(--text-secondary)] opacity-50 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+              <p className="text-sm text-[var(--text-secondary)]">No data available</p>
+            </div>
           </div>
         )}
-      </div>
     </div>
   );
 }

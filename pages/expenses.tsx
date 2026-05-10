@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import DateRangeFilter, { getDateRange, formatDateLocal } from '../components/DateRangeFilter';
 import Pagination from '../components/Pagination';
-import ResponsiveGrid, { ResponsiveCard } from '../components/ResponsiveGrid';
-import ResponsiveFilters from '../components/ResponsiveFilters';
 
 interface Expense {
   id: string;
@@ -236,96 +234,107 @@ export default function Expenses() {
   }
 
   return (
-    <div className="space-y-4 sm:space-y-5 lg:space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-[var(--text-primary)]">Expense Management</h1>
-          <p className="text-sm text-[var(--text-secondary)]">Track and manage your business and personal expenses.</p>
-        </div>
-        <div className="flex items-center gap-4">
-          <DateRangeFilter 
-            value={dateRange} 
-            onChange={setDateRange}
-            startDate={startDate ? formatDateLocal(new Date(startDate)) : ''}
-            endDate={endDate ? formatDateLocal(new Date(endDate)) : ''}
-            onDateChange={(start, end) => {
-              // Convert date strings to full ISO timestamps
-              const startDateTime = new Date(start);
-              startDateTime.setHours(0, 0, 0, 0);
-              const endDateTime = new Date(end);
-              endDateTime.setHours(23, 59, 59, 999);
-              setStartDate(startDateTime.toISOString());
-              setEndDate(endDateTime.toISOString());
-            }}
-          />
-          <button className="px-4 py-2 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg text-sm text-[var(--text-primary)] hover:bg-[var(--bg-secondary)]">
-            📤 Export Report
+    <div className="space-y-3 sm:space-y-4">
+      {/* Header - Mobile First: Stack on mobile, side-by-side on larger screens */}
+      <div className="space-y-3 sm:space-y-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[var(--text-primary)]">Expense Management</h1>
+            <p className="text-sm sm:text-base text-[var(--text-secondary)] mt-1">Track and manage your business and personal expenses</p>
+          </div>
+          <button 
+            onClick={() => setShowAddModal(true)}
+            className="w-full sm:w-auto min-h-[44px] px-4 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm font-medium flex items-center justify-center gap-2 transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+            Add Expense
           </button>
         </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-6">
-          <div className="flex justify-between items-start mb-2">
-            <p className="text-[var(--text-secondary)] text-sm">Today's Expenses</p>
-            <span className="text-red-500">📉</span>
+      {/* Filters - Mobile First: Horizontal scroll on mobile */}
+      <div className="bg-[var(--bg-secondary)] rounded-xl p-3 sm:p-4">
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
+          <div className="shrink-0">
+            <DateRangeFilter
+              value={dateRange}
+              onChange={setDateRange}
+              startDate={startDate ? formatDateLocal(new Date(startDate)) : ''}
+              endDate={endDate ? formatDateLocal(new Date(endDate)) : ''}
+              onDateChange={(start, end) => {
+                const s = new Date(start); s.setHours(0,0,0,0);
+                const e = new Date(end); e.setHours(23,59,59,999);
+                setStartDate(s.toISOString()); setEndDate(e.toISOString());
+              }}
+            />
           </div>
-          <p className="text-3xl font-bold text-[var(--text-primary)]">KSH {stats.todayTotal.toFixed(2)}</p>
-          <p className="text-xs text-[var(--text-secondary)] mt-2">No expenses recorded today</p>
-          <div className="flex gap-2 mt-4">
-            <button
+          <button 
+            className="shrink-0 min-h-[44px] min-w-[44px] bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-2.5 hover:bg-[var(--bg-primary)] transition-colors flex items-center justify-center" 
+            title="Export"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+          </button>
+        </div>
+      </div>
+
+      {/* Stats Cards - Mobile First: 1 col mobile → 2 cols tablet → 3 cols desktop */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+        <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-xl p-4 hover:border-[var(--text-secondary)] transition-colors">
+          <div className="flex justify-between items-start mb-1">
+            <p className="text-[var(--text-secondary)] text-sm">Today's Expenses</p>
+            <span className="text-red-500 text-lg">📉</span>
+          </div>
+          <p className="text-2xl font-bold text-[var(--text-primary)]">KSH {stats.todayTotal.toFixed(2)}</p>
+          <p className="text-xs text-[var(--text-secondary)] mt-1">No expenses recorded today</p>
+          <div className="flex gap-2 mt-3">
+            <button 
               onClick={() => setShowAddModal(true)}
-              className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm"
+              className="flex-1 min-h-[44px] px-3 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm flex items-center justify-center gap-1 transition-colors"
             >
-              ➕ Add
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+              Add
             </button>
-            <button className="flex-1 px-4 py-2 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg text-sm text-[var(--text-primary)] hover:bg-[var(--bg-secondary)]">
-              👁️ View
+            <button className="flex-1 min-h-[44px] px-3 py-2 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg text-sm text-[var(--text-primary)] hover:bg-[var(--bg-primary)] flex items-center justify-center gap-1 transition-colors">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+              View
             </button>
           </div>
         </div>
 
-        <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-6">
-          <div className="flex justify-between items-start mb-2">
+        <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-xl p-4 hover:border-[var(--text-secondary)] transition-colors">
+          <div className="flex justify-between items-start mb-1">
             <p className="text-[var(--text-secondary)] text-sm">Today's Net Revenue</p>
-            <span className="text-green-500">📈</span>
+            <span className="text-green-500 text-lg">📈</span>
           </div>
-          <p className="text-3xl font-bold text-green-500">KSH {stats.todayNetRevenue.toFixed(2)}</p>
-          <p className="text-xs text-[var(--text-secondary)] mt-2">From KSH {stats.todayGrossRevenue.toFixed(2)} gross revenue • {stats.todayGrossRevenue > 0 ? ((stats.todayNetRevenue / stats.todayGrossRevenue) * 100).toFixed(1) : '0.0'}% margin</p>
-          <div className="mt-4 space-y-2 bg-[var(--bg-secondary)] rounded-lg p-3">
-            <div className="flex justify-between text-sm">
-              <span className="text-[var(--text-secondary)]">Gross Revenue</span>
-              <span className="text-[var(--text-primary)]">KSH {stats.todayGrossRevenue.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-[var(--text-secondary)]">Returns</span>
-              <span className="text-[var(--text-primary)]">-KSH 0.00</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-[var(--text-secondary)]">Business Expenses</span>
-              <span className="text-[var(--text-primary)]">-KSH {stats.todayTotal.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-[var(--text-secondary)]">Personal Expenses</span>
-              <span className="text-[var(--text-primary)]">-KSH 0.00</span>
-            </div>
-            <div className="flex justify-between text-sm font-semibold border-t border-[var(--border-color)] pt-2">
+          <p className="text-2xl font-bold text-green-500">KSH {stats.todayNetRevenue.toFixed(2)}</p>
+          <p className="text-xs text-[var(--text-secondary)] mt-1">from KSH {stats.todayGrossRevenue.toFixed(2)} gross · {stats.todayGrossRevenue > 0 ? ((stats.todayNetRevenue / stats.todayGrossRevenue) * 100).toFixed(1) : '0.0'}% margin</p>
+          <div className="mt-3 space-y-1.5 bg-[var(--bg-tertiary)] rounded-lg p-3">
+            {[
+              { label: 'Gross Revenue', value: `KSH ${stats.todayGrossRevenue.toFixed(2)}` },
+              { label: 'Returns', value: '-KSH 0.00' },
+              { label: 'Business Expenses', value: `-KSH ${stats.todayTotal.toFixed(2)}` },
+              { label: 'Personal Expenses', value: '-KSH 0.00' },
+            ].map(row => (
+              <div key={row.label} className="flex justify-between text-xs">
+                <span className="text-[var(--text-secondary)]">{row.label}</span>
+                <span className="text-[var(--text-primary)]">{row.value}</span>
+              </div>
+            ))}
+            <div className="flex justify-between text-xs font-semibold border-t border-[var(--border-color)] pt-1.5">
               <span className="text-[var(--text-primary)]">Net Revenue (All)</span>
               <span className="text-green-500">KSH {stats.todayNetRevenue.toFixed(2)}</span>
             </div>
           </div>
         </div>
 
-        <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-6">
-          <div className="flex justify-between items-start mb-2">
+        <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-xl p-4 hover:border-[var(--text-secondary)] transition-colors">
+          <div className="flex justify-between items-start mb-1">
             <p className="text-[var(--text-secondary)] text-sm">Expense Overview</p>
           </div>
-          <p className="text-3xl font-bold text-[var(--text-primary)]">{stats.totalExpenses}</p>
-          <p className="text-xs text-[var(--text-secondary)] mt-2">Active categories</p>
-          <div className="mt-4 space-y-2">
-            <div className="flex justify-between text-sm">
+          <p className="text-2xl font-bold text-[var(--text-primary)]">{stats.totalExpenses}</p>
+          <p className="text-xs text-[var(--text-secondary)] mt-1">Active categories</p>
+          <div className="mt-3 space-y-1.5">
+            <div className="flex justify-between text-xs">
               <span className="text-[var(--text-secondary)]">Business:</span>
               <span className="text-[var(--text-primary)]">KSH {stats.businessTotal.toFixed(2)}</span>
             </div>
@@ -337,88 +346,103 @@ export default function Expenses() {
         </div>
       </div>
 
-      {/* Expenses Table */}
-      <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-6">
-        <div className="flex justify-between items-center mb-4">
-          <div>
-            <h2 className="text-lg font-bold text-[var(--text-primary)]">Expenses (All Users)</h2>
-            <p className="text-sm text-[var(--text-secondary)]">
-              Total: KSH {stats.businessTotal + stats.personalTotal}.00 • Business: KSH {stats.businessTotal}.00 • Personal: KSH {stats.personalTotal}.00
-            </p>
+      {/* Expenses Table - Mobile Optimized */}
+      <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-xl overflow-hidden">
+        <div className="p-3 sm:p-4 border-b border-[var(--border-color)]">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-4">
+            <div>
+              <h2 className="text-base sm:text-lg font-bold text-[var(--text-primary)]">Expenses (All Users)</h2>
+              <p className="text-xs sm:text-sm text-[var(--text-secondary)] mt-1">
+                Total: KSH {stats.businessTotal + stats.personalTotal}.00 • Business: KSH {stats.businessTotal}.00 • Personal: KSH {stats.personalTotal}.00
+              </p>
+            </div>
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="w-full sm:w-auto min-h-[44px] px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm font-medium flex items-center justify-center gap-2 transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+              Add Expense
+            </button>
           </div>
-          <button
-            onClick={() => setShowAddModal(true)}
-            className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm font-medium"
-          >
-            ➕ Add Expense
-          </button>
+
+          {/* Search and Filters - Stack on mobile */}
+          <div className="space-y-3">
+            <div className="relative">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+              <input
+                type="text"
+                placeholder="Search expenses..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full min-h-[44px] pl-10 pr-3 py-2.5 bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg text-sm text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              />
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <select
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
+                className="flex-1 min-h-[44px] px-4 py-2.5 bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              >
+                <option value="all">All Categories</option>
+                {categories.map(cat => (
+                  <option key={cat.id} value={cat.name}>{cat.name}</option>
+                ))}
+              </select>
+              <select
+                value={methodFilter}
+                onChange={(e) => setMethodFilter(e.target.value)}
+                className="flex-1 min-h-[44px] px-4 py-2.5 bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              >
+                <option value="all">All Methods</option>
+                <option value="Cash">Cash</option>
+                <option value="M-Pesa">M-Pesa</option>
+                <option value="Bank Transfer">Bank Transfer</option>
+                <option value="Card">Card</option>
+              </select>
+            </div>
+          </div>
         </div>
 
-        <div className="mb-4 flex gap-4">
-          <input
-            type="text"
-            placeholder="🔍 Search expenses..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="flex-1 px-4 py-2 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-lg text-[var(--text-primary)]"
-          />
-          <select
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-            className="px-4 py-2 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-lg text-[var(--text-primary)]"
-          >
-            <option value="all">All Categories</option>
-            {categories.map(cat => (
-              <option key={cat.id} value={cat.name}>{cat.name}</option>
-            ))}
-          </select>
-          <select
-            value={methodFilter}
-            onChange={(e) => setMethodFilter(e.target.value)}
-            className="px-4 py-2 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-lg text-[var(--text-primary)]"
-          >
-            <option value="all">All Methods</option>
-            <option value="Cash">Cash</option>
-            <option value="M-Pesa">M-Pesa</option>
-            <option value="Bank Transfer">Bank Transfer</option>
-            <option value="Card">Card</option>
-          </select>
-        </div>
-
+        {/* Table with horizontal scroll on mobile */}
         <div className="overflow-x-auto">
           <table className="min-w-full">
-            <thead className="border-b border-[var(--border-color)]">
+            <thead className="bg-[var(--bg-tertiary)] border-b border-[var(--border-color)]">
               <tr>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-[var(--text-secondary)]">Expense ID</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-[var(--text-secondary)]">Category</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-[var(--text-secondary)]">Description</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-[var(--text-secondary)]">Amount</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-[var(--text-secondary)]">Method</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-[var(--text-secondary)]">Date</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-[var(--text-secondary)]">Status</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-[var(--text-secondary)]">Actions</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider whitespace-nowrap">Expense ID</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider whitespace-nowrap">Category</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider whitespace-nowrap">Description</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider whitespace-nowrap">Amount</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider whitespace-nowrap hidden sm:table-cell">Method</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider whitespace-nowrap hidden md:table-cell">Date</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider whitespace-nowrap hidden lg:table-cell">Status</th>
+                <th className="px-3 py-3 text-center text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider whitespace-nowrap">Actions</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-[var(--border-color)]">
               {filteredExpenses.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-4 py-12 text-center text-[var(--text-secondary)]">
-                    No expenses found
+                  <td colSpan={8} className="px-4 py-12 text-center">
+                    <div className="flex flex-col items-center gap-2">
+                      <svg className="w-12 h-12 text-[var(--text-secondary)] opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" />
+                      </svg>
+                      <p className="text-sm text-[var(--text-secondary)]">No expenses found</p>
+                    </div>
                   </td>
                 </tr>
               ) : (
                 filteredExpenses.map((expense) => (
-                  <tr key={expense.id} className="border-b border-[var(--border-color)] hover:bg-[var(--bg-secondary)]">
-                    <td className="px-4 py-4 text-sm text-[var(--text-primary)] font-mono">{expense.expense_id}</td>
-                    <td className="px-4 py-4 text-sm text-[var(--text-primary)]">{expense.category}</td>
-                    <td className="px-4 py-4 text-sm text-[var(--text-primary)]">{expense.description}</td>
-                    <td className="px-4 py-4 text-sm text-[var(--text-primary)] font-semibold">KSH {expense.amount.toFixed(2)}</td>
-                    <td className="px-4 py-4 text-sm text-[var(--text-primary)]">{expense.payment_method}</td>
-                    <td className="px-4 py-4 text-sm text-[var(--text-primary)]">
+                  <tr key={expense.id} className="hover:bg-[var(--bg-tertiary)] transition-colors">
+                    <td className="px-3 py-3 text-xs text-[var(--text-primary)] font-mono whitespace-nowrap">{expense.expense_id}</td>
+                    <td className="px-3 py-3 text-sm text-[var(--text-primary)] whitespace-nowrap">{expense.category}</td>
+                    <td className="px-3 py-3 text-sm text-[var(--text-primary)] max-w-[200px] truncate" title={expense.description}>{expense.description}</td>
+                    <td className="px-3 py-3 text-sm text-[var(--text-primary)] font-semibold whitespace-nowrap">KSH {expense.amount.toFixed(2)}</td>
+                    <td className="px-3 py-3 text-sm text-[var(--text-primary)] hidden sm:table-cell whitespace-nowrap">{expense.payment_method}</td>
+                    <td className="px-3 py-3 text-sm text-[var(--text-secondary)] hidden md:table-cell whitespace-nowrap">
                       {new Date(expense.expense_date).toLocaleDateString()}
                     </td>
-                    <td className="px-4 py-4">
-                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                    <td className="px-3 py-3 hidden lg:table-cell whitespace-nowrap">
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${
                         expense.status === 'Approved' ? 'bg-green-500/20 text-green-500' : 
                         expense.status === 'Rejected' ? 'bg-red-500/20 text-red-500' :
                         'bg-yellow-500/20 text-yellow-500'
@@ -426,13 +450,16 @@ export default function Expenses() {
                         {expense.status}
                       </span>
                     </td>
-                    <td className="px-4 py-4">
+                    <td className="px-3 py-3 text-center whitespace-nowrap">
                       <div className="relative">
                         <button
                           onClick={() => setOpenMenuId(openMenuId === expense.id ? null : expense.id)}
-                          className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-lg font-bold"
+                          className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] rounded-lg transition-colors"
+                          title="Actions"
                         >
-                          ⋯
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                          </svg>
                         </button>
                         
                         {openMenuId === expense.id && (
@@ -441,16 +468,17 @@ export default function Expenses() {
                               className="fixed inset-0 z-10" 
                               onClick={() => setOpenMenuId(null)}
                             />
-                            <div className="absolute right-0 mt-2 w-40 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg shadow-xl z-20 py-1">
+                            <div className="absolute right-0 mt-2 w-48 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg shadow-xl z-20 py-1">
                               {expense.status !== 'Approved' && (
                                 <button
                                   onClick={() => {
                                     handleApproveExpense(expense.id, 'Approved');
                                     setOpenMenuId(null);
                                   }}
-                                  className="w-full text-left px-4 py-2 text-sm hover:bg-[var(--bg-primary)] text-green-600 hover:text-green-700 transition-colors"
+                                  className="w-full text-left min-h-[44px] px-4 py-2.5 text-sm hover:bg-[var(--bg-primary)] text-green-600 hover:text-green-700 transition-colors flex items-center gap-2"
                                 >
-                                  ✓ Approve
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                                  Approve
                                 </button>
                               )}
                               {expense.status !== 'Rejected' && (
@@ -459,9 +487,10 @@ export default function Expenses() {
                                     handleApproveExpense(expense.id, 'Rejected');
                                     setOpenMenuId(null);
                                   }}
-                                  className="w-full text-left px-4 py-2 text-sm hover:bg-[var(--bg-primary)] text-red-600 hover:text-red-700 transition-colors"
+                                  className="w-full text-left min-h-[44px] px-4 py-2.5 text-sm hover:bg-[var(--bg-primary)] text-red-600 hover:text-red-700 transition-colors flex items-center gap-2"
                                 >
-                                  ✗ Reject
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                                  Reject
                                 </button>
                               )}
                               {expense.status !== 'Pending' && (
@@ -470,9 +499,10 @@ export default function Expenses() {
                                     handleApproveExpense(expense.id, 'Pending');
                                     setOpenMenuId(null);
                                   }}
-                                  className="w-full text-left px-4 py-2 text-sm hover:bg-[var(--bg-primary)] text-yellow-600 hover:text-yellow-700 transition-colors"
+                                  className="w-full text-left min-h-[44px] px-4 py-2.5 text-sm hover:bg-[var(--bg-primary)] text-yellow-600 hover:text-yellow-700 transition-colors flex items-center gap-2"
                                 >
-                                  ⟳ Set Pending
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                                  Set Pending
                                 </button>
                               )}
                             </div>
@@ -489,7 +519,7 @@ export default function Expenses() {
         
         {/* Pagination */}
         {totalExpenses > 0 && (
-          <div className="mt-4">
+          <div className="p-3 sm:p-4 border-t border-[var(--border-color)] bg-[var(--bg-tertiary)]">
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}
@@ -506,16 +536,18 @@ export default function Expenses() {
         )}
       </div>
 
-      {/* Add Expense Modal */}
+      {/* Add Expense Modal - Mobile Optimized */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-[var(--card-bg)] rounded-lg p-6 max-w-md w-full mx-4 border border-[var(--border-color)]">
-            <h2 className="text-xl font-bold text-[var(--text-primary)] mb-4">Add New Expense</h2>
-            <div className="space-y-3">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-[var(--bg-secondary)] rounded-xl border border-[var(--border-color)] w-full max-w-md shadow-2xl">
+            <div className="p-4 sm:p-6 border-b border-[var(--border-color)]">
+              <h2 className="text-lg sm:text-xl font-bold text-[var(--text-primary)]">Add New Expense</h2>
+            </div>
+            <div className="p-4 sm:p-6 space-y-3">
               <select
                 value={newExpense.category}
                 onChange={(e) => setNewExpense({ ...newExpense, category: e.target.value })}
-                className="w-full px-3 py-2 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-lg text-[var(--text-primary)]"
+                className="w-full min-h-[44px] px-4 py-2.5 bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-emerald-500"
               >
                 <option value="">Select Category</option>
                 {categories.map(cat => (
@@ -527,19 +559,19 @@ export default function Expenses() {
                 placeholder="Amount"
                 value={newExpense.amount}
                 onChange={(e) => setNewExpense({ ...newExpense, amount: e.target.value })}
-                className="w-full px-3 py-2 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-lg text-[var(--text-primary)]"
+                className="w-full min-h-[44px] px-4 py-2.5 bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg text-sm text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
               <input
                 type="text"
                 placeholder="Description"
                 value={newExpense.description}
                 onChange={(e) => setNewExpense({ ...newExpense, description: e.target.value })}
-                className="w-full px-3 py-2 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-lg text-[var(--text-primary)]"
+                className="w-full min-h-[44px] px-4 py-2.5 bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg text-sm text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
               <select
                 value={newExpense.payment_method}
                 onChange={(e) => setNewExpense({ ...newExpense, payment_method: e.target.value })}
-                className="w-full px-3 py-2 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-lg text-[var(--text-primary)]"
+                className="w-full min-h-[44px] px-4 py-2.5 bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-emerald-500"
               >
                 <option>Cash</option>
                 <option>M-Pesa</option>
@@ -551,25 +583,25 @@ export default function Expenses() {
                 placeholder="Vendor Name (Optional)"
                 value={newExpense.vendor_name}
                 onChange={(e) => setNewExpense({ ...newExpense, vendor_name: e.target.value })}
-                className="w-full px-3 py-2 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-lg text-[var(--text-primary)]"
+                className="w-full min-h-[44px] px-4 py-2.5 bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg text-sm text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
               <input
                 type="date"
                 value={newExpense.expense_date}
                 onChange={(e) => setNewExpense({ ...newExpense, expense_date: e.target.value })}
-                className="w-full px-3 py-2 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-lg text-[var(--text-primary)]"
+                className="w-full min-h-[44px] px-4 py-2.5 bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
             </div>
-            <div className="flex gap-2 mt-6">
+            <div className="p-4 sm:p-6 border-t border-[var(--border-color)] flex flex-col sm:flex-row gap-3">
               <button
                 onClick={() => setShowAddModal(false)}
-                className="flex-1 px-4 py-2 border border-[var(--border-color)] rounded-lg hover:bg-[var(--bg-secondary)] text-[var(--text-primary)]"
+                className="w-full sm:flex-1 min-h-[44px] px-4 py-2.5 border border-[var(--border-color)] rounded-lg hover:bg-[var(--bg-tertiary)] text-[var(--text-primary)] transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleAddExpense}
-                className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700"
+                className="w-full sm:flex-1 min-h-[44px] px-4 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 font-medium transition-colors"
               >
                 Add Expense
               </button>

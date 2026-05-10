@@ -574,7 +574,7 @@ export default function POSPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--bg-secondary)] pb-20">
+    <div className="min-h-screen bg-[var(--bg-primary)] pb-24">
       {/* Toast Notification */}
       {toast && (
         <Toast
@@ -584,55 +584,68 @@ export default function POSPage() {
         />
       )}
       
-      <div className="p-4 sm:p-5 lg:p-6">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-6">
-          <div className="flex items-center gap-4 flex-1">
+      <div className="px-3 py-4 sm:px-5 sm:py-5 lg:px-6 lg:py-6">
+        {/* Header - Mobile Optimized */}
+        <div className="space-y-3 sm:space-y-4 mb-6">
+          {/* Title */}
+          <div>
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[var(--text-primary)]">
+              Point of Sale
+            </h1>
+            <p className="text-sm sm:text-base text-[var(--text-secondary)] mt-1">
+              Scan or search products to add to cart
+            </p>
+          </div>
+
+          {/* Search and Filters - Stack on Mobile */}
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <input
               type="text"
-              placeholder={`Search by name, SKU, or description... (${priceMode} mode)`}
+              placeholder={`Search by name, SKU... (${priceMode})`}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-1 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg px-4 py-2.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-1 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-lg px-4 py-3 sm:py-2.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[44px]"
             />
             <select
               value={priceMode}
               onChange={(e) => setPriceMode(e.target.value as 'retail' | 'wholesale' | 'all')}
-              className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg px-4 py-2.5 text-sm text-[var(--text-primary)]"
+              className="w-full sm:w-auto bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-lg px-4 py-3 sm:py-2.5 text-sm text-[var(--text-primary)] min-h-[44px] focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="all">All</option>
-              <option value="retail">Retail</option>
-              <option value="wholesale">Wholesale</option>
+              <option value="all">All Prices</option>
+              <option value="retail">Retail Only</option>
+              <option value="wholesale">Wholesale Only</option>
             </select>
-            
-            {/* Barcode Scanner Indicator */}
-            {!showCheckout && (
-              <div className="flex items-center gap-2 px-3 py-2 bg-green-500/10 border border-green-500/30 rounded-lg">
-                <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
-                </svg>
-                <span className="text-xs font-medium text-green-500">Scanner Ready</span>
-              </div>
-            )}
           </div>
+
+          {/* Barcode Scanner Indicator - Hide on Mobile, Show on Desktop */}
+          {!showCheckout && (
+            <div className="hidden sm:flex items-center gap-2 px-3 py-2 bg-green-500/10 border border-green-500/30 rounded-lg w-fit">
+              <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+              </svg>
+              <span className="text-xs font-medium text-green-500">Scanner Ready</span>
+            </div>
+          )}
         </div>
 
-        {/* Products Grid - Full Width */}
-        <ResponsiveGrid cols={{ default: 2, sm: 3, lg: 4, xl: 6 }} gap={4}>
+        {/* Products Grid - Mobile Optimized */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 sm:gap-4">
               {products.map((product) => (
                 <div
                   key={product.id}
-                  className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-3 hover:border-blue-500 transition-colors"
+                  className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-xl p-3 hover:border-blue-500 transition-colors shadow-sm"
                 >
                   {/* Stock Badge */}
-                  <div className="text-xs text-[var(--text-secondary)] mb-2">
-                    {product.stock_quantity} in stock
+                  <div className="text-xs text-[var(--text-secondary)] mb-2 flex items-center justify-between">
+                    <span className={`px-2 py-0.5 rounded-full text-xs ${product.stock_quantity > 10 ? 'bg-green-500/20 text-green-400' : product.stock_quantity > 0 ? 'bg-yellow-500/20 text-yellow-400' : 'bg-red-500/20 text-red-400'}`}>
+                      {product.stock_quantity} left
+                    </span>
                   </div>
 
                   {/* Product Image Placeholder */}
-                  <div className="w-full h-24 bg-[var(--bg-primary)] rounded-lg mb-2 flex items-center justify-center">
+                  <div className="w-full h-24 sm:h-28 bg-[var(--bg-tertiary)] rounded-lg mb-3 flex items-center justify-center overflow-hidden">
                     {product.image_url ? (
-                      <img src={product.image_url} alt={product.name} className="w-full h-full object-cover rounded-lg" />
+                      <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
                     ) : (
                       <svg className="w-10 h-10 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
@@ -641,63 +654,63 @@ export default function POSPage() {
                   </div>
 
                   {/* Product Info */}
-                  <div className="mb-2">
-                    <h3 className="font-semibold text-xs text-[var(--text-primary)] mb-1 line-clamp-1">
+                  <div className="mb-3">
+                    <h3 className="font-semibold text-xs sm:text-sm text-[var(--text-primary)] mb-1 line-clamp-2 leading-tight">
                       {product.name}
                     </h3>
-                    <p className="text-xs text-[var(--text-secondary)]">SKU: {product.sku}</p>
+                    <p className="text-xs text-[var(--text-secondary)] truncate">SKU: {product.sku}</p>
                   </div>
 
                   {/* Price Display */}
-                  <div className="mb-2">
+                  <div className="mb-3">
                     {priceMode === 'all' ? (
                       // Show both prices when "All" is selected
-                      <div className="space-y-1">
+                      <div className="space-y-1.5">
                         <div className="flex items-center justify-between">
-                          <span className="text-xs px-2 py-0.5 bg-blue-500/20 text-blue-400 rounded">
+                          <span className="text-xs px-2 py-1 bg-blue-500/20 text-blue-400 rounded-full font-medium">
                             Retail
                           </span>
-                          <span className="text-xs font-semibold text-[var(--text-primary)]">
-                            KSH {product.retail_price.toFixed(2)}
+                          <span className="text-xs sm:text-sm font-bold text-[var(--text-primary)]">
+                            KSH {product.retail_price.toFixed(0)}
                           </span>
                         </div>
                         <div className="flex items-center justify-between">
-                          <span className="text-xs px-2 py-0.5 bg-green-500/20 text-green-400 rounded">
+                          <span className="text-xs px-2 py-1 bg-green-500/20 text-green-400 rounded-full font-medium">
                             Wholesale
                           </span>
-                          <span className="text-xs font-semibold text-[var(--text-primary)]">
-                            KSH {product.wholesale_price.toFixed(2)}
+                          <span className="text-xs sm:text-sm font-bold text-[var(--text-primary)]">
+                            KSH {product.wholesale_price.toFixed(0)}
                           </span>
                         </div>
                       </div>
                     ) : (
                       // Show selected price mode
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-xs px-2 py-0.5 bg-blue-500/20 text-blue-400 rounded">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs px-2 py-1 bg-blue-500/20 text-blue-400 rounded-full font-medium">
                           {priceMode === 'retail' ? 'Retail' : 'Wholesale'}
                         </span>
-                        <span className="text-xs font-semibold text-[var(--text-primary)]">
-                          KSH {(priceMode === 'retail' ? product.retail_price : product.wholesale_price).toFixed(2)}
+                        <span className="text-sm sm:text-base font-bold text-[var(--text-primary)]">
+                          KSH {(priceMode === 'retail' ? product.retail_price : product.wholesale_price).toFixed(0)}
                         </span>
                       </div>
                     )}
                   </div>
 
-                  {/* Add to Cart Button - Icon Only or Split buttons for "All" mode */}
+                  {/* Add to Cart Button - Touch Optimized */}
                   {priceMode === 'all' ? (
-                    <div className="grid grid-cols-2 gap-1">
+                    <div className="grid grid-cols-2 gap-2">
                       <button 
                         onClick={(e) => {
                           e.stopPropagation();
                           addToCart(product, 'retail');
                         }}
                         disabled={product.stock_quantity <= 0}
-                        className="bg-blue-600 hover:bg-blue-700 active:scale-95 disabled:bg-gray-600 disabled:cursor-not-allowed text-white text-xs py-2 rounded-lg transition-all flex items-center justify-center gap-1"
+                        className="bg-blue-600 hover:bg-blue-700 active:scale-95 disabled:bg-gray-600 disabled:cursor-not-allowed text-white text-xs py-2.5 sm:py-2 rounded-lg transition-all flex items-center justify-center gap-1 min-h-[40px] sm:min-h-[36px]"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                         </svg>
-                        <span className="text-xs">R</span>
+                        <span className="text-xs font-medium">R</span>
                       </button>
                       <button 
                         onClick={(e) => {
@@ -705,28 +718,29 @@ export default function POSPage() {
                           addToCart(product, 'wholesale');
                         }}
                         disabled={product.stock_quantity <= 0}
-                        className="bg-green-600 hover:bg-green-700 active:scale-95 disabled:bg-gray-600 disabled:cursor-not-allowed text-white text-xs py-2 rounded-lg transition-all flex items-center justify-center gap-1"
+                        className="bg-green-600 hover:bg-green-700 active:scale-95 disabled:bg-gray-600 disabled:cursor-not-allowed text-white text-xs py-2.5 sm:py-2 rounded-lg transition-all flex items-center justify-center gap-1 min-h-[40px] sm:min-h-[36px]"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                         </svg>
-                        <span className="text-xs">W</span>
+                        <span className="text-xs font-medium">W</span>
                       </button>
                     </div>
                   ) : (
                     <button 
                       onClick={() => addToCart(product)}
                       disabled={product.stock_quantity <= 0}
-                      className="w-full bg-blue-600 hover:bg-blue-700 active:scale-95 disabled:bg-gray-600 disabled:cursor-not-allowed text-white text-sm py-2 rounded-lg transition-all flex items-center justify-center"
+                      className="w-full bg-blue-600 hover:bg-blue-700 active:scale-95 disabled:bg-gray-600 disabled:cursor-not-allowed text-white text-sm py-2.5 sm:py-2 rounded-lg transition-all flex items-center justify-center gap-2 min-h-[40px] sm:min-h-[36px]"
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                       </svg>
+                      <span className="hidden sm:inline">Add</span>
                     </button>
                   )}
                 </div>
               ))}
-        </ResponsiveGrid>
+        </div>
         
         {/* Pagination */}
         {totalProducts > 0 && (
@@ -747,16 +761,16 @@ export default function POSPage() {
         )}
       </div>
 
-      {/* Floating Cart Button */}
+      {/* Floating Cart Button - Mobile Optimized */}
       <button
         onClick={() => setShowCheckout(true)}
-        className="fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-full shadow-lg transition-all z-40 flex items-center justify-center"
+        className="fixed bottom-6 right-4 sm:right-6 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white p-4 sm:p-5 rounded-full shadow-2xl transition-all z-40 flex items-center justify-center min-w-[56px] min-h-[56px] sm:min-w-[64px] sm:min-h-[64px]"
       >
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="w-6 h-6 sm:w-7 sm:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
         </svg>
         {cart.length > 0 && (
-          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
+          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full min-w-[24px] min-h-[24px] sm:min-w-[28px] sm:min-h-[28px] flex items-center justify-center px-1.5">
             {cart.length}
           </span>
         )}

@@ -283,85 +283,19 @@ export default function TransactionsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--bg-secondary)]">
-      <div className="p-4 sm:p-5 lg:p-6">
-        {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-2xl font-semibold tracking-tight mb-1">Transactions</h1>
-          <p className="text-sm text-[var(--text-secondary)]">View and manage all your sales transactions.</p>
-        </div>
-
-        {/* Filters Bar */}
-        <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-4 mb-6">
-          <div className="flex flex-wrap items-center gap-4">
-            {/* Type Filter Tabs */}
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setFilterType('all')}
-                className={`px-4 py-2 text-sm rounded-lg transition-colors ${
-                  filterType === 'all'
-                    ? 'bg-[var(--bg-primary)] text-[var(--text-primary)] font-medium'
-                    : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-                }`}
-              >
-                All
-              </button>
-              <button
-                onClick={() => setFilterType('retail')}
-                className={`px-4 py-2 text-sm rounded-lg transition-colors ${
-                  filterType === 'retail'
-                    ? 'bg-[var(--bg-primary)] text-[var(--text-primary)] font-medium'
-                    : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-                }`}
-              >
-                Retail
-              </button>
-              <button
-                onClick={() => setFilterType('wholesale')}
-                className={`px-4 py-2 text-sm rounded-lg transition-colors ${
-                  filterType === 'wholesale'
-                    ? 'bg-[var(--bg-primary)] text-[var(--text-primary)] font-medium'
-                    : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-                }`}
-              >
-                Wholesale
-              </button>
+    <div className="min-h-screen bg-[var(--bg-primary)]">
+      <div className="px-3 py-4 sm:px-5 sm:py-5 lg:px-6 lg:py-6">
+        {/* Header - Mobile Optimized */}
+        <div className="space-y-3 sm:space-y-4 mb-6">
+          {/* Title and Action - Stack on Mobile */}
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[var(--text-primary)]">Transactions</h1>
+              <p className="text-sm sm:text-base text-[var(--text-secondary)] mt-1">View and manage all your sales transactions</p>
             </div>
-
-            {/* Date Range Filter */}
-            <div className="flex-1 flex justify-center">
-              <DateRangeFilter
-                value={dateRange}
-                onChange={setDateRange}
-                startDate={startDate ? formatDateLocal(new Date(startDate)) : ''}
-                endDate={endDate ? formatDateLocal(new Date(endDate)) : ''}
-                onDateChange={(start, end) => {
-                  // Convert date strings to full ISO timestamps
-                  const startDateTime = new Date(start);
-                  startDateTime.setHours(0, 0, 0, 0);
-                  const endDateTime = new Date(end);
-                  endDateTime.setHours(23, 59, 59, 999);
-                  setStartDate(startDateTime.toISOString());
-                  setEndDate(endDateTime.toISOString());
-                }}
-              />
-            </div>
-
-            {/* Export Button */}
-            <button
-              onClick={exportTransactions}
-              className="bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-4 py-2 text-sm hover:bg-[var(--bg-secondary)] transition-colors flex items-center gap-2"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              Export
-            </button>
-
-            {/* New Sale Button */}
             <button
               onClick={() => router.push('/pos')}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg px-4 py-2 text-sm font-medium transition-colors flex items-center gap-2"
+              className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white rounded-lg px-4 py-3 sm:py-2.5 text-sm font-medium transition-all flex items-center justify-center gap-2 min-h-[44px] shadow-sm"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -369,26 +303,73 @@ export default function TransactionsPage() {
               New Sale
             </button>
           </div>
+        </div>
 
-          {/* Search and Payment Filter */}
-          <div className="flex gap-4 mt-4">
-            <div className="flex-1 relative">
-              <svg className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-              <input
-                type="text"
-                placeholder="Search transactions by ID or customer..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        {/* Filters - Mobile Optimized */}
+        <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-xl p-3 sm:p-4 mb-6 shadow-sm">
+          {/* Type Tabs - Horizontal Scroll on Mobile */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 mb-3 scrollbar-hide">
+            <div className="flex items-center gap-1 shrink-0 bg-[var(--bg-tertiary)] rounded-lg p-1">
+              {['all', 'retail', 'wholesale'].map(t => (
+                <button 
+                  key={t} 
+                  onClick={() => setFilterType(t)}
+                  className={`px-4 py-2 text-sm rounded-lg transition-all capitalize min-h-[40px] whitespace-nowrap ${
+                    filterType === t 
+                      ? 'bg-emerald-600 text-white font-medium shadow-sm' 
+                      : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                  }`}
+                >
+                  {t === 'all' ? 'All' : t.charAt(0).toUpperCase() + t.slice(1)}
+                </button>
+              ))}
+            </div>
+
+            {/* Date Range Filter */}
+            <div className="shrink-0">
+              <DateRangeFilter
+                value={dateRange}
+                onChange={setDateRange}
+                startDate={startDate ? formatDateLocal(new Date(startDate)) : ''}
+                endDate={endDate ? formatDateLocal(new Date(endDate)) : ''}
+                onDateChange={(start, end) => {
+                  const s = new Date(start); s.setHours(0,0,0,0);
+                  const e = new Date(end); e.setHours(23,59,59,999);
+                  setStartDate(s.toISOString()); setEndDate(e.toISOString());
+                }}
               />
             </div>
 
-            <select
-              value={paymentFilter}
-              onChange={(e) => setPaymentFilter(e.target.value)}
-              className="bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            {/* Export Button */}
+            <button 
+              onClick={exportTransactions}
+              className="shrink-0 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-2.5 hover:bg-[var(--bg-primary)] active:scale-95 transition-all min-h-[40px] min-w-[40px] flex items-center justify-center"
+              title="Export CSV"
+            >
+              <svg className="w-5 h-5 text-[var(--text-primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Search and Payment Filter - Stack on Mobile */}
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex-1 relative">
+              <svg className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <input 
+                type="text" 
+                placeholder="Search transactions by ID or customer..." 
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg pl-10 pr-4 py-3 sm:py-2.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:ring-2 focus:ring-emerald-500 min-h-[44px]"
+              />
+            </div>
+            <select 
+              value={paymentFilter} 
+              onChange={e => setPaymentFilter(e.target.value)}
+              className="w-full sm:w-auto bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg px-4 py-3 sm:py-2.5 text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-emerald-500 min-h-[44px]"
             >
               <option value="all">All Payment Methods</option>
               <option value="cash">Cash</option>
@@ -399,116 +380,116 @@ export default function TransactionsPage() {
           </div>
         </div>
 
-        {/* Transactions Table */}
-        <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg overflow-hidden">
+        {/* Table - Mobile Optimized with Horizontal Scroll */}
+        <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-xl overflow-hidden shadow-sm">
           <div className="overflow-x-auto">
             <table className="min-w-full">
-              <thead className="bg-[var(--bg-primary)] border-b border-[var(--border-color)]">
+              <thead className="bg-[var(--bg-tertiary)] border-b border-[var(--border-color)]">
                 <tr>
-                  <th className="px-6 py-3 text-left text-sm font-medium text-[var(--text-secondary)]">Transaction ID</th>
-                  <th className="px-6 py-3 text-left text-sm font-medium text-[var(--text-secondary)]">Customer</th>
-                  <th className="px-6 py-3 text-left text-sm font-medium text-[var(--text-secondary)]">Date</th>
-                  <th className="px-6 py-3 text-left text-sm font-medium text-[var(--text-secondary)]">Items</th>
-                  <th className="px-6 py-3 text-left text-sm font-medium text-[var(--text-secondary)]">Type</th>
-                  <th className="px-6 py-3 text-left text-sm font-medium text-[var(--text-secondary)]">Status</th>
-                  <th className="px-6 py-3 text-left text-sm font-medium text-[var(--text-secondary)]">Total</th>
-                  <th className="px-6 py-3 text-left text-sm font-medium text-[var(--text-secondary)]">Actions</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">Transaction ID</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">Customer</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider hidden sm:table-cell">Date</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider hidden md:table-cell">Type</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">Total</th>
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[var(--border-color)]">
                 {loading ? (
                   <tr>
-                    <td colSpan={8} className="px-6 py-12 text-center text-[var(--text-secondary)]">
-                      Loading transactions...
+                    <td colSpan={6} className="px-4 py-12 text-center">
+                      <div className="flex flex-col items-center gap-3">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div>
+                        <p className="text-sm text-[var(--text-secondary)]">Loading transactions...</p>
+                      </div>
                     </td>
                   </tr>
                 ) : transactions.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="px-6 py-12 text-center text-[var(--text-secondary)]">
-                      No transactions found
+                    <td colSpan={6} className="px-4 py-12 text-center">
+                      <div className="flex flex-col items-center gap-2">
+                        <svg className="w-12 h-12 text-[var(--text-secondary)] opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <p className="text-sm text-[var(--text-secondary)]">No transactions found</p>
+                      </div>
                     </td>
                   </tr>
-                ) : (
-                  transactions.map((transaction) => (
-                    <tr key={transaction.id} className="hover:bg-[var(--bg-primary)] transition-colors">
-                      <td className="px-6 py-4 text-sm font-medium text-[var(--text-primary)]">
-                        {transaction.transaction_number}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-[var(--text-primary)]">
-                        {transaction.customer_name || 'Walk-in Customer'}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-[var(--text-secondary)]">
-                        {formatDate(transaction.created_at)}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-[var(--text-primary)]">
-                        {transaction.items_count}
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-500/20 text-blue-500">
-                          {getTypeBadge(transaction.items)}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadge(transaction.status)}`}>
-                          {transaction.status.toUpperCase()}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-sm font-semibold text-[var(--text-primary)]">
-                        KSH {transaction.total.toFixed(2)}
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="relative">
-                          <button
-                            onClick={(e) => { e.stopPropagation(); setOpenActionMenu(openActionMenu === transaction.id ? null : transaction.id); }}
-                            className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-lg font-bold px-2 py-1 rounded hover:bg-[var(--bg-secondary)]"
+                ) : transactions.map(t => (
+                  <tr key={t.id} className="hover:bg-[var(--bg-tertiary)] transition-colors">
+                    <td className="px-4 py-4 text-sm font-medium text-[var(--text-primary)] whitespace-nowrap">{t.transaction_number}</td>
+                    <td className="px-4 py-4 text-sm text-[var(--text-primary)]">{t.customer_name || 'Walk-in Customer'}</td>
+                    <td className="px-4 py-4 text-sm text-[var(--text-secondary)] hidden sm:table-cell whitespace-nowrap">{formatDate(t.created_at)}</td>
+                    <td className="px-4 py-4 hidden md:table-cell">
+                      <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                        {getTypeBadge(t.items)}
+                      </span>
+                    </td>
+                    <td className="px-4 py-4 text-sm font-bold text-emerald-500 whitespace-nowrap">KSH {t.total.toFixed(2)}</td>
+                    <td className="px-4 py-4 text-right">
+                      <div className="relative inline-block">
+                        <button 
+                          onClick={e => { e.stopPropagation(); setOpenActionMenu(openActionMenu === t.id ? null : t.id); }}
+                          className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)] px-3 py-2 rounded-lg transition-all min-h-[36px] min-w-[36px] flex items-center justify-center"
+                        >
+                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+                          </svg>
+                        </button>
+                        {openActionMenu === t.id && (
+                          <div 
+                            onClick={e => e.stopPropagation()} 
+                            className="absolute right-0 mt-2 w-48 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-xl shadow-2xl z-30 overflow-hidden"
                           >
-                            •••
-                          </button>
-                          {openActionMenu === transaction.id && (
-                            <div onClick={(e) => e.stopPropagation()} className="absolute right-0 mt-1 w-44 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl shadow-xl z-20 overflow-hidden">
-                              <button
-                                onClick={() => { viewTransactionDetails(transaction); setOpenActionMenu(null); }}
-                                className="w-full text-left px-5 py-3 text-sm hover:bg-[var(--bg-secondary)] text-[var(--text-primary)] transition-colors"
-                              >
-                                View Details
-                              </button>
-                              <button
-                                onClick={() => { printReceipt(transaction); setOpenActionMenu(null); }}
-                                className="w-full text-left px-5 py-3 text-sm hover:bg-[var(--bg-secondary)] text-[var(--text-primary)] transition-colors"
-                              >
-                                Print Receipt
-                              </button>
-                              <button
-                                onClick={() => { createReturn(transaction); setOpenActionMenu(null); }}
-                                className="w-full text-left px-5 py-3 text-sm hover:bg-[var(--bg-secondary)] text-[var(--text-primary)] transition-colors"
-                              >
-                                Create Return
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
+                            <button 
+                              onClick={() => { viewTransactionDetails(t); setOpenActionMenu(null); }} 
+                              className="w-full text-left px-4 py-3 text-sm hover:bg-[var(--bg-tertiary)] text-[var(--text-primary)] transition-colors flex items-center gap-3"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                              </svg>
+                              View Details
+                            </button>
+                            <button 
+                              onClick={() => { printReceipt(t); setOpenActionMenu(null); }} 
+                              className="w-full text-left px-4 py-3 text-sm hover:bg-[var(--bg-tertiary)] text-[var(--text-primary)] transition-colors flex items-center gap-3"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                              </svg>
+                              Print Receipt
+                            </button>
+                            <button 
+                              onClick={() => { createReturn(t); setOpenActionMenu(null); }} 
+                              className="w-full text-left px-4 py-3 text-sm hover:bg-[var(--bg-tertiary)] text-[var(--text-primary)] transition-colors flex items-center gap-3 border-t border-[var(--border-color)]"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                              </svg>
+                              Create Return
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
-
-          {/* Pagination */}
           {totalTransactions > 0 && (
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              totalItems={totalTransactions}
-              itemsPerPage={itemsPerPage}
-              onPageChange={setCurrentPage}
-              onItemsPerPageChange={(newItemsPerPage) => {
-                setItemsPerPage(newItemsPerPage);
-                setCurrentPage(1);
-              }}
-              itemName="transactions"
-            />
+            <div className="border-t border-[var(--border-color)] bg-[var(--bg-tertiary)]">
+              <Pagination 
+                currentPage={currentPage} 
+                totalPages={totalPages} 
+                totalItems={totalTransactions}
+                itemsPerPage={itemsPerPage} 
+                onPageChange={setCurrentPage}
+                onItemsPerPageChange={n => { setItemsPerPage(n); setCurrentPage(1); }} 
+                itemName="transactions" 
+              />
+            </div>
           )}
         </div>
       </div>

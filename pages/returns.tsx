@@ -1,9 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/router';
 import DateRangeFilter, { getDateRange, formatDateLocal } from '../components/DateRangeFilter';
 import Pagination from '../components/Pagination';
-import ResponsiveGrid, { ResponsiveCard } from '../components/ResponsiveGrid';
-import ResponsiveFilters from '../components/ResponsiveFilters';
 
 interface Return {
   id: string;
@@ -20,7 +17,6 @@ interface Return {
 }
 
 export default function Returns() {
-  const router = useRouter();
   const [returns, setReturns] = useState<Return[]>([]);
   const [filteredReturns, setFilteredReturns] = useState<Return[]>([]);
   const [loading, setLoading] = useState(true);
@@ -384,124 +380,139 @@ export default function Returns() {
   }
 
   return (
-    <div className="space-y-4 sm:space-y-5 lg:space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-[var(--text-primary)]">Returns</h1>
-          <p className="text-sm text-[var(--text-secondary)]">Manage product returns and process refunds.</p>
-        </div>
-        <div className="flex items-center gap-4">
-          <DateRangeFilter 
-            value={dateRange} 
-            onChange={setDateRange}
-            startDate={startDate ? formatDateLocal(new Date(startDate)) : ''}
-            endDate={endDate ? formatDateLocal(new Date(endDate)) : ''}
-            onDateChange={(start, end) => {
-              // Convert date strings to full ISO timestamps
-              const startDateTime = new Date(start);
-              startDateTime.setHours(0, 0, 0, 0);
-              const endDateTime = new Date(end);
-              endDateTime.setHours(23, 59, 59, 999);
-              setStartDate(startDateTime.toISOString());
-              setEndDate(endDateTime.toISOString());
-            }}
-          />
-          <button className="px-4 py-2 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg text-sm text-[var(--text-primary)] hover:bg-[var(--bg-secondary)]">
-            📤 Export
-          </button>
+    <div className="space-y-3 sm:space-y-4">
+      {/* Header - Mobile First: Stack on mobile, side-by-side on larger screens */}
+      <div className="space-y-3 sm:space-y-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[var(--text-primary)]">Returns</h1>
+            <p className="text-sm sm:text-base text-[var(--text-secondary)] mt-1">Manage product returns and process refunds</p>
+          </div>
           <button
             onClick={() => setShowCreateModal(true)}
-            className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm font-medium"
+            className="w-full sm:w-auto min-h-[44px] px-4 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm font-medium flex items-center justify-center gap-2 transition-colors"
           >
-            ⚙️ Create Return
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+            Create Return
           </button>
         </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-        <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-6">
-          <p className="text-[var(--text-secondary)] text-sm mb-2">Total Returns</p>
-          <p className="text-3xl font-bold text-[var(--text-primary)]">{stats.totalReturns}</p>
-        </div>
-        <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-6">
-          <p className="text-[var(--text-secondary)] text-sm mb-2">Pending</p>
-          <p className="text-3xl font-bold text-yellow-500">{stats.pendingReturns}</p>
-        </div>
-        <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-6">
-          <p className="text-[var(--text-secondary)] text-sm mb-2">Completed</p>
-          <p className="text-3xl font-bold text-green-500">{stats.completedReturns}</p>
-        </div>
-        <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-6">
-          <p className="text-[var(--text-secondary)] text-sm mb-2">Return Value</p>
-          <p className="text-3xl font-bold text-[var(--text-primary)]">KES {stats.totalReturnValue.toFixed(2)}</p>
-        </div>
-        <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-6">
-          <p className="text-[var(--text-secondary)] text-sm mb-2">Today's Returns</p>
-          <p className="text-3xl font-bold text-[var(--text-primary)]">{stats.todayReturnCount}</p>
+      {/* Filters - Mobile First: Horizontal scroll on mobile */}
+      <div className="bg-[var(--bg-secondary)] rounded-xl p-3 sm:p-4">
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
+          <div className="shrink-0">
+            <DateRangeFilter
+              value={dateRange}
+              onChange={setDateRange}
+              startDate={startDate ? formatDateLocal(new Date(startDate)) : ''}
+              endDate={endDate ? formatDateLocal(new Date(endDate)) : ''}
+              onDateChange={(start, end) => {
+                const s = new Date(start); s.setHours(0,0,0,0);
+                const e = new Date(end); e.setHours(23,59,59,999);
+                setStartDate(s.toISOString()); setEndDate(e.toISOString());
+              }}
+            />
+          </div>
+          <button 
+            className="shrink-0 min-h-[44px] min-w-[44px] bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-2.5 hover:bg-[var(--bg-primary)] transition-colors flex items-center justify-center" 
+            title="Export"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+          </button>
         </div>
       </div>
 
-      {/* Return History */}
-      <div className="bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg p-6">
-        <div className="mb-4">
-          <h2 className="text-lg font-bold text-[var(--text-primary)] mb-2">Return History</h2>
-          <p className="text-sm text-[var(--text-secondary)] mb-4">A list of all processed returns.</p>
-          
-          <input
-            type="text"
-            placeholder="🔍 Search by receipt #, customer name, product..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full px-4 py-2 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-lg text-[var(--text-primary)]"
-          />
+      {/* Stats Cards - Mobile First: 2 cols mobile → 3 cols tablet → 5 cols desktop */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+        {[
+          { label: 'Total Returns', value: stats.totalReturns, color: 'text-[var(--text-primary)]', icon: '↩️' },
+          { label: 'Pending', value: stats.pendingReturns, color: 'text-yellow-500', icon: '⏳' },
+          { label: 'Completed', value: stats.completedReturns, color: 'text-green-500', icon: '✓' },
+          { label: 'Return Value', value: `KES ${stats.totalReturnValue.toFixed(2)}`, color: 'text-[var(--text-primary)]', icon: '💰' },
+          { label: "Today's Returns", value: stats.todayReturnCount, color: 'text-[var(--text-primary)]', icon: '📅' },
+        ].map(card => (
+          <div key={card.label} className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-xl p-3 sm:p-4 hover:border-[var(--text-secondary)] transition-colors">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-[var(--text-secondary)] text-xs sm:text-sm">{card.label}</p>
+              <span className="text-lg">{card.icon}</span>
+            </div>
+            <p className={`text-xl sm:text-2xl font-bold ${card.color} truncate`}>{card.value}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Return History - Mobile First */}
+      <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-xl overflow-hidden">
+        <div className="p-3 sm:p-4 border-b border-[var(--border-color)]">
+          <h2 className="text-base sm:text-lg font-bold text-[var(--text-primary)] mb-1">Return History</h2>
+          <p className="text-xs sm:text-sm text-[var(--text-secondary)] mb-3">A list of all processed returns</p>
+          <div className="relative">
+            <svg className="w-4 h-4 sm:w-5 sm:h-5 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+            <input 
+              type="text" 
+              placeholder="Search returns..." 
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              className="w-full min-h-[44px] pl-10 pr-3 py-2.5 bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg text-sm text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] focus:outline-none focus:ring-2 focus:ring-emerald-500" 
+            />
+          </div>
         </div>
 
+        {/* Table with horizontal scroll on mobile */}
         <div className="overflow-x-auto">
           <table className="min-w-full">
-            <thead className="border-b border-[var(--border-color)]">
+            <thead className="bg-[var(--bg-tertiary)] border-b border-[var(--border-color)]">
               <tr>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-[var(--text-secondary)]">Return ID</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-[var(--text-secondary)]">Transaction ID</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-[var(--text-secondary)]">Reason</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-[var(--text-secondary)]">Status</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-[var(--text-secondary)]">Quantity</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-[var(--text-secondary)]">Return Date ↓</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-[var(--text-secondary)]">Actions</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider whitespace-nowrap">Return ID</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider whitespace-nowrap">Transaction</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider whitespace-nowrap">Reason</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider whitespace-nowrap hidden sm:table-cell">Status</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider whitespace-nowrap hidden sm:table-cell">Qty</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider whitespace-nowrap hidden lg:table-cell">Amount</th>
+                <th className="px-3 py-3 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider whitespace-nowrap hidden md:table-cell">Date</th>
+                <th className="px-3 py-3 text-center text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider whitespace-nowrap">Actions</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-[var(--border-color)]">
               {filteredReturns.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-12 text-center text-[var(--text-secondary)]">
-                    No returns found
+                  <td colSpan={8} className="px-4 py-12 text-center">
+                    <div className="flex flex-col items-center gap-2">
+                      <svg className="w-12 h-12 text-[var(--text-secondary)] opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      <p className="text-sm text-[var(--text-secondary)]">No returns found</p>
+                    </div>
                   </td>
                 </tr>
               ) : (
                 filteredReturns.map((returnItem) => (
-                  <tr key={returnItem.id} className="border-b border-[var(--border-color)] hover:bg-[var(--bg-secondary)]">
-                    <td className="px-4 py-4 text-sm text-[var(--text-primary)] font-mono">{returnItem.return_id}</td>
-                    <td className="px-4 py-4 text-sm text-[var(--text-primary)]">{returnItem.transaction_id}</td>
-                    <td className="px-4 py-4 text-sm text-[var(--text-primary)]">{returnItem.reason}</td>
-                    <td className="px-4 py-4">
-                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(returnItem.status)}`}>
+                  <tr key={returnItem.id} className="hover:bg-[var(--bg-tertiary)] transition-colors">
+                    <td className="px-3 py-3 text-xs text-[var(--text-primary)] font-mono whitespace-nowrap">
+                      <span className="inline-block max-w-[100px] truncate" title={returnItem.return_id}>
+                        {returnItem.return_id.slice(0,8)}...
+                      </span>
+                    </td>
+                    <td className="px-3 py-3 text-sm text-[var(--text-primary)] whitespace-nowrap">{returnItem.transaction_id}</td>
+                    <td className="px-3 py-3 text-sm text-[var(--text-primary)] max-w-[150px] truncate" title={returnItem.reason}>{returnItem.reason}</td>
+                    <td className="px-3 py-3 hidden sm:table-cell whitespace-nowrap">
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${getStatusColor(returnItem.status)}`}>
                         {returnItem.status}
                       </span>
                     </td>
-                    <td className="px-4 py-4 text-sm text-[var(--text-primary)]">{returnItem.quantity}</td>
-                    <td className="px-4 py-4 text-sm text-[var(--text-primary)]">
-                      {new Date(returnItem.return_date).toLocaleString()}
-                    </td>
-                    <td className="px-4 py-4">
-                      <button
-                        onClick={() => {
-                          setSelectedReturn(returnItem);
-                          setShowProcessModal(true);
-                        }}
-                        className="text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                    <td className="px-3 py-3 text-sm text-[var(--text-primary)] hidden sm:table-cell whitespace-nowrap">{returnItem.quantity}</td>
+                    <td className="px-3 py-3 text-sm text-[var(--text-primary)] hidden lg:table-cell whitespace-nowrap">KES {returnItem.amount.toFixed(2)}</td>
+                    <td className="px-3 py-3 text-sm text-[var(--text-secondary)] hidden md:table-cell whitespace-nowrap">{new Date(returnItem.return_date).toLocaleDateString()}</td>
+                    <td className="px-3 py-3 text-center whitespace-nowrap">
+                      <button 
+                        onClick={() => { setSelectedReturn(returnItem); setShowProcessModal(true); }}
+                        className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] rounded-lg transition-colors"
+                        title="Process return"
                       >
-                        ⋯
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                        </svg>
                       </button>
                     </td>
                   </tr>
@@ -513,7 +524,7 @@ export default function Returns() {
         
         {/* Pagination */}
         {totalReturns > 0 && (
-          <div className="mt-4">
+          <div className="p-3 sm:p-4 border-t border-[var(--border-color)] bg-[var(--bg-tertiary)]">
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}
@@ -530,12 +541,15 @@ export default function Returns() {
         )}
       </div>
 
-      {/* Create Return Modal */}
+      {/* Create Return Modal - Mobile Optimized */}
       {showCreateModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-[var(--card-bg)] rounded-lg p-6 max-w-2xl w-full mx-4 border border-[var(--border-color)] max-h-[90vh] overflow-y-auto">
-            <h2 className="text-xl font-bold text-[var(--text-primary)] mb-4">Create Return</h2>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-[var(--bg-secondary)] rounded-xl border border-[var(--border-color)] w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
+            <div className="sticky top-0 bg-[var(--bg-secondary)] border-b border-[var(--border-color)] p-4 sm:p-6 z-10">
+              <h2 className="text-lg sm:text-xl font-bold text-[var(--text-primary)]">Create Return</h2>
+            </div>
             
+            <div className="p-4 sm:p-6">
             <form onSubmit={handleCreateReturn} className="space-y-4">
               {/* Transaction ID */}
               <div>
@@ -785,12 +799,12 @@ export default function Returns() {
                 </div>
               )}
 
-              {/* Action Buttons */}
-              <div className="flex gap-3 pt-2">
+              {/* Action Buttons - Mobile First */}
+              <div className="flex flex-col sm:flex-row gap-3 pt-2">
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                  className="w-full sm:flex-1 min-h-[44px] px-4 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors"
                 >
                   {submitting ? 'Creating...' : `Create Return (${returnItems.filter(i => i.productName).length} items)`}
                 </button>
@@ -809,45 +823,62 @@ export default function Returns() {
                     setUnitPrices([0]);
                     setCreateFormErrors('');
                   }}
-                  className="px-4 py-2 border border-[var(--border-color)] rounded-lg hover:bg-[var(--bg-secondary)] text-[var(--text-primary)]"
+                  className="w-full sm:w-auto min-h-[44px] px-4 py-2.5 border border-[var(--border-color)] rounded-lg hover:bg-[var(--bg-tertiary)] text-[var(--text-primary)] transition-colors"
                 >
                   Cancel
                 </button>
               </div>
             </form>
+            </div>
           </div>
         </div>
       )}
 
-      {/* Process Modal */}
+      {/* Process Modal - Mobile Optimized */}
       {showProcessModal && selectedReturn && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-[var(--card-bg)] rounded-lg p-6 max-w-md w-full mx-4 border border-[var(--border-color)]">
-            <h2 className="text-xl font-bold text-[var(--text-primary)] mb-4">Process Return</h2>
-            <div className="space-y-4">
-              <div>
-                <p className="text-sm text-[var(--text-secondary)]">Return ID: {selectedReturn.return_id}</p>
-                <p className="text-sm text-[var(--text-secondary)]">Customer: {selectedReturn.customer_name}</p>
-                <p className="text-sm text-[var(--text-secondary)]">Product: {selectedReturn.product_name}</p>
-                <p className="text-sm text-[var(--text-secondary)]">Amount: KES {selectedReturn.amount}</p>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-[var(--bg-secondary)] rounded-xl border border-[var(--border-color)] w-full max-w-md shadow-2xl">
+            <div className="p-4 sm:p-6 border-b border-[var(--border-color)]">
+              <h2 className="text-lg sm:text-xl font-bold text-[var(--text-primary)]">Process Return</h2>
+            </div>
+            <div className="p-4 sm:p-6 space-y-4">
+              <div className="bg-[var(--bg-tertiary)] rounded-lg p-4 space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-[var(--text-secondary)]">Return ID</span>
+                  <span className="text-sm text-[var(--text-primary)] font-mono">{selectedReturn.return_id.slice(0,12)}...</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-[var(--text-secondary)]">Customer</span>
+                  <span className="text-sm text-[var(--text-primary)]">{selectedReturn.customer_name}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-[var(--text-secondary)]">Product</span>
+                  <span className="text-sm text-[var(--text-primary)] truncate max-w-[200px]" title={selectedReturn.product_name}>{selectedReturn.product_name}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-[var(--text-secondary)]">Amount</span>
+                  <span className="text-sm text-[var(--text-primary)] font-semibold">KES {selectedReturn.amount.toFixed(2)}</span>
+                </div>
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <button
                   onClick={() => handleProcessReturn(selectedReturn.id, 'Completed')}
-                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                  className="flex-1 min-h-[44px] px-4 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium transition-colors flex items-center justify-center gap-2"
                 >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
                   Approve
                 </button>
                 <button
                   onClick={() => handleProcessReturn(selectedReturn.id, 'Rejected')}
-                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                  className="flex-1 min-h-[44px] px-4 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition-colors flex items-center justify-center gap-2"
                 >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                   Reject
                 </button>
               </div>
               <button
                 onClick={() => setShowProcessModal(false)}
-                className="w-full px-4 py-2 border border-[var(--border-color)] rounded-lg hover:bg-[var(--bg-secondary)] text-[var(--text-primary)]"
+                className="w-full min-h-[44px] px-4 py-2.5 border border-[var(--border-color)] rounded-lg hover:bg-[var(--bg-tertiary)] text-[var(--text-primary)] transition-colors"
               >
                 Cancel
               </button>

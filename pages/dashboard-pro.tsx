@@ -465,23 +465,32 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--bg-primary)] p-4 sm:p-5 lg:p-6">
+    <div className="min-h-screen bg-[var(--bg-primary)] px-3 py-4 sm:px-5 sm:py-5 lg:px-6 lg:py-6">
       {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} />}
       <div className="max-w-7xl mx-auto space-y-4 sm:space-y-5 lg:space-y-6">
-        {/* Header */}
-        <ResponsiveFilters
-          title="Dashboard Overview"
-          subtitle="A summary of your business performance"
-          actions={
-            <>
-              <select 
-                value={priceType}
-                onChange={(e) => setPriceType(e.target.value)}
-                className="w-full sm:w-auto bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg px-4 py-2 sm:py-2.5 text-sm text-[var(--text-primary)] min-h-[44px] sm:min-h-[36px]"
-              >
-                <option value="retail">Retail</option>
-                <option value="wholesale">Wholesale</option>
-              </select>
+        {/* Header - Mobile Optimized */}
+        <div className="space-y-3 sm:space-y-4">
+          {/* Title Section */}
+          <div className="space-y-1">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[var(--text-primary)]">
+              Dashboard Overview
+            </h1>
+            <p className="text-sm sm:text-base text-[var(--text-secondary)]">
+              A summary of your business performance
+            </p>
+          </div>
+
+          {/* Filters - Stacked on Mobile */}
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
+            <select 
+              value={priceType}
+              onChange={(e) => setPriceType(e.target.value)}
+              className="w-full sm:w-auto bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg px-4 py-3 sm:py-2.5 text-sm text-[var(--text-primary)] min-h-[44px] focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            >
+              <option value="retail">Retail</option>
+              <option value="wholesale">Wholesale</option>
+            </select>
+            <div className="w-full sm:flex-1">
               <DateRangeFilter 
                 value={dateRange} 
                 onChange={setDateRange}
@@ -492,21 +501,19 @@ export default function Dashboard() {
                   setEndDate(end);
                 }}
               />
-              <button className="w-full sm:w-auto px-4 py-2 sm:py-2.5 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg text-sm hover:bg-[var(--bg-secondary)] text-[var(--text-primary)] min-h-[44px] sm:min-h-[36px]">
-                📤 Export Summary
-              </button>
-            </>
-          }
-        >
-          <></>
-        </ResponsiveFilters>
+            </div>
+            <button className="w-full sm:w-auto px-4 py-3 sm:py-2.5 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg text-sm hover:bg-[var(--bg-secondary)] active:bg-[var(--bg-secondary)] text-[var(--text-primary)] min-h-[44px] transition-colors">
+              📤 Export Summary
+            </button>
+          </div>
+        </div>
 
-        {/* Top Row - Main Metrics */}
-        <ResponsiveGrid cols={{ default: 1, sm: 2, lg: 4 }} gap={4}>
-          {/* All Time Verified Profit - Redesigned */}
-          <ResponsiveCard padding="default">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-xs sm:text-sm text-[var(--text-secondary)] line-clamp-2">
+        {/* Top Row - Main Metrics - Mobile First Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          {/* All Time Verified Profit - Mobile Optimized */}
+          <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-xl p-4 sm:p-5 shadow-sm">
+            <div className="flex items-start justify-between mb-3">
+              <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-tight pr-2">
                 {dateRange === 'all' ? 'All Time Verified Profit' :
                  dateRange === 'today' ? "Today's Verified Profit" :
                  dateRange === 'yesterday' ? "Yesterday's Verified Profit" :
@@ -517,107 +524,107 @@ export default function Dashboard() {
                  dateRange === 'thisYear' ? 'This Year Verified Profit' :
                  'Verified Profit'}
               </p>
-              <span className="text-lg sm:text-xl flex-shrink-0">📈</span>
+              <span className="text-xl sm:text-2xl flex-shrink-0">📈</span>
             </div>
             
             {/* Main Profit Amount */}
-            <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-emerald-500 mb-2 break-words">
+            <p className="text-2xl sm:text-3xl lg:text-4xl font-bold text-emerald-500 mb-3 break-words leading-tight">
               KSH {stats?.allTimeProfit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </p>
             
             {/* Revenue and Margin */}
-            <div className="flex items-center justify-between mb-3 text-xs">
+            <div className="flex items-center justify-between mb-3 text-xs sm:text-sm">
               <p className="text-[var(--text-secondary)] truncate pr-2">
                 from KSH {stats?.grossRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </p>
-              <div className="px-2 sm:px-3 py-0.5 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-full flex-shrink-0">
-                <span className="text-xs font-semibold text-[var(--text-primary)]">
+              <div className="px-3 py-1 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-full flex-shrink-0">
+                <span className="text-xs sm:text-sm font-semibold text-[var(--text-primary)]">
                   {stats?.grossRevenue > 0 ? ((stats?.allTimeProfit / stats?.grossRevenue) * 100).toFixed(1) : '0.0'}%
                 </span>
               </div>
             </div>
             
             {/* Retail and Wholesale Boxes */}
-            <div className="grid grid-cols-2 gap-2 mb-3">
+            <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-3">
               {/* Retail Box */}
-              <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg p-2">
-                <p className="text-xs text-[var(--text-secondary)] mb-0.5">Retail</p>
-                <p className="text-sm sm:text-base font-bold text-emerald-600 dark:text-emerald-400 mb-0.5 break-words">
+              <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg p-2.5 sm:p-3">
+                <p className="text-xs text-[var(--text-secondary)] mb-1">Retail</p>
+                <p className="text-base sm:text-lg font-bold text-emerald-600 dark:text-emerald-400 mb-1 break-words leading-tight">
                   KSH {stats?.retailProfit?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}
                 </p>
-                <p className="text-xs text-[var(--text-secondary)]">
+                <p className="text-xs text-[var(--text-secondary)] leading-tight">
                   {stats?.retailRevenue > 0 ? ((stats?.retailProfit / stats?.retailRevenue) * 100).toFixed(1) : '0.0'}% • {stats?.retailSales} sales
                 </p>
               </div>
               
               {/* Wholesale Box */}
-              <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg p-2">
-                <p className="text-xs text-[var(--text-secondary)] mb-0.5">Wholesale</p>
-                <p className="text-sm sm:text-base font-bold text-emerald-600 dark:text-emerald-400 mb-0.5 break-words">
+              <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg p-2.5 sm:p-3">
+                <p className="text-xs text-[var(--text-secondary)] mb-1">Wholesale</p>
+                <p className="text-base sm:text-lg font-bold text-emerald-600 dark:text-emerald-400 mb-1 break-words leading-tight">
                   KSH {stats?.wholesaleProfit?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}
                 </p>
-                <p className="text-xs text-[var(--text-secondary)]">
+                <p className="text-xs text-[var(--text-secondary)] leading-tight">
                   {stats?.wholesaleRevenue > 0 ? ((stats?.wholesaleProfit / stats?.wholesaleRevenue) * 100).toFixed(1) : '0.0'}% • {stats?.wholesaleSales} sales
                 </p>
               </div>
             </div>
             
             {/* Validation Note */}
-            <p className="text-xs text-[var(--text-secondary)] italic">
+            <p className="text-xs text-[var(--text-secondary)] italic leading-tight">
               ✓ Strict validation applied • Excludes invalid pricing
             </p>
-          </ResponsiveCard>
+          </div>
 
           {/* Potential Profit */}
-          <ResponsiveCard padding="default">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-xs sm:text-sm text-[var(--text-secondary)]">Potential Profit</p>
-              <span className="text-lg sm:text-xl flex-shrink-0">📊</span>
+          <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-xl p-4 sm:p-5 shadow-sm">
+            <div className="flex items-start justify-between mb-3">
+              <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-tight">Potential Profit</p>
+              <span className="text-xl sm:text-2xl flex-shrink-0">📊</span>
             </div>
-            <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-blue-500 mb-2 break-words">
+            <p className="text-2xl sm:text-3xl lg:text-4xl font-bold text-blue-500 mb-3 break-words leading-tight">
               KSH {stats?.potentialProfit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </p>
-            <p className="text-xs text-[var(--text-secondary)] mt-2">
+            <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-tight">
               Potential profit from inventory at {priceType} prices
             </p>
-            <p className="text-xs text-[var(--text-secondary)] mt-2 italic">
+            <p className="text-xs text-[var(--text-secondary)] mt-2 italic leading-tight">
               ⚠ Profit is reduced due to pricing issues
             </p>
-          </ResponsiveCard>
+          </div>
 
           {/* Gross Sales Revenue */}
-          <ResponsiveCard padding="default">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-xs sm:text-sm text-[var(--text-secondary)] line-clamp-2">
+          <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-xl p-4 sm:p-5 shadow-sm">
+            <div className="flex items-start justify-between mb-3">
+              <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-tight pr-2">
                 {dateRange === 'all' ? 'Gross Sales Revenue' :
                  dateRange === 'today' ? "Today's Gross Sales" :
                  dateRange === 'yesterday' ? "Yesterday's Gross Sales" :
                  'Gross Sales Revenue'}
               </p>
-              <span className="text-lg sm:text-xl flex-shrink-0">💰</span>
+              <span className="text-xl sm:text-2xl flex-shrink-0">💰</span>
             </div>
-            <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-purple-500 mb-2 break-words">
+            <p className="text-2xl sm:text-3xl lg:text-4xl font-bold text-purple-500 mb-3 break-words leading-tight">
               KSH {stats?.grossRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </p>
-            <div className="space-y-1 text-xs mt-2">
-              <div className="flex justify-between">
+            <div className="space-y-1.5 text-xs sm:text-sm mt-3">
+              <div className="flex justify-between items-center">
                 <span className="text-[var(--text-secondary)]">Retail</span>
-                <span className="text-[var(--text-secondary)]">KSH {stats?.retailRevenue.toLocaleString()}</span>
+                <span className="text-[var(--text-primary)] font-medium">KSH {stats?.retailRevenue.toLocaleString()}</span>
               </div>
-              <div className="flex justify-between">
+              <div className="flex justify-between items-center">
                 <span className="text-[var(--text-secondary)]">Wholesale</span>
-                <span className="text-[var(--text-secondary)]">KSH {stats?.wholesaleRevenue.toLocaleString()}</span>
+                <span className="text-[var(--text-primary)] font-medium">KSH {stats?.wholesaleRevenue.toLocaleString()}</span>
               </div>
             </div>
-            <p className="text-xs text-[var(--text-secondary)] mt-2">
+            <p className="text-xs text-[var(--text-secondary)] mt-3 leading-tight">
               Total sales before returns & expenses
             </p>
-          </ResponsiveCard>
+          </div>
 
-          {/* Net Revenue for Selected Range - Compact Design */}
-          <ResponsiveCard padding="default">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-xs sm:text-sm text-[var(--text-secondary)] line-clamp-2">
+          {/* Net Revenue for Selected Range - Mobile Optimized */}
+          <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-xl p-4 sm:p-5 shadow-sm">
+            <div className="flex items-start justify-between mb-3">
+              <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-tight pr-2">
                 {dateRange === 'today' ? "Today's Net Revenue" :
                  dateRange === 'yesterday' ? "Yesterday's Net Revenue" :
                  dateRange === 'last7days' ? "Last 7 Days Net Revenue" :
@@ -627,28 +634,28 @@ export default function Dashboard() {
                  dateRange === 'thisYear' ? "This Year Net Revenue" :
                  "Today's Net Revenue"}
               </p>
-              <span className="text-lg sm:text-xl flex-shrink-0">💵</span>
+              <span className="text-xl sm:text-2xl flex-shrink-0">💵</span>
             </div>
             
             {/* Main Net Revenue Amount */}
-            <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-emerald-500 mb-2 break-words">
+            <p className="text-2xl sm:text-3xl lg:text-4xl font-bold text-emerald-500 mb-3 break-words leading-tight">
               KSH {((stats?.todayNetRevenue || 0) - (stats?.todayReturns || 0) - (stats?.todayExpenses || 0)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </p>
             
             {/* From Gross and Margin */}
-            <div className="flex items-center justify-between mb-3 text-xs">
+            <div className="flex items-center justify-between mb-3 text-xs sm:text-sm">
               <p className="text-[var(--text-secondary)] truncate pr-2">
                 from KSH {stats?.todayNetRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </p>
-              <div className="px-2 sm:px-3 py-0.5 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-full flex-shrink-0">
-                <span className="text-xs font-semibold text-[var(--text-primary)]">
+              <div className="px-3 py-1 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-full flex-shrink-0">
+                <span className="text-xs sm:text-sm font-semibold text-[var(--text-primary)]">
                   {stats?.todayNetRevenue > 0 ? (((stats?.todayNetRevenue - stats?.todayReturns - stats?.todayExpenses) / stats?.todayNetRevenue) * 100).toFixed(1) : '100.0'}%
                 </span>
               </div>
             </div>
             
             {/* Compact Breakdown */}
-            <div className="bg-[var(--bg-secondary)] rounded-lg p-2 space-y-1 text-xs mb-3">
+            <div className="bg-[var(--bg-tertiary)] rounded-lg p-3 space-y-2 text-xs sm:text-sm mb-3">
               <div className="flex justify-between">
                 <span className="text-[var(--text-secondary)]">Gross Revenue</span>
                 <span className="text-emerald-500 font-semibold">KSH {stats?.todayNetRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
@@ -671,166 +678,166 @@ export default function Dashboard() {
               </div>
             </div>
           </ResponsiveCard>
-        </ResponsiveGrid>
+        </div>
 
-        {/* Bottom Row - Inventory & Expenses */}
-        <ResponsiveGrid cols={{ default: 1, sm: 2, lg: 4 }} gap={4}>
+        {/* Bottom Row - Inventory & Expenses - Mobile First Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {/* Today's Expenses */}
-          <ResponsiveCard padding="default">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-xs sm:text-sm text-[var(--text-secondary)] line-clamp-2">
+          <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-xl p-4 sm:p-5 shadow-sm">
+            <div className="flex items-start justify-between mb-3">
+              <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-tight pr-2">
                 {dateRange === 'today' ? "Today's Expenses" :
                  dateRange === 'yesterday' ? "Yesterday's Expenses" :
                  'Expenses'}
               </p>
-              <span className="text-lg sm:text-xl flex-shrink-0">📉</span>
+              <span className="text-xl sm:text-2xl flex-shrink-0">📉</span>
             </div>
-            <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-red-500 mb-2 break-words">
+            <p className="text-2xl sm:text-3xl lg:text-4xl font-bold text-red-500 mb-3 break-words leading-tight">
               KSH {stats?.todayExpenses.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </p>
-            <p className="text-xs text-[var(--text-secondary)] mt-2">
+            <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-tight">
               {stats?.todayExpenses === 0 ? 'No expenses recorded' : 'Total expenses for selected period'}
             </p>
-            <div className="mt-3 flex gap-2">
+            <div className="mt-4 flex gap-2">
               <button
                 onClick={() => router.push('/expenses')}
-                className="flex-1 px-2 py-1 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded text-xs hover:bg-[var(--bg-tertiary)] text-[var(--text-primary)] min-h-[36px]"
+                className="flex-1 px-3 py-2.5 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg text-sm hover:bg-[var(--bg-primary)] active:bg-[var(--bg-primary)] text-[var(--text-primary)] min-h-[44px] transition-colors"
               >
                 ➕ Add
               </button>
               <button
                 onClick={() => router.push('/expenses')}
-                className="flex-1 px-2 py-1 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded text-xs hover:bg-[var(--bg-tertiary)] text-[var(--text-primary)] min-h-[36px]"
+                className="flex-1 px-3 py-2.5 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg text-sm hover:bg-[var(--bg-primary)] active:bg-[var(--bg-primary)] text-[var(--text-primary)] min-h-[44px] transition-colors"
               >
                 👁 View
               </button>
             </div>
-          </ResponsiveCard>
+          </div>
 
           {/* Total Inventory Value (Cost) */}
-          <ResponsiveCard padding="default">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-xs sm:text-sm text-[var(--text-secondary)] line-clamp-2">Total Inventory Value (Cost)</p>
-              <span className="text-lg sm:text-xl flex-shrink-0">💼</span>
+          <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-xl p-4 sm:p-5 shadow-sm">
+            <div className="flex items-start justify-between mb-3">
+              <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-tight pr-2">Total Inventory Value (Cost)</p>
+              <span className="text-xl sm:text-2xl flex-shrink-0">💼</span>
             </div>
-            <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-orange-500 mb-2 break-words">
+            <p className="text-2xl sm:text-3xl lg:text-4xl font-bold text-orange-500 mb-3 break-words leading-tight">
               KSH {stats?.inventoryValueCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </p>
-            <p className="text-xs text-[var(--text-secondary)] mt-2">
+            <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-tight">
               Current value at buying price
             </p>
-          </ResponsiveCard>
+          </div>
 
           {/* Total Inventory Value (Selling) */}
-          <ResponsiveCard padding="default">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-xs sm:text-sm text-[var(--text-secondary)] line-clamp-2">Total Inventory Value (Selling)</p>
-              <span className="text-lg sm:text-xl flex-shrink-0">💎</span>
+          <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-xl p-4 sm:p-5 shadow-sm">
+            <div className="flex items-start justify-between mb-3">
+              <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-tight pr-2">Total Inventory Value (Selling)</p>
+              <span className="text-xl sm:text-2xl flex-shrink-0">💎</span>
             </div>
-            <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-blue-500 mb-2 break-words">
+            <p className="text-2xl sm:text-3xl lg:text-4xl font-bold text-blue-500 mb-3 break-words leading-tight">
               KSH {stats?.inventoryValueSelling.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </p>
-            <p className="text-xs text-[var(--text-secondary)] mt-2">
+            <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-tight">
               Current value at {priceType} price
             </p>
-          </ResponsiveCard>
+          </div>
 
           {/* Total Units in Stock */}
-          <ResponsiveCard padding="default">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-xs sm:text-sm text-[var(--text-secondary)]">Total Units in Stock</p>
-              <span className="text-lg sm:text-xl flex-shrink-0">📦</span>
+          <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-xl p-4 sm:p-5 shadow-sm">
+            <div className="flex items-start justify-between mb-3">
+              <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-tight">Total Units in Stock</p>
+              <span className="text-xl sm:text-2xl flex-shrink-0">📦</span>
             </div>
-            <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-purple-500 mb-2 break-words">
+            <p className="text-2xl sm:text-3xl lg:text-4xl font-bold text-purple-500 mb-3 break-words leading-tight">
               {stats?.totalUnits.toLocaleString()}
             </p>
-            <p className="text-xs text-[var(--text-secondary)] mt-2">
+            <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-tight">
               Total units for all products
             </p>
-          </ResponsiveCard>
-        </ResponsiveGrid>
+          </div>
+        </div>
 
-        {/* Additional Metrics Row - 3 columns only */}
-        <ResponsiveGrid cols={{ default: 1, sm: 2, lg: 3 }} gap={4}>
+        {/* Additional Metrics Row - 3 columns - Mobile First */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           {/* Product Categories */}
-          <ResponsiveCard padding="default">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-xs sm:text-sm text-[var(--text-secondary)]">Product Categories</p>
-              <span className="text-lg sm:text-xl flex-shrink-0">📂</span>
+          <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-xl p-4 sm:p-5 shadow-sm">
+            <div className="flex items-start justify-between mb-3">
+              <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-tight">Product Categories</p>
+              <span className="text-xl sm:text-2xl flex-shrink-0">📂</span>
             </div>
-            <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-[var(--text-primary)] mb-2">
+            <p className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[var(--text-primary)] mb-3 leading-tight">
               {stats?.productCategories || 0}
             </p>
-            <p className="text-xs text-[var(--text-secondary)] mt-2">
+            <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-tight">
               Number of unique active categories
             </p>
-          </ResponsiveCard>
+          </div>
 
           {/* Outstanding Debt */}
-          <ResponsiveCard padding="default">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-xs sm:text-sm text-[var(--text-secondary)]">Outstanding Debt</p>
-              <span className="text-lg sm:text-xl flex-shrink-0">💳</span>
+          <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-xl p-4 sm:p-5 shadow-sm">
+            <div className="flex items-start justify-between mb-3">
+              <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-tight">Outstanding Debt</p>
+              <span className="text-xl sm:text-2xl flex-shrink-0">💳</span>
             </div>
-            <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-orange-500 mb-2 break-words">
+            <p className="text-2xl sm:text-3xl lg:text-4xl font-bold text-orange-500 mb-3 break-words leading-tight">
               KSH {stats?.outstandingDebt?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}
             </p>
-            <p className="text-xs text-[var(--text-secondary)] mt-2">
+            <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-tight">
               Total outstanding customer debt
             </p>
-          </ResponsiveCard>
+          </div>
 
           {/* Low Stock Alerts */}
-          <ResponsiveCard padding="default">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-xs sm:text-sm text-[var(--text-secondary)]">Low Stock Alerts</p>
-              <span className="text-lg sm:text-xl flex-shrink-0">⚠️</span>
+          <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-xl p-4 sm:p-5 shadow-sm">
+            <div className="flex items-start justify-between mb-3">
+              <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-tight">Low Stock Alerts</p>
+              <span className="text-xl sm:text-2xl flex-shrink-0">⚠️</span>
             </div>
-            <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-red-500 mb-2">
+            <p className="text-2xl sm:text-3xl lg:text-4xl font-bold text-red-500 mb-3 leading-tight">
               {stats?.lowStockCount || 0}
             </p>
-            <p className="text-xs text-[var(--text-secondary)] mt-2">
+            <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-tight">
               Items below minimum stock
             </p>
-          </ResponsiveCard>
-        </ResponsiveGrid>
+          </div>
+        </div>
 
-        {/* Sales & Profit Trend Chart + Pricing Data Audit - Side by Side */}
+        {/* Sales & Profit Trend Chart + Pricing Data Audit - Mobile Responsive */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
-          {/* Sales & Profit Trend Chart - Takes 2 columns (66%) */}
-          <ResponsiveCard padding="default" className="lg:col-span-2">
-            <div className="flex items-center justify-between mb-3">
+          {/* Sales & Profit Trend Chart - Takes 2 columns on desktop (66%) */}
+          <div className="lg:col-span-2 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-xl p-4 sm:p-5 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
               <h2 className="text-base sm:text-lg font-semibold text-[var(--text-primary)]">Sales & Profit Trend</h2>
             </div>
 
             {/* Chart Area - with horizontal scroll on mobile */}
-            <div className="relative bg-[var(--bg-secondary)] rounded border border-[var(--border-color)] p-2 sm:p-4 overflow-x-auto" style={{ height: '280px' }}>
+            <div className="relative bg-[var(--bg-tertiary)] rounded-lg border border-[var(--border-color)] p-3 sm:p-4 overflow-x-auto" style={{ height: '280px' }}>
               {renderChart()}
             </div>
 
             {/* Legend - Responsive */}
-            <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-6 mt-4 text-xs">
+            <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-6 mt-4 text-xs sm:text-sm">
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-emerald-500 flex-shrink-0"></div>
+                <div className="w-3 h-3 bg-emerald-500 rounded-sm flex-shrink-0"></div>
                 <span className="text-[var(--text-secondary)]">Gross Sales</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-green-400 flex-shrink-0"></div>
+                <div className="w-3 h-3 bg-green-400 rounded-sm flex-shrink-0"></div>
                 <span className="text-[var(--text-secondary)]">Net Sales</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-3 h-0.5 bg-red-500 flex-shrink-0"></div>
+                <div className="w-3 h-1 bg-red-500 flex-shrink-0"></div>
                 <span className="text-[var(--text-secondary)]">Expenses</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-3 h-0.5 bg-blue-400 flex-shrink-0"></div>
+                <div className="w-3 h-1 bg-blue-400 flex-shrink-0"></div>
                 <span className="text-[var(--text-secondary)]">Verified Profit</span>
               </div>
             </div>
-          </ResponsiveCard>
+          </div>
 
           {/* Pricing Data Audit - Takes 1 column (33%) */}
-          <ResponsiveCard padding="default">
+          <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-xl p-4 sm:p-5 shadow-sm">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <p className="text-sm sm:text-base font-semibold text-[var(--text-primary)]">Pricing Data Audit</p>
@@ -844,7 +851,7 @@ export default function Dashboard() {
                   }
                   setShowPricingProducts(!showPricingProducts);
                 }}
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors min-h-[44px] min-w-[44px] sm:min-h-[36px] sm:min-w-[36px] flex items-center justify-center"
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg hover:bg-[var(--bg-tertiary)] active:bg-[var(--bg-tertiary)]"
                 title={showPricingProducts ? "Hide products" : "View products with issues"}
               >
                 {showPricingProducts ? '👁‍🗨' : '👁'}
@@ -853,50 +860,50 @@ export default function Dashboard() {
             
             <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <span className="text-xs text-[var(--text-secondary)]">Total Products:</span>
-                <span className="px-3 py-1 bg-gray-700 rounded-full text-sm font-semibold text-white">
+                <span className="text-xs sm:text-sm text-[var(--text-secondary)]">Total Products:</span>
+                <span className="px-3 py-1.5 bg-gray-700 rounded-full text-sm font-semibold text-white">
                   {stats?.pricingAudit?.total || 0}
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-xs text-[var(--text-secondary)]">Valid Pricing:</span>
-                <span className="px-3 py-1 bg-white dark:bg-gray-700 rounded-full text-sm font-semibold text-[var(--text-primary)]">
+                <span className="text-xs sm:text-sm text-[var(--text-secondary)]">Valid Pricing:</span>
+                <span className="px-3 py-1.5 bg-white dark:bg-gray-700 rounded-full text-sm font-semibold text-[var(--text-primary)]">
                   {stats?.pricingAudit?.valid || 0}
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-xs text-[var(--text-secondary)]">Issues Found:</span>
-                <span className="px-3 py-1 bg-red-600 rounded-full text-sm font-semibold text-white">
+                <span className="text-xs sm:text-sm text-[var(--text-secondary)]">Issues Found:</span>
+                <span className="px-3 py-1.5 bg-red-600 rounded-full text-sm font-semibold text-white">
                   {stats?.pricingAudit?.issues || 0}
                 </span>
               </div>
             </div>
 
             {stats?.pricingAudit?.issueDetails && (
-              <div className="mt-4 bg-[#FFF8E7] dark:bg-amber-900/20 border border-yellow-600/40 rounded-lg p-3">
+              <div className="mt-4 bg-[#FFF8E7] dark:bg-amber-900/20 border border-yellow-600/40 rounded-lg p-3 sm:p-4">
                 <p className="text-sm font-bold text-[#B8733E] dark:text-orange-400 mb-2">Issues Found:</p>
-                <ul className="space-y-1.5 text-xs text-[#B8733E] dark:text-orange-400">
+                <ul className="space-y-2 text-xs sm:text-sm text-[#B8733E] dark:text-orange-400">
                   {stats.pricingAudit.issueDetails.missingCost > 0 && (
                     <li className="flex items-start gap-2">
-                      <span>•</span>
+                      <span className="flex-shrink-0">•</span>
                       <span>{stats.pricingAudit.issueDetails.missingCost} products missing cost price</span>
                     </li>
                   )}
                   {stats.pricingAudit.issueDetails.zeroSellingPrice > 0 && (
                     <li className="flex items-start gap-2">
-                      <span>•</span>
+                      <span className="flex-shrink-0">•</span>
                       <span>{stats.pricingAudit.issueDetails.zeroSellingPrice} products with zero selling price</span>
                     </li>
                   )}
                   {stats.pricingAudit.issueDetails.sellingBelowCost > 0 && (
                     <li className="flex items-start gap-2">
-                      <span>•</span>
+                      <span className="flex-shrink-0">•</span>
                       <span>{stats.pricingAudit.issueDetails.sellingBelowCost} products selling below cost</span>
                     </li>
                   )}
                   {stats.pricingAudit.issueDetails.unrealisticMarkup > 0 && (
                     <li className="flex items-start gap-2">
-                      <span>•</span>
+                      <span className="flex-shrink-0">•</span>
                       <span>{stats.pricingAudit.issueDetails.unrealisticMarkup} products with unrealistic markup</span>
                     </li>
                   )}
@@ -908,54 +915,60 @@ export default function Dashboard() {
               <div className="mt-4">
                 <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">Products with Issues</h3>
                 {loadingProducts ? (
-                  <div className="text-center py-4 text-[var(--text-secondary)] text-sm">Loading products...</div>
+                  <div className="text-center py-6 text-[var(--text-secondary)] text-sm">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500 mx-auto mb-2"></div>
+                    Loading products...
+                  </div>
                 ) : pricingProducts.length === 0 ? (
-                  <div className="text-center py-4 text-[var(--text-secondary)] text-sm">No products with issues found</div>
+                  <div className="text-center py-6 text-[var(--text-secondary)] text-sm bg-[var(--bg-tertiary)] rounded-lg">
+                    No products with issues found
+                  </div>
                 ) : (
                   <>
+                    {/* Mobile-Optimized Table with Horizontal Scroll */}
                     <div className="overflow-x-auto bg-[#0a1628] rounded-lg border border-[var(--border-color)] -mx-2 sm:mx-0">
-                      <table className="w-full text-xs min-w-[600px]">
+                      <table className="w-full text-xs sm:text-sm min-w-[600px]">
                         <thead>
-                          <tr className="border-b border-gray-700">
-                            <th className="text-left py-2 px-2 sm:px-3 text-gray-400 font-normal">Product</th>
-                            <th className="text-left py-2 px-2 sm:px-3 text-gray-400 font-normal">Cost</th>
-                            <th className="text-left py-2 px-2 sm:px-3 text-gray-400 font-normal">Retail</th>
-                            <th className="text-left py-2 px-2 sm:px-3 text-gray-400 font-normal">Wholesale</th>
-                            <th className="text-left py-2 px-2 sm:px-3 text-gray-400 font-normal">Issues</th>
-                            <th className="text-right py-2 px-2 sm:px-3 text-gray-400 font-normal">Actions</th>
+                          <tr className="border-b border-gray-700 bg-[var(--bg-tertiary)]">
+                            <th className="text-left py-3 px-3 text-gray-400 font-medium">Product</th>
+                            <th className="text-left py-3 px-3 text-gray-400 font-medium">Cost</th>
+                            <th className="text-left py-3 px-3 text-gray-400 font-medium">Retail</th>
+                            <th className="text-left py-3 px-3 text-gray-400 font-medium">Wholesale</th>
+                            <th className="text-left py-3 px-3 text-gray-400 font-medium">Issues</th>
+                            <th className="text-right py-3 px-3 text-gray-400 font-medium">Actions</th>
                           </tr>
                         </thead>
                         <tbody>
                           {pricingProducts.slice((currentPage - 1) * productsPerPage, currentPage * productsPerPage).map((product: any, index: number) => (
-                            <tr key={product.id} className="border-b border-gray-800 hover:bg-gray-900/50">
-                              <td className="py-3 px-2 sm:px-3 text-gray-200">{product.name}</td>
-                              <td className="py-3 px-2 sm:px-3 text-gray-200">
+                            <tr key={product.id} className="border-b border-gray-800 hover:bg-gray-900/50 transition-colors">
+                              <td className="py-3 px-3 text-gray-200">{product.name}</td>
+                              <td className="py-3 px-3 text-gray-200">
                                 {parseFloat(product.cost_price || 0).toFixed(0)}
                               </td>
-                              <td className="py-3 px-2 sm:px-3 text-gray-200">
+                              <td className="py-3 px-3 text-gray-200">
                                 {parseFloat(product.retail_price || 0).toFixed(0)}
                               </td>
-                              <td className="py-3 px-2 sm:px-3 text-gray-200">
+                              <td className="py-3 px-3 text-gray-200">
                                 {parseFloat(product.wholesale_price || 0).toFixed(0)}
                               </td>
-                              <td className="py-3 px-2 sm:px-3">
+                              <td className="py-3 px-3">
                                 <div className="flex flex-wrap gap-1">
                                   {product.issues?.map((issue: string, idx: number) => (
-                                    <span key={idx} className="px-1.5 py-0.5 bg-red-600 text-white text-xs rounded">
+                                    <span key={idx} className="px-2 py-1 bg-red-600 text-white text-xs rounded-full whitespace-nowrap">
                                       {issue}
                                     </span>
                                   ))}
                                 </div>
                               </td>
-                              <td className="py-3 px-2 sm:px-3">
+                              <td className="py-3 px-3">
                                 <div className="flex justify-end gap-1">
-                                  <button className="p-1.5 hover:bg-gray-800 rounded min-h-[36px] min-w-[36px] flex items-center justify-center" title="Edit">
-                                    <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <button className="p-2 hover:bg-gray-800 rounded-lg min-h-[36px] min-w-[36px] flex items-center justify-center transition-colors" title="Edit">
+                                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                     </svg>
                                   </button>
-                                  <button className="p-1.5 hover:bg-gray-800 rounded min-h-[36px] min-w-[36px] flex items-center justify-center" title="Delete">
-                                    <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <button className="p-2 hover:bg-gray-800 rounded-lg min-h-[36px] min-w-[36px] flex items-center justify-center transition-colors" title="Delete">
+                                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                     </svg>
                                   </button>
@@ -967,9 +980,9 @@ export default function Dashboard() {
                       </table>
                     </div>
                     
-                    {/* Pagination Controls */}
+                    {/* Pagination Controls - Mobile Optimized */}
                     {pricingProducts.length > productsPerPage && (
-                      <div className="flex items-center justify-between mt-3 text-xs">
+                      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4 text-xs sm:text-sm">
                         <div className="text-gray-400">
                           {((currentPage - 1) * productsPerPage) + 1}-{Math.min(currentPage * productsPerPage, pricingProducts.length)} of {pricingProducts.length}
                         </div>
@@ -977,17 +990,17 @@ export default function Dashboard() {
                           <button
                             onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                             disabled={currentPage === 1}
-                            className="px-3 py-2 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded text-xs text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)] disabled:opacity-50 disabled:cursor-not-allowed min-h-[36px]"
+                            className="px-4 py-2.5 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg text-sm text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] active:bg-[var(--bg-secondary)] disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] transition-colors"
                           >
                             Prev
                           </button>
-                          <span className="px-2 py-2 text-[var(--text-secondary)] flex items-center">
+                          <span className="px-3 py-2.5 text-[var(--text-secondary)] flex items-center min-h-[44px]">
                             {currentPage}/{Math.ceil(pricingProducts.length / productsPerPage)}
                           </span>
                           <button
                             onClick={() => setCurrentPage(prev => Math.min(Math.ceil(pricingProducts.length / productsPerPage), prev + 1))}
                             disabled={currentPage >= Math.ceil(pricingProducts.length / productsPerPage)}
-                            className="px-3 py-2 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded text-xs text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)] disabled:opacity-50 disabled:cursor-not-allowed min-h-[36px]"
+                            className="px-4 py-2.5 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg text-sm text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] active:bg-[var(--bg-secondary)] disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] transition-colors"
                           >
                             Next
                           </button>
@@ -998,7 +1011,7 @@ export default function Dashboard() {
                 )}
               </div>
             )}
-          </ResponsiveCard>
+          </div>
         </div>
       </div>
     </div>
