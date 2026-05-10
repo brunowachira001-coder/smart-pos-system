@@ -206,44 +206,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     }
 
-    // ── Send SMS alert to shop owner ─────────────────────────────────────────
-    try {
-      // Get shop phone from shop_settings (overrides tenant phone)
-      const { data: shopSettings } = await db
-        .from('shop_settings')
-        .select('business_phone')
-        .eq('tenant_id', tenantId)
-        .single();
-
-      const shopPhone = shopSettings?.business_phone || tenant.business_phone;
-
-      if (shopPhone) {
-        const itemsSummary = cartItems
-          .map(i => `${i.product_name} x${i.quantity}`)
-          .join(', ');
-
-        const smsMessage =
-          `🛒 NEW ONLINE ORDER!\n` +
-          `Order: ${orderNumber}\n` +
-          `Customer: ${shippingAddress.fullName}\n` +
-          `Phone: ${shippingAddress.phone}\n` +
-          `Items: ${itemsSummary}\n` +
-          `Total: KES ${totalAmount.toLocaleString()}\n` +
-          `Payment: ${paymentMethod === 'cod' ? 'Cash on Delivery' : 'M-Pesa'}\n` +
-          `Deliver to: ${shippingAddress.city}`;
-
-        const smsService = (await import('@/services/sms.service')).default;
-        await smsService.sendSMS({
-          phoneNumber: shopPhone,
-          message: smsMessage,
-          messageType: 'online_order_alert',
-          tenantId,
-        });
-      }
-    } catch (smsErr) {
-      // Non-fatal — order is complete, just log
-      console.error('SMS alert failed:', smsErr);
-    }
+    // ── SMS alert removed — shop staff use the Online Orders page in the POS ──
 
     return res.status(201).json({
       success: true,
