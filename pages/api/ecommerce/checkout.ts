@@ -99,7 +99,41 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // ── Calculate totals ─────────────────────────────────────────────────────
     const subtotal = cartItems.reduce((sum, i) => sum + i.product_price * i.quantity, 0);
-    const totalAmount = subtotal; // No fixed shipping fee — free delivery
+
+    // Look up delivery fee based on customer's city
+    let deliveryFee = 0;
+    let deliveryZone = 'Standard';
+    try {
+      const { data: zones } = await db
+        .from('delivery_zones')
+        .select('*')
+        .eq('tenant_id', tenantId)
+        .eq('is_active', true)
+        .order('sort_order');
+
+      if (zones && zones.length > 0) {
+        const cityLower = shippingAddress.city.toLowerCase().trim();
+        const matched = zones.find((z: any) =>
+          z.areas.some((area: string) => {
+            const areaLower = area.toLowerCase().trim();
+            return cityLower.includes(areaLower) || areaLower.includes(cityLower);
+          })
+        );
+        if (matched) {
+          deliveryFee = parseFloat(matched.delivery_fee) || 0;
+          deliveryZone = matched.zone_name;
+        } else if (zones.length > 0) {
+          // Default to last zone
+          const def = zones[zones.length - 1];
+          deliveryFee = parseFloat(def.delivery_fee) || 0;
+          deliveryZone = def.zone_name;
+        }
+      }
+    } catch (zoneErr) {
+      console.error('Zone lookup failed, using 0:', zoneErr);
+    }
+
+    const totalAmount = subtotal + deliveryFee;
 
     // ── Generate order number ────────────────────────────────────────────────
     const orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
@@ -112,7 +146,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         tenant_id: tenantId,
         order_number: orderNumber,
         subtotal,
-        shipping_fee: shippingFee,
+        shipping_fee: deliveryFee,
         tax_amount: 0,
         total_amount: totalAmount,
         shipping_full_name: shippingAddress.fullName,
@@ -178,7 +212,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       orderNumber: order.order_number,
       total: totalAmount,
       subtotal,
-      shipping: 0,
+      deliveryFee,
+      deliveryZone,
       items: cartItems,
       shippingAddress,
       paymentMethod,

@@ -1,8 +1,147 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useToast } from '../hooks/useToast';
 import Toast from '../components/Toast';
 import ResponsiveGrid, { ResponsiveCard } from '../components/ResponsiveGrid';
 import ResponsiveFilters from '../components/ResponsiveFilters';
+
+// ── Delivery Zones Component ─────────────────────────────────────────────────
+function DeliveryZonesSection() {
+  const [zones, setZones] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [showAdd, setShowAdd] = useState(false);
+  const [form, setForm] = useState({ zone_name: '', areas: '', delivery_fee: '0', sort_order: '0' });
+
+  const fetchZones = useCallback(async () => {
+    const token = localStorage.getItem('token');
+    const res = await fetch('/api/delivery-zones', { headers: { Authorization: `Bearer ${token}` } });
+    if (res.ok) { const d = await res.json(); setZones(d.zones || []); }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { fetchZones(); }, [fetchZones]);
+
+  const save = async (method: string, body: any) => {
+    setSaving(true);
+    const token = localStorage.getItem('token');
+    await fetch('/api/delivery-zones', {
+      method,
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify(body),
+    });
+    await fetchZones();
+    setSaving(false);
+    setShowAdd(false);
+    setEditingId(null);
+    setForm({ zone_name: '', areas: '', delivery_fee: '0', sort_order: '0' });
+  };
+
+  const deleteZone = async (id: string) => {
+    if (!confirm('Delete this zone?')) return;
+    const token = localStorage.getItem('token');
+    await fetch('/api/delivery-zones', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ id }),
+    });
+    fetchZones();
+  };
+
+  const startEdit = (zone: any) => {
+    setEditingId(zone.id);
+    setForm({ zone_name: zone.zone_name, areas: zone.areas.join(', '), delivery_fee: zone.delivery_fee, sort_order: zone.sort_order });
+  };
+
+  return (
+    <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-4 md:p-6">
+      <div className="flex items-center justify-between mb-2">
+        <h2 className="text-xl md:text-lg font-semibold text-[var(--text-primary)]">🚚 Delivery Zones</h2>
+        <button
+          type="button"
+          onClick={() => setShowAdd(true)}
+          className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg"
+        >
+          + Add Zone
+        </button>
+      </div>
+      <p className="text-sm text-[var(--text-secondary)] mb-4">
+        Set delivery fees per area. Customers are charged based on their city. Leave fee at 0 for free delivery.
+      </p>
+
+      {loading ? (
+        <p className="text-sm text-[var(--text-secondary)]">Loading...</p>
+      ) : zones.length === 0 && !showAdd ? (
+        <div className="text-center py-6 border border-dashed border-[var(--border-color)] rounded-lg">
+          <p className="text-[var(--text-secondary)] text-sm">No delivery zones set up yet.</p>
+          <p className="text-[var(--text-secondary)] text-xs mt-1">Add zones to charge delivery fees based on customer location.</p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {zones.map(zone => (
+            <div key={zone.id} className="bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg p-3">
+              {editingId === zone.id ? (
+                <ZoneForm form={form} setForm={setForm} onSave={() => save('PUT', { id: zone.id, zone_name: form.zone_name, areas: form.areas.split(',').map((a: string) => a.trim()).filter(Boolean), delivery_fee: parseFloat(form.delivery_fee), sort_order: parseInt(form.sort_order) })} onCancel={() => setEditingId(null)} saving={saving} />
+              ) : (
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium text-[var(--text-primary)] text-sm">{zone.zone_name}</p>
+                    <p className="text-xs text-[var(--text-secondary)] mt-0.5">{zone.areas.join(', ') || 'No areas set'}</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className={`text-sm font-bold ${parseFloat(zone.delivery_fee) === 0 ? 'text-green-500' : 'text-[var(--text-primary)]'}`}>
+                      {parseFloat(zone.delivery_fee) === 0 ? 'FREE' : `KES ${parseFloat(zone.delivery_fee).toLocaleString()}`}
+                    </span>
+                    <button type="button" onClick={() => startEdit(zone)} className="text-xs text-blue-500 hover:underline">Edit</button>
+                    <button type="button" onClick={() => deleteZone(zone.id)} className="text-xs text-red-500 hover:underline">Delete</button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {showAdd && (
+        <div className="mt-3 bg-[var(--bg-primary)] border border-emerald-500/40 rounded-lg p-4">
+          <p className="text-sm font-medium text-[var(--text-primary)] mb-3">New Delivery Zone</p>
+          <ZoneForm form={form} setForm={setForm} onSave={() => save('POST', { zone_name: form.zone_name, areas: form.areas.split(',').map((a: string) => a.trim()).filter(Boolean), delivery_fee: parseFloat(form.delivery_fee), sort_order: parseInt(form.sort_order) })} onCancel={() => setShowAdd(false)} saving={saving} />
+        </div>
+      )}
+
+      <p className="text-xs text-[var(--text-secondary)] mt-3">
+        💡 Tip: List areas as comma-separated values, e.g. "Nairobi, CBD, Westlands". The last zone acts as the default for unmatched cities.
+      </p>
+    </div>
+  );
+}
+
+function ZoneForm({ form, setForm, onSave, onCancel, saving }: any) {
+  return (
+    <div className="space-y-3">
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-xs text-[var(--text-secondary)] mb-1">Zone Name *</label>
+          <input type="text" value={form.zone_name} onChange={e => setForm((f: any) => ({ ...f, zone_name: e.target.value }))} placeholder="e.g. Nairobi CBD" className="w-full bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded px-3 py-2 text-sm text-[var(--text-primary)]" />
+        </div>
+        <div>
+          <label className="block text-xs text-[var(--text-secondary)] mb-1">Delivery Fee (KES)</label>
+          <input type="number" min="0" value={form.delivery_fee} onChange={e => setForm((f: any) => ({ ...f, delivery_fee: e.target.value }))} placeholder="0 = Free" className="w-full bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded px-3 py-2 text-sm text-[var(--text-primary)]" />
+        </div>
+      </div>
+      <div>
+        <label className="block text-xs text-[var(--text-secondary)] mb-1">Areas (comma-separated)</label>
+        <input type="text" value={form.areas} onChange={e => setForm((f: any) => ({ ...f, areas: e.target.value }))} placeholder="Nairobi, CBD, Westlands, Kilimani" className="w-full bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded px-3 py-2 text-sm text-[var(--text-primary)]" />
+      </div>
+      <div className="flex gap-2">
+        <button type="button" onClick={onSave} disabled={saving || !form.zone_name} className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg disabled:opacity-50">
+          {saving ? 'Saving...' : 'Save Zone'}
+        </button>
+        <button type="button" onClick={onCancel} className="px-4 py-2 border border-[var(--border-color)] text-[var(--text-secondary)] text-sm rounded-lg hover:bg-[var(--bg-secondary)]">Cancel</button>
+      </div>
+    </div>
+  );
+}
 
 export default function ShopSettingsPage() {
   const [settings, setSettings] = useState({
@@ -530,6 +669,8 @@ export default function ShopSettingsPage() {
           </div>
 
           {/* Save Button */}
+          <DeliveryZonesSection />
+
           <div className="flex flex-col sm:flex-row justify-end gap-3">
             <button
               type="button"

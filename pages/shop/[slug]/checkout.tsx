@@ -22,6 +22,9 @@ export default function Checkout() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [deliveryFee, setDeliveryFee] = useState(0);
+  const [deliveryZone, setDeliveryZone] = useState('');
+  const [fetchingFee, setFetchingFee] = useState(false);
 
   const [formData, setFormData] = useState({
     fullName: '',
@@ -52,6 +55,24 @@ export default function Checkout() {
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+
+  // Fetch delivery fee when city changes
+  useEffect(() => {
+    if (!slug || !formData.city) { setDeliveryFee(0); setDeliveryZone(''); return; }
+    const timer = setTimeout(async () => {
+      setFetchingFee(true);
+      try {
+        const res = await fetch(`/api/delivery-zones?tenantSlug=${slug}&city=${encodeURIComponent(formData.city)}`);
+        if (res.ok) {
+          const data = await res.json();
+          setDeliveryFee(data.fee || 0);
+          setDeliveryZone(data.zone || '');
+        }
+      } catch { setDeliveryFee(0); }
+      finally { setFetchingFee(false); }
+    }, 600); // debounce 600ms
+    return () => clearTimeout(timer);
+  }, [slug, formData.city]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -100,6 +121,9 @@ export default function Checkout() {
         paymentMethod: data.paymentMethod,
         paymentStatus: data.paymentStatus,
         total: data.total,
+        subtotal: data.subtotal,
+        deliveryFee: data.deliveryFee,
+        deliveryZone: data.deliveryZone,
         date: new Date().toISOString(),
       }));
 
@@ -112,6 +136,7 @@ export default function Checkout() {
   };
 
   const subtotal = cartItems.reduce((s, i) => s + i.product_price * i.quantity, 0);
+  const total = subtotal + deliveryFee;
 
   if (loading) {
     return (
@@ -311,11 +336,20 @@ export default function Checkout() {
                       <span className="text-gray-600">Subtotal</span>
                       <span className="text-gray-900">KES {subtotal.toLocaleString()}</span>
                     </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">
+                        Delivery {deliveryZone ? `(${deliveryZone})` : ''}
+                        {fetchingFee && <span className="text-xs text-gray-400 ml-1">checking...</span>}
+                      </span>
+                      <span className={deliveryFee === 0 ? 'text-green-600 font-medium' : 'text-gray-900'}>
+                        {fetchingFee ? '...' : deliveryFee === 0 ? 'FREE' : `KES ${deliveryFee.toLocaleString()}`}
+                      </span>
+                    </div>
                   </div>
 
                   <div className="flex justify-between font-bold text-base text-gray-900 mb-5">
                     <span>Total</span>
-                    <span style={{ color: p }}>KES {subtotal.toLocaleString()}</span>
+                    <span style={{ color: p }}>KES {total.toLocaleString()}</span>
                   </div>
 
                   <button
@@ -324,7 +358,7 @@ export default function Checkout() {
                     className="w-full text-white py-3 rounded-lg font-bold text-sm transition disabled:opacity-50"
                     style={{ backgroundColor: p }}
                   >
-                    {submitting ? 'Placing order...' : `Place Order · KES ${subtotal.toLocaleString()}`}
+                    {submitting ? 'Placing order...' : `Place Order · KES ${total.toLocaleString()}`}
                   </button>
 
                   <div className="mt-4 space-y-1 text-xs text-gray-500">
