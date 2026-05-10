@@ -3,8 +3,6 @@ import { useRouter } from 'next/router';
 import DateRangeFilter, { getDateRange, formatDateLocal } from '../components/DateRangeFilter';
 import { useToast } from '../hooks/useToast';
 import Toast from '../components/Toast';
-import ResponsiveGrid, { ResponsiveCard } from '../components/ResponsiveGrid';
-import ResponsiveFilters from '../components/ResponsiveFilters';
 
 interface DashboardStats {
   allTimeProfit: number;
@@ -677,7 +675,7 @@ export default function Dashboard() {
                 <span className="text-emerald-500">KSH {((stats?.todayNetRevenue || 0) - (stats?.todayReturns || 0) - (stats?.todayExpenses || 0)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
               </div>
             </div>
-          </ResponsiveCard>
+          </div>
         </div>
 
         {/* Bottom Row - Inventory & Expenses - Mobile First Grid */}
