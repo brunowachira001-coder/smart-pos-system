@@ -91,6 +91,17 @@ export default function Checkout() {
       localStorage.removeItem(`cart_${slug}`);
       window.dispatchEvent(new Event('cart-updated'));
 
+      // Store order data for receipt
+      sessionStorage.setItem(`order_${data.orderNumber}`, JSON.stringify({
+        orderNumber: data.orderNumber,
+        orderId: data.orderId,
+        items: data.items,
+        shippingAddress: data.shippingAddress,
+        paymentMethod: data.paymentMethod,
+        total: data.total,
+        date: new Date().toISOString(),
+      }));
+
       router.push(`/shop/${slug}/order-success?orderId=${data.orderId}&orderNumber=${encodeURIComponent(data.orderNumber)}`);
     } catch (err: any) {
       setError('Network error. Please check your connection and try again.');
