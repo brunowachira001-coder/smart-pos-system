@@ -207,7 +207,7 @@ export default function Dashboard() {
               <div className="text-emerald-100 text-sm font-medium">TODAY</div>
             </div>
             <p className="text-emerald-100 text-sm mb-1">Total Sales</p>
-            <p className="text-4xl font-bold">KES {data?.todaySales.toLocaleString()}</p>
+            <p className="text-2xl font-bold">KES {data?.todaySales.toLocaleString()}</p>
           </div>
 
           {/* Transactions */}
@@ -217,7 +217,7 @@ export default function Dashboard() {
               <div className="text-blue-100 text-sm font-medium">TODAY</div>
             </div>
             <p className="text-blue-100 text-sm mb-1">Transactions</p>
-            <p className="text-4xl font-bold">{data?.todayTransactions}</p>
+            <p className="text-2xl font-bold">{data?.todayTransactions}</p>
           </div>
 
           {/* Low Stock */}
@@ -227,7 +227,7 @@ export default function Dashboard() {
               <div className="text-orange-100 text-sm font-medium">ALERT</div>
             </div>
             <p className="text-orange-100 text-sm mb-1">Low Stock Items</p>
-            <p className="text-4xl font-bold">{data?.lowStockItems}</p>
+            <p className="text-2xl font-bold">{data?.lowStockItems}</p>
           </div>
 
           {/* Customers */}
@@ -237,7 +237,7 @@ export default function Dashboard() {
               <div className="text-purple-100 text-sm font-medium">TOTAL</div>
             </div>
             <p className="text-purple-100 text-sm mb-1">Customers</p>
-            <p className="text-4xl font-bold">{data?.totalCustomers}</p>
+            <p className="text-2xl font-bold">{data?.totalCustomers}</p>
           </div>
         </div>
 
@@ -248,7 +248,7 @@ export default function Dashboard() {
               <p className="text-[var(--text-secondary)] font-medium">Today's Profit</p>
               <span className="text-2xl">💵</span>
             </div>
-            <p className="text-3xl font-bold text-emerald-600">
+            <p className="text-2xl font-bold text-emerald-600">
               KES {data?.todayProfit.toLocaleString()}
             </p>
           </div>
@@ -258,7 +258,7 @@ export default function Dashboard() {
               <p className="text-[var(--text-secondary)] font-medium">Tax Collected</p>
               <span className="text-2xl">🧾</span>
             </div>
-            <p className="text-3xl font-bold text-blue-600">
+            <p className="text-2xl font-bold text-blue-600">
               KES {data?.todayTax.toLocaleString()}
             </p>
           </div>
@@ -268,7 +268,7 @@ export default function Dashboard() {
               <p className="text-[var(--text-secondary)] font-medium">Avg Transaction</p>
               <span className="text-2xl">📈</span>
             </div>
-            <p className="text-3xl font-bold text-purple-600">
+            <p className="text-2xl font-bold text-purple-600">
               KES {data?.avgTransaction.toLocaleString()}
             </p>
           </div>
@@ -318,7 +318,7 @@ export default function Dashboard() {
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="text-2xl font-bold text-emerald-600">
+                    <p className="text-xl font-bold text-emerald-600">
                       KES {txn.total.toLocaleString()}
                     </p>
                   </div>
@@ -337,19 +337,19 @@ export default function Dashboard() {
             <div className="space-y-3">
               <div className="flex justify-between items-center">
                 <span className="text-[var(--text-secondary)]">Total Products</span>
-                <span className="text-2xl font-bold text-[var(--text-primary)]">
+                <span className="text-xl font-bold text-[var(--text-primary)]">
                   {data?.totalProducts}
                 </span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-[var(--text-secondary)]">In Stock</span>
-                <span className="text-2xl font-bold text-emerald-600">
+                <span className="text-xl font-bold text-emerald-600">
                   {data?.inStockProducts}
                 </span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-[var(--text-secondary)]">Low Stock</span>
-                <span className="text-2xl font-bold text-orange-600">
+                <span className="text-xl font-bold text-orange-600">
                   {data?.lowStockItems}
                 </span>
               </div>
