@@ -386,40 +386,60 @@ export default function Returns() {
         <h1 className="text-2xl sm:text-3xl font-bold text-[var(--text-primary)]">Returns Management</h1>
       </div>
 
-      {/* Action Button */}
+      {/* Action Buttons */}
       <div className="mb-3 sm:mb-4">
-        <div className="flex justify-end">
+        <div className="flex justify-between items-center gap-2">
+          <button
+            onClick={() => {
+              // Export functionality
+              const headers = ['Return ID', 'Transaction', 'Customer', 'Product', 'Quantity', 'Amount', 'Reason', 'Status', 'Date'];
+              const rows = filteredReturns.map(r => [
+                r.return_id,
+                r.transaction_id,
+                r.customer_name,
+                r.product_name,
+                r.quantity,
+                `KES ${r.amount.toFixed(2)}`,
+                r.reason,
+                r.status,
+                new Date(r.return_date).toLocaleDateString()
+              ]);
+              const csvContent = [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
+              const blob = new Blob([csvContent], { type: 'text/csv' });
+              const url = window.URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = `returns-${new Date().toISOString().split('T')[0]}.csv`;
+              a.click();
+            }}
+            className="min-h-[44px] px-4 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm font-medium flex items-center gap-2 transition-colors"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+            <span>Export CSV</span>
+          </button>
           <button
             onClick={() => setShowCreateModal(true)}
-            className="w-full sm:w-auto min-h-[44px] px-4 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm font-medium flex items-center justify-center gap-2 transition-colors"
+            className="min-h-[44px] px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium flex items-center gap-2 transition-colors"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-            Create Return
+            <span>Create Return</span>
           </button>
         </div>
       </div>
 
       {/* Filters - Horizontal Layout */}
       <div className="bg-[var(--bg-secondary)] rounded-xl p-3 sm:p-4">
-        <div className="flex items-center gap-2">
-          <DateRangeFilter
-            value={dateRange}
-            onChange={setDateRange}
-            startDate={startDate ? formatDateLocal(new Date(startDate)) : ''}
-            endDate={endDate ? formatDateLocal(new Date(endDate)) : ''}
-            onDateChange={(start, end) => {
-              const s = new Date(start); s.setHours(0,0,0,0);
-              const e = new Date(end); e.setHours(23,59,59,999);
-              setStartDate(s.toISOString()); setEndDate(e.toISOString());
-            }}
-          />
-          <button 
-            className="min-h-[44px] min-w-[44px] bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-2.5 hover:bg-[var(--bg-primary)] transition-colors flex items-center justify-center" 
-            title="Export"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-          </button>
-        </div>
+        <DateRangeFilter
+          value={dateRange}
+          onChange={setDateRange}
+          startDate={startDate ? formatDateLocal(new Date(startDate)) : ''}
+          endDate={endDate ? formatDateLocal(new Date(endDate)) : ''}
+          onDateChange={(start, end) => {
+            const s = new Date(start); s.setHours(0,0,0,0);
+            const e = new Date(end); e.setHours(23,59,59,999);
+            setStartDate(s.toISOString()); setEndDate(e.toISOString());
+          }}
+        />
       </div>
 
       {/* Stats Cards - Mobile First: 2 cols mobile → 3 cols tablet → 5 cols desktop */}

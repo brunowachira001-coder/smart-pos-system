@@ -171,29 +171,32 @@ export default function ProductPerformancePage() {
           <h1 className="text-2xl sm:text-3xl font-bold text-[var(--text-primary)]">Product Performance</h1>
         </div>
 
+        {/* Export Button */}
+        <div className="mb-3 sm:mb-4">
+          <div className="flex justify-end">
+            <button
+              onClick={exportToCSV}
+              className="min-h-[44px] bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg px-4 py-2.5 transition-colors flex items-center gap-2 text-sm font-medium"
+              title="Export CSV"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <span>Export CSV</span>
+            </button>
+          </div>
+        </div>
+
         {/* Filters - Horizontal Layout */}
         <div className="mb-4 sm:mb-5 lg:mb-6">
           <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl p-3 sm:p-4">
-            <div className="flex items-center gap-2">
-              <DateRangeFilter 
-                value={selectedRange}
-                onChange={setSelectedRange}
-                startDate={displayDateRange.start}
-                endDate={displayDateRange.end}
-                onDateChange={handleDateRangeChange}
-              />
-              
-              <button
-                onClick={exportToCSV}
-                className="min-h-[44px] min-w-[44px] bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-lg px-3 py-2 hover:bg-[var(--bg-primary)] transition-colors flex items-center gap-2"
-                title="Export CSV"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                <span className="hidden sm:inline text-sm">Export CSV</span>
-              </button>
-            </div>
+            <DateRangeFilter 
+              value={selectedRange}
+              onChange={setSelectedRange}
+              startDate={displayDateRange.start}
+              endDate={displayDateRange.end}
+              onDateChange={handleDateRangeChange}
+            />
           </div>
         </div>
 
@@ -280,17 +283,6 @@ export default function ProductPerformancePage() {
                         {parseFloat(product.profitMargin).toFixed(2)}%
                       </td>
                       <td className="px-4 sm:px-6 py-3 sm:py-4 text-sm text-[var(--text-secondary)]">
-                        {parseFloat(product.returnRate).toFixed(2)}%
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-                      </td>
-                      <td className="hidden md:table-cell px-6 py-4 text-sm text-[var(--text-secondary)]">
                         {parseFloat(product.returnRate).toFixed(2)}%
                       </td>
                     </tr>
