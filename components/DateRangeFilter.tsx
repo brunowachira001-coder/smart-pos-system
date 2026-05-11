@@ -88,15 +88,15 @@ export default function DateRangeFilter({
   };
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
       {/* Dropdown */}
       <div className="relative">
         <button
           onClick={() => setShowDropdown(!showDropdown)}
-          className="min-h-[44px] bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-sm text-[var(--text-primary)] hover:bg-[var(--bg-primary)] transition-colors flex items-center gap-2 min-w-[120px] justify-between whitespace-nowrap"
+          className="min-h-[44px] bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg px-2.5 sm:px-3 py-2 text-xs sm:text-sm text-[var(--text-primary)] hover:bg-[var(--bg-primary)] transition-colors flex items-center gap-1.5 sm:gap-2 min-w-[100px] sm:min-w-[120px] justify-between whitespace-nowrap"
         >
           <span>{getDisplayLabel(value)}</span>
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
           </svg>
         </button>
@@ -120,8 +120,8 @@ export default function DateRangeFilter({
       </div>
 
       {/* Date pickers - Horizontal layout */}
-      <div className="flex items-center gap-2 min-h-[44px] bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg px-3 py-2">
-        <svg className="w-4 h-4 text-[var(--text-secondary)] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div className="flex items-center gap-1.5 sm:gap-2 min-h-[44px] bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg px-2 sm:px-3 py-2">
+        <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[var(--text-secondary)] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
         </svg>
         <input
@@ -141,14 +141,14 @@ export default function DateRangeFilter({
               onDateChange?.(e.target.value, displayEnd);
             }
           }}
-          className="bg-transparent border-none text-sm text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] focus:outline-none w-[100px]"
+          className="bg-transparent border-none text-xs sm:text-sm text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] focus:outline-none w-[85px] sm:w-[100px]"
         />
       </div>
       
-      <span className="text-[var(--text-secondary)] text-sm">to</span>
+      <span className="text-[var(--text-secondary)] text-xs sm:text-sm">to</span>
       
-      <div className="flex items-center gap-2 min-h-[44px] bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg px-3 py-2">
-        <svg className="w-4 h-4 text-[var(--text-secondary)] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div className="flex items-center gap-1.5 sm:gap-2 min-h-[44px] bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg px-2 sm:px-3 py-2">
+        <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[var(--text-secondary)] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
         </svg>
         <input
@@ -168,7 +168,7 @@ export default function DateRangeFilter({
               onDateChange?.(displayStart, e.target.value);
             }
           }}
-          className="bg-transparent border-none text-sm text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] focus:outline-none w-[100px]"
+          className="bg-transparent border-none text-xs sm:text-sm text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] focus:outline-none w-[85px] sm:w-[100px]"
         />
       </div>
     </div>

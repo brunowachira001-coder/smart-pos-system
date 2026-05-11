@@ -136,17 +136,20 @@ export default function InventoryAnalyticsPage() {
         <h1 className="text-2xl sm:text-3xl font-bold text-[var(--text-primary)]">Inventory Analytics</h1>
       </div>
 
-      {/* Filters - Horizontal Layout */}
-      <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-xl p-3 sm:p-4">
-        <div className="flex items-center gap-2">
+      {/* Filters - Stacked on Mobile */}
+      <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-xl p-2.5 sm:p-4">
+        <div className="flex flex-col gap-2">
+          {/* Retail/Wholesale selector on top */}
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
-            className="min-h-[44px] bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="min-h-[44px] w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
           >
             <option value="retail">Retail</option>
             <option value="wholesale">Wholesale</option>
           </select>
+          
+          {/* Date filters below */}
           <DateRangeFilter 
             value={dateFilter}
             onChange={setDateFilter}

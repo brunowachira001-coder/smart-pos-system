@@ -1,6 +1,4 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/router';
-import MainLayout from '@/components/Layout/MainLayout';
 
 interface OrderItem {
   id: string;
@@ -46,7 +44,6 @@ const NEXT_LABEL: Record<string, string> = {
 };
 
 export default function OnlineOrdersPage() {
-  const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
@@ -110,8 +107,7 @@ export default function OnlineOrdersPage() {
   ];
 
   return (
-    <MainLayout>
-      <div className="p-4 md:p-6 max-w-7xl mx-auto">
+    <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
@@ -316,6 +312,5 @@ export default function OnlineOrdersPage() {
           </div>
         )}
       </div>
-    </MainLayout>
   );
 }
