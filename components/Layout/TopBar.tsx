@@ -82,7 +82,7 @@ export default function TopBar({ onMenuClick }: TopBarProps) {
           </svg>
         </button>
 
-        <h2 className="text-base md:text-lg font-semibold text-[var(--text-primary)] truncate">
+        <h2 className="hidden md:block text-base md:text-lg font-semibold text-[var(--text-primary)] truncate">
           {pageTitle[router.pathname] || ''}
         </h2>
       </div>
