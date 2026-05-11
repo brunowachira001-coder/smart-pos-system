@@ -9,6 +9,14 @@ const nextConfig = {
   experimental: {
     isrMemoryCacheSize: 0,
   },
+  async rewrites() {
+    return [
+      {
+        source: '/sitemap.xml',
+        destination: '/api/sitemap',
+      },
+    ];
+  },
   // Security and performance headers
   async headers() {
     return [

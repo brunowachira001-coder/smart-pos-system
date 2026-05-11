@@ -489,116 +489,55 @@ export default function InventoryPage() {
       )}
       
       <div className="p-4 sm:p-5 lg:p-6">
-        {/* Header */}
-        <ResponsiveFilters
-          title="Inventory"
-          subtitle="Manage your product inventory and stock levels"
-          actions={
-            <>
-              <button
-                onClick={exportInventory}
-                className="w-full sm:w-auto bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg px-4 py-2 sm:py-2.5 text-sm hover:bg-[var(--bg-primary)] transition-colors flex items-center gap-2 justify-center min-h-[44px] sm:min-h-[36px]"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                Export
-              </button>
-              {filterTab === 'archived' && (
-                <button
-                  onClick={() => setFilterTab('all')}
-                  className="w-full sm:w-auto bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg px-4 py-2 sm:py-2.5 text-sm hover:bg-[var(--bg-primary)] transition-colors min-h-[44px] sm:min-h-[36px]"
-                >
-                  View Active
-                </button>
-              )}
-              {filterTab !== 'archived' && (
-                <button
-                  onClick={() => setFilterTab('archived')}
-                  className="w-full sm:w-auto bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg px-4 py-2 sm:py-2.5 text-sm hover:bg-[var(--bg-primary)] transition-colors min-h-[44px] sm:min-h-[36px]"
-                >
-                  View Archived
-                </button>
-              )}
-              <button
-                onClick={() => setShowAddModal(true)}
-                className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg px-4 py-2 sm:py-2.5 text-sm font-medium transition-colors flex items-center gap-2 justify-center min-h-[44px] sm:min-h-[36px]"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
-                Add Product
-              </button>
-            </>
-          }
-        >
-          <></>
-        </ResponsiveFilters>
+        {/* Header — title left, actions right */}
+        <div className="flex items-start justify-between gap-3 mb-4">
+          <div>
+            <h1 className="text-2xl font-semibold text-[var(--text-primary)]">Inventory</h1>
+            <p className="text-sm text-[var(--text-secondary)] mt-0.5">Manage your products and stock levels.</p>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <button onClick={() => setShowAddModal(true)}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg px-3 py-2 text-sm font-medium flex items-center gap-1.5">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+              Add Product
+            </button>
+          </div>
+        </div>
 
-        {/* Filter Tabs */}
-        <div className="flex gap-4 mb-6 border-b border-[var(--border-color)]">
-          <button
-            onClick={() => setFilterTab('all')}
-            className={`pb-3 px-1 text-sm font-medium border-b-2 transition-colors ${
-              filterTab === 'all'
-                ? 'border-emerald-500 text-emerald-500'
-                : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-            }`}
-          >
-            All Products
-          </button>
-          <button
-            onClick={() => setFilterTab('parent')}
-            className={`pb-3 px-1 text-sm font-medium border-b-2 transition-colors ${
-              filterTab === 'parent'
-                ? 'border-emerald-500 text-emerald-500'
-                : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-            }`}
-          >
-            Parent Products
-          </button>
-          <button
-            onClick={() => setFilterTab('archived')}
-            className={`pb-3 px-1 text-sm font-medium border-b-2 transition-colors ${
-              filterTab === 'archived'
-                ? 'border-emerald-500 text-emerald-500'
-                : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-            }`}
-          >
-            Archived
+        {/* Filter tabs + export row */}
+        <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-1">
+          <div className="flex items-center gap-1 shrink-0 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-1">
+            {(['all', 'parent', 'archived'] as const).map(tab => (
+              <button key={tab} onClick={() => setFilterTab(tab)}
+                className={`px-3 py-1.5 text-sm rounded-md transition-colors capitalize ${filterTab === tab ? 'bg-[var(--bg-primary)] text-[var(--text-primary)] font-medium' : 'text-[var(--text-secondary)]'}`}>
+                {tab === 'all' ? 'All Products' : tab === 'parent' ? 'Parent Products' : 'Archived'}
+              </button>
+            ))}
+          </div>
+          <button onClick={exportInventory}
+            className="shrink-0 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg p-2 hover:bg-[var(--bg-secondary)]" title="Export">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
           </button>
         </div>
 
-        {/* Search and Category Filter */}
-        <div className="flex gap-4 mb-6">
+        {/* Search + category */}
+        <div className="flex gap-2 mb-4">
           <div className="flex-1 relative">
-            <svg className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            <input
-              type="text"
-              placeholder="Search products by name, SKU, or barcode"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+            <svg className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+            <input type="text" placeholder="Search by name, SKU or barcode..." value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              className="w-full bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
           </div>
-          <select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="all">All Categories</option>
-            {categories.map(cat => (
-              <option key={cat} value={cat}>{cat}</option>
-            ))}
+          <select value={selectedCategory} onChange={e => setSelectedCategory(e.target.value)}
+            className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-sm focus:outline-none">
+            <option value="all">All</option>
+            {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
           </select>
         </div>
 
         {/* Products Table */}
         <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="min-w-full">
+          <div className="overflow-x-auto">            <table className="min-w-full">
               <thead className="bg-[var(--bg-primary)] border-b border-[var(--border-color)]">
                 <tr>
                   <th className="px-6 py-3 text-left text-sm font-medium text-[var(--text-secondary)]">

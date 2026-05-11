@@ -1,0 +1,41 @@
+User-agent: *
+
+# Allow the public online shop
+Allow: /shop/
+Allow: /m/
+
+# Block the internal POS/admin system
+Disallow: /dashboard
+Disallow: /dashboard-pro
+Disallow: /dashboard-advanced
+Disallow: /pos
+Disallow: /pos-advanced
+Disallow: /inventory
+Disallow: /inventory-pro
+Disallow: /inventory-analytics
+Disallow: /products-pro
+Disallow: /customers
+Disallow: /customers-pro
+Disallow: /transactions
+Disallow: /sales-pro
+Disallow: /sales-analytics
+Disallow: /reports-pro
+Disallow: /product-performance
+Disallow: /expenses
+Disallow: /debts
+Disallow: /returns
+Disallow: /user-management
+Disallow: /shop-settings
+Disallow: /settings
+Disallow: /my-profile
+Disallow: /customer-messages
+Disallow: /ai-assistant
+Disallow: /admin/
+Disallow: /s/
+Disallow: /api/
+Disallow: /login
+Disallow: /diagnose
+Disallow: /health
+Disallow: /test-login
+
+Sitemap: /api/sitemap

@@ -120,22 +120,14 @@ export default function SalesAnalyticsPage() {
     <div className="space-y-3 sm:space-y-4">
       {/* Header - Mobile First: Stack on mobile, side-by-side on larger screens */}
       <div className="space-y-3 sm:space-y-4">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[var(--text-primary)]">Sales Analytics</h1>
-            <p className="text-sm sm:text-base text-[var(--text-secondary)] mt-1">
-              A deep dive into your sales performance
-            </p>
-          </div>
-          <div className="w-full sm:w-auto">
-            <DateRangeFilter 
-              value={dateFilter}
-              onChange={setDateFilter}
-              startDate={startDate}
-              endDate={endDate}
-              onDateChange={handleDateChange}
-            />
-          </div>
+        <div className="flex justify-end">
+          <DateRangeFilter 
+            value={dateFilter}
+            onChange={setDateFilter}
+            startDate={startDate}
+            endDate={endDate}
+            onDateChange={handleDateChange}
+          />
         </div>
       </div>
 

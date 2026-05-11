@@ -81,10 +81,6 @@ export default function TopBar({ onMenuClick }: TopBarProps) {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
-
-        <h2 className="hidden md:block text-base md:text-lg font-semibold text-[var(--text-primary)] truncate">
-          {pageTitle[router.pathname] || ''}
-        </h2>
       </div>
 
       <div className="flex items-center gap-2 md:gap-4">

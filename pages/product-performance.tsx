@@ -168,35 +168,28 @@ export default function ProductPerformancePage() {
       <div className="p-4 sm:p-5 lg:p-6">
         {/* Header - Mobile First */}
         <div className="mb-4 sm:mb-5 lg:mb-6">
-          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[var(--text-primary)] mb-1">
-            Product Performance
-          </h1>
-          <p className="text-sm sm:text-base text-[var(--text-secondary)]">
-            Analyze product performance by sales, profit, and returns
-          </p>
-        </div>
-
-        {/* Filters - Horizontal Scroll on Mobile */}
-        <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl p-3 sm:p-4 mb-4 sm:mb-5 lg:mb-6">
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
-            <DateRangeFilter 
-              value={selectedRange}
-              onChange={setSelectedRange}
-              startDate={displayDateRange.start}
-              endDate={displayDateRange.end}
-              onDateChange={handleDateRangeChange}
-            />
-            
-            <button
-              onClick={exportToCSV}
-              className="shrink-0 min-h-[44px] min-w-[44px] bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-lg px-3 py-2 hover:bg-[var(--bg-primary)] transition-colors flex items-center gap-2"
-              title="Export CSV"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              <span className="hidden sm:inline text-sm">Export CSV</span>
-            </button>
+          {/* Filters - Horizontal Scroll on Mobile */}
+          <div className="bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-xl p-3 sm:p-4">
+            <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
+              <DateRangeFilter 
+                value={selectedRange}
+                onChange={setSelectedRange}
+                startDate={displayDateRange.start}
+                endDate={displayDateRange.end}
+                onDateChange={handleDateRangeChange}
+              />
+              
+              <button
+                onClick={exportToCSV}
+                className="shrink-0 min-h-[44px] min-w-[44px] bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-lg px-3 py-2 hover:bg-[var(--bg-primary)] transition-colors flex items-center gap-2"
+                title="Export CSV"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <span className="hidden sm:inline text-sm">Export CSV</span>
+              </button>
+            </div>
           </div>
         </div>
 

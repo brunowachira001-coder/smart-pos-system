@@ -3,8 +3,6 @@ import { useRouter } from 'next/router';
 import DateRangeFilter, { getDateRange, formatDateLocal } from '../components/DateRangeFilter';
 import Pagination from '../components/Pagination';
 import ReceiptPrint from '../components/ReceiptPrint';
-import ResponsiveGrid, { ResponsiveCard } from '../components/ResponsiveGrid';
-import ResponsiveFilters from '../components/ResponsiveFilters';
 
 interface Transaction {
   id: string;
@@ -287,12 +285,8 @@ export default function TransactionsPage() {
       <div className="px-3 py-4 sm:px-5 sm:py-5 lg:px-6 lg:py-6">
         {/* Header - Mobile Optimized */}
         <div className="space-y-3 sm:space-y-4 mb-6">
-          {/* Title and Action - Stack on Mobile */}
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[var(--text-primary)]">Transactions</h1>
-              <p className="text-sm sm:text-base text-[var(--text-secondary)] mt-1">View and manage all your sales transactions</p>
-            </div>
+          {/* Action Button Only */}
+          <div className="flex justify-end">
             <button
               onClick={() => router.push('/pos')}
               className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white rounded-lg px-4 py-3 sm:py-2.5 text-sm font-medium transition-all flex items-center justify-center gap-2 min-h-[44px] shadow-sm"

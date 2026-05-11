@@ -133,15 +133,8 @@ export default function InventoryAnalyticsPage() {
     <div className="space-y-3 sm:space-y-4">
       {/* Header - Mobile First: Stack on mobile, side-by-side on larger screens */}
       <div className="space-y-3 sm:space-y-4">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[var(--text-primary)]">Inventory Analytics</h1>
-            <p className="text-sm sm:text-base text-[var(--text-secondary)] mt-1">
-              Insights into your stock, returns, and product value
-              {useDemoData && <span className="ml-2 text-amber-500">(Demo data)</span>}
-            </p>
-          </div>
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-2">
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}

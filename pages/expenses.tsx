@@ -237,11 +237,7 @@ export default function Expenses() {
     <div className="space-y-3 sm:space-y-4">
       {/* Header - Mobile First: Stack on mobile, side-by-side on larger screens */}
       <div className="space-y-3 sm:space-y-4">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[var(--text-primary)]">Expense Management</h1>
-            <p className="text-sm sm:text-base text-[var(--text-secondary)] mt-1">Track and manage your business and personal expenses</p>
-          </div>
+        <div className="flex justify-end">
           <button 
             onClick={() => setShowAddModal(true)}
             className="w-full sm:w-auto min-h-[44px] px-4 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm font-medium flex items-center justify-center gap-2 transition-colors"
