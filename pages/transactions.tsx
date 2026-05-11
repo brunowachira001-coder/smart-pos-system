@@ -306,7 +306,7 @@ export default function TransactionsPage() {
         {/* Filters - Horizontal Layout */}
         <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-xl p-3 sm:p-4 mb-6 shadow-sm">
           {/* Type Tabs and Date Range - Single Row */}
-          <div className="flex flex-wrap items-center gap-2 mb-3">
+          <div className="flex flex-wrap items-center gap-1.5 mb-3">
             <div className="flex items-center gap-1 bg-[var(--bg-tertiary)] rounded-lg p-1">
               {['all', 'retail', 'wholesale'].map(t => (
                 <button 
