@@ -141,7 +141,7 @@ export default function DateRangeFilter({
               onDateChange?.(e.target.value, displayEnd);
             }
           }}
-          className="bg-transparent border-none text-[9px] sm:text-[10px] text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] focus:outline-none w-[62px] sm:w-[75px]"
+          className="bg-transparent border-none text-[8px] sm:text-[9px] text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] focus:outline-none w-[58px] sm:w-[70px]"
         />
       </div>
       
@@ -168,7 +168,7 @@ export default function DateRangeFilter({
               onDateChange?.(displayStart, e.target.value);
             }
           }}
-          className="bg-transparent border-none text-[9px] sm:text-[10px] text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] focus:outline-none w-[62px] sm:w-[75px]"
+          className="bg-transparent border-none text-[8px] sm:text-[9px] text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] focus:outline-none w-[58px] sm:w-[70px]"
         />
       </div>
     </div>
