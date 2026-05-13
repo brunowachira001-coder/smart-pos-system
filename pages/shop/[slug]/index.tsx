@@ -402,108 +402,317 @@ export default function ShopStorefront({ seo }: { seo: any }) {
           </div>
         </header>
 
-        {/* HERO */}
-        <section style={{ backgroundColor: `${p}15` }} className="border-b">
-          <div className="max-w-7xl mx-auto px-4 py-8 flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">{theme.name || slug}</h1>
-              <p className="text-gray-600 mb-4">{theme.tagline || 'Discover amazing deals on quality products'}</p>
-              <button
-                onClick={() => document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' })}
-                className="text-white px-6 py-2.5 rounded font-medium text-sm"
-                style={{ backgroundColor: p }}
-              >
-                Shop now
-              </button>
-            </div>
-            <div className="text-7xl hidden sm:block">🛍️</div>
+        {/* HERO - Enhanced with brand storytelling and animations */}
+        <section className="relative overflow-hidden border-b">
+          {/* Animated gradient background */}
+          <div 
+            className="absolute inset-0 opacity-10"
+            style={{
+              background: `linear-gradient(135deg, ${p}20 0%, ${p}40 50%, ${p}20 100%)`,
+              animation: 'gradient 15s ease infinite',
+              backgroundSize: '200% 200%'
+            }}
+          />
+          
+          {/* Floating shapes animation */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <div 
+              className="absolute w-64 h-64 rounded-full opacity-5"
+              style={{
+                background: p,
+                top: '-10%',
+                right: '-5%',
+                animation: 'float 20s ease-in-out infinite'
+              }}
+            />
+            <div 
+              className="absolute w-96 h-96 rounded-full opacity-5"
+              style={{
+                background: p,
+                bottom: '-15%',
+                left: '-10%',
+                animation: 'float 25s ease-in-out infinite reverse'
+              }}
+            />
           </div>
-        </section>
 
-        {/* TODAY'S DEALS */}
-        {filtered.length > 0 && (
-          <section className="max-w-7xl mx-auto px-4 py-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Today's deals</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-              <div className="bg-white border rounded-lg p-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="text-xl">🎁</span>
-                  <div>
-                    <h3 className="font-bold text-gray-900">Bundle deals</h3>
-                    <p className="text-xs text-gray-500">3+ from KES {bundleProducts[0] ? Math.round(bundleProducts[0].retail_price * 0.8).toLocaleString() : '—'} each</p>
-                  </div>
+          <div className="relative max-w-7xl mx-auto px-4 py-12 md:py-16">
+            <div className="grid md:grid-cols-2 gap-8 items-center">
+              {/* Brand Story - Left side */}
+              <div className="space-y-6 animate-fade-in">
+                <div className="inline-block">
+                  <span 
+                    className="text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full"
+                    style={{ backgroundColor: `${p}20`, color: p }}
+                  >
+                    ✨ Welcome to {theme.name || slug}
+                  </span>
                 </div>
-                <div className="grid grid-cols-4 gap-2">
-                  {bundleProducts.map(prod => (
-                    <Link key={prod.id} href={`/shop/${slug}/product/${prod.id}`}>
-                      <div className="aspect-square bg-gray-50 rounded overflow-hidden hover:opacity-80 transition">
-                        {prod.image_url ? <img src={prod.image_url} alt={prod.name} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-2xl">📦</div>}
-                      </div>
-                      <p className="text-xs font-medium mt-1" style={{ color: p }}>KES{prod.retail_price.toLocaleString()}</p>
-                    </Link>
-                  ))}
+                
+                <h1 className="text-4xl md:text-5xl font-bold text-gray-900 leading-tight">
+                  {theme.tagline || `Discover Your Perfect ${products.length > 0 ? products[0].category : 'Style'}`}
+                </h1>
+                
+                <p className="text-lg text-gray-600 leading-relaxed">
+                  We're here to help you find exactly what you're looking for. 
+                  Every product is carefully selected with you in mind. 
+                  {products.length > 0 && ` Browse ${products.length}+ amazing items, `}
+                  all with fast delivery and our happiness guarantee. 💝
+                </p>
+
+                <div className="flex flex-wrap gap-4 pt-2">
+                  <button
+                    onClick={() => document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' })}
+                    className="text-white px-8 py-4 rounded-xl font-semibold text-base shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
+                    style={{ backgroundColor: p }}
+                  >
+                    Start Shopping 🛍️
+                  </button>
+                  <button
+                    onClick={() => document.getElementById('deals')?.scrollIntoView({ behavior: 'smooth' })}
+                    className="px-8 py-4 rounded-xl font-semibold text-base border-2 hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 bg-white"
+                    style={{ borderColor: p, color: p }}
+                  >
+                    View Deals ⚡
+                  </button>
+                </div>
+
+                {/* Trust indicators */}
+                <div className="flex flex-wrap gap-6 pt-4 text-sm text-gray-600">
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl">🚚</span>
+                    <span>Fast Delivery</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl">🔒</span>
+                    <span>Secure Payment</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl">💯</span>
+                    <span>Quality Guaranteed</span>
+                  </div>
                 </div>
               </div>
 
-              <div className="bg-white border rounded-lg p-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="text-xl">⚡</span>
+              {/* Visual element - Right side */}
+              <div className="relative hidden md:block">
+                <div className="relative z-10 grid grid-cols-2 gap-4">
+                  {products.slice(0, 4).map((prod, idx) => (
+                    <div
+                      key={prod.id}
+                      className="aspect-square rounded-2xl overflow-hidden shadow-xl transform hover:scale-105 transition-transform duration-300"
+                      style={{
+                        animation: `fadeInUp 0.6s ease-out ${idx * 0.1}s both`
+                      }}
+                    >
+                      {prod.image_url ? (
+                        <img src={prod.image_url} alt={prod.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-6xl bg-gradient-to-br from-gray-100 to-gray-200">
+                          📦
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Add keyframes for animations */}
+          <style jsx>{`
+            @keyframes gradient {
+              0% { background-position: 0% 50%; }
+              50% { background-position: 100% 50%; }
+              100% { background-position: 0% 50%; }
+            }
+            @keyframes float {
+              0%, 100% { transform: translateY(0) rotate(0deg); }
+              50% { transform: translateY(-20px) rotate(5deg); }
+            }
+            @keyframes fadeInUp {
+              from {
+                opacity: 0;
+                transform: translateY(30px);
+              }
+              to {
+                opacity: 1;
+                transform: translateY(0);
+              }
+            }
+            .animate-fade-in {
+              animation: fadeInUp 0.8s ease-out;
+            }
+          `}</style>
+        </section>
+
+        {/* TODAY'S DEALS - Enhanced with warm copywriting */}
+        {filtered.length > 0 && (
+          <section id="deals" className="max-w-7xl mx-auto px-4 py-8 md:py-12">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
+                Today's Special Picks 🎁
+              </h2>
+              <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+                We've handpicked these amazing deals just for you. 
+                Limited time offers you don't want to miss!
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+              {/* Bundle Deals Card */}
+              <div 
+                className="bg-gradient-to-br from-white to-gray-50 border-2 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+                style={{ borderColor: `${p}30` }}
+              >
+                <div className="flex items-center gap-3 mb-4">
+                  <div 
+                    className="w-12 h-12 rounded-full flex items-center justify-center text-2xl"
+                    style={{ backgroundColor: `${p}20` }}
+                  >
+                    🎁
+                  </div>
                   <div>
-                    <h3 className="font-bold text-red-600">SuperDeals</h3>
-                    <p className="text-xs text-gray-500 flex items-center gap-1">Ends in: <Countdown endsIn={53046} /></p>
+                    <h3 className="font-bold text-xl text-gray-900">Bundle & Save</h3>
+                    <p className="text-sm text-gray-600">
+                      Buy 3+ items, save up to 20% on each! 
+                    </p>
                   </div>
                 </div>
-                <div className="grid grid-cols-4 gap-2">
+                <div className="grid grid-cols-4 gap-3">
+                  {bundleProducts.map(prod => (
+                    <Link key={prod.id} href={`/shop/${slug}/product/${prod.id}`}>
+                      <div className="group cursor-pointer">
+                        <div className="aspect-square bg-white rounded-xl overflow-hidden shadow-md group-hover:shadow-lg transition-all duration-300 transform group-hover:scale-105 border border-gray-100">
+                          {prod.image_url ? (
+                            <img src={prod.image_url} alt={prod.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-3xl bg-gradient-to-br from-gray-50 to-gray-100">📦</div>
+                          )}
+                        </div>
+                        <p className="text-xs font-bold mt-2 text-center" style={{ color: p }}>
+                          KES {prod.retail_price.toLocaleString()}
+                        </p>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <p className="text-sm text-gray-600 text-center">
+                    💝 Mix & match any items to unlock bundle savings
+                  </p>
+                </div>
+              </div>
+
+              {/* SuperDeals Card */}
+              <div className="bg-gradient-to-br from-red-50 to-orange-50 border-2 border-red-200 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 rounded-full bg-red-500 flex items-center justify-center text-2xl animate-pulse">
+                    ⚡
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-xl text-red-600">Flash SuperDeals</h3>
+                    <p className="text-sm text-gray-700 flex items-center gap-2">
+                      Hurry! Ends in: <Countdown endsIn={53046} />
+                    </p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-4 gap-3">
                   {superDealProducts.map(prod => {
                     const disc = seededRandom(prod.id, 40, 85);
                     return (
                       <Link key={prod.id} href={`/shop/${slug}/product/${prod.id}`}>
-                        <div className="relative aspect-square bg-gray-50 rounded overflow-hidden hover:opacity-80 transition">
-                          {prod.image_url ? <img src={prod.image_url} alt={prod.name} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-2xl">📦</div>}
-                          <span className="absolute bottom-0 left-0 right-0 bg-red-500 text-white text-xs text-center py-0.5 font-bold">-{disc}%</span>
+                        <div className="group cursor-pointer">
+                          <div className="relative aspect-square bg-white rounded-xl overflow-hidden shadow-md group-hover:shadow-lg transition-all duration-300 transform group-hover:scale-105 border border-red-100">
+                            {prod.image_url ? (
+                              <img src={prod.image_url} alt={prod.name} className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-3xl bg-gradient-to-br from-red-50 to-orange-50">📦</div>
+                            )}
+                            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-red-600 to-red-500 text-white text-xs text-center py-1.5 font-bold shadow-lg">
+                              -{disc}% OFF
+                            </div>
+                          </div>
+                          <p className="text-xs font-bold mt-2 text-center text-red-600">
+                            KES {prod.retail_price.toLocaleString()}
+                          </p>
                         </div>
-                        <p className="text-xs font-medium mt-1" style={{ color: p }}>KES{prod.retail_price.toLocaleString()}</p>
                       </Link>
                     );
                   })}
+                </div>
+                <div className="mt-4 pt-4 border-t border-red-200">
+                  <p className="text-sm text-gray-700 text-center">
+                    🔥 Grab these hot deals before they're gone!
+                  </p>
                 </div>
               </div>
             </div>
           </section>
         )}
 
-        {/* RECENTLY VIEWED */}
+        {/* RECENTLY VIEWED - Enhanced with warm copywriting */}
         {recentlyViewed.length > 0 && (
-          <section className="max-w-7xl mx-auto px-4 py-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-gray-900">Recently Viewed</h2>
-              <Link href="#" className="text-sm font-medium" style={{ color: p }}>View All</Link>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-              {recentlyViewed.slice(0, 6).map(item => (
-                <Link key={item.id} href={`/shop/${slug}/product/${item.id}`}>
-                  <div className="bg-white border rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
-                    <div className="aspect-square bg-gray-50">
-                      {item.image_url ? (
-                        <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-4xl">📦</div>
-                      )}
-                    </div>
-                    <div className="p-2">
-                      <p className="text-xs text-gray-700 line-clamp-2 mb-1">{item.name}</p>
-                      <p className="text-sm font-bold" style={{ color: p }}>KES {item.retail_price.toLocaleString()}</p>
-                    </div>
-                  </div>
+          <section className="max-w-7xl mx-auto px-4 py-8 md:py-12">
+            <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-6 md:p-8 border border-purple-100">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+                    Welcome Back! 👋
+                  </h2>
+                  <p className="text-gray-600">
+                    Pick up where you left off - here are the items you were checking out
+                  </p>
+                </div>
+                <Link 
+                  href="#" 
+                  className="text-sm font-semibold hover:underline hidden md:block"
+                  style={{ color: p }}
+                >
+                  View All →
                 </Link>
-              ))}
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                {recentlyViewed.slice(0, 6).map(item => (
+                  <Link key={item.id} href={`/shop/${slug}/product/${item.id}`}>
+                    <div className="bg-white rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100">
+                      <div className="aspect-square bg-gray-50 relative overflow-hidden group">
+                        {item.image_url ? (
+                          <img 
+                            src={item.image_url} 
+                            alt={item.name} 
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" 
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-4xl bg-gradient-to-br from-gray-50 to-gray-100">📦</div>
+                        )}
+                        <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-10 transition-opacity duration-300" />
+                      </div>
+                      <div className="p-3">
+                        <p className="text-xs text-gray-700 line-clamp-2 mb-2 leading-relaxed">{item.name}</p>
+                        <p className="text-sm font-bold" style={{ color: p }}>
+                          KES {item.retail_price.toLocaleString()}
+                        </p>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
             </div>
           </section>
         )}
 
-        {/* PERSONALIZED RECOMMENDATIONS */}
+        {/* PERSONALIZED RECOMMENDATIONS - Enhanced */}
         {!loading && products.length > 0 && (
-          <section className="max-w-7xl mx-auto px-4 py-6">
+          <section className="max-w-7xl mx-auto px-4 py-8 md:py-12 bg-gradient-to-b from-transparent to-gray-50">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
+                Picked Just For You ✨
+              </h2>
+              <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+                Based on what you love, we think you'll enjoy these handpicked selections
+              </p>
+            </div>
             <RecommendationEngine
               tenantSlug={String(slug)}
               context="homepage"
@@ -512,21 +721,49 @@ export default function ShopStorefront({ seo }: { seo: any }) {
           </section>
         )}
 
-        {/* PRODUCT GRID */}
+        {/* PRODUCT GRID - Enhanced header */}
         <section id="products" className="max-w-7xl mx-auto px-4 pb-12">
+          {!loading && filtered.length > 0 && (
+            <div className="text-center mb-8">
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
+                Explore Our Collection 🌟
+              </h2>
+              <p className="text-gray-600 text-lg max-w-2xl mx-auto mb-6">
+                {filtered.length} amazing {filtered.length === 1 ? 'item' : 'items'} waiting for you. 
+                Each one carefully selected to bring joy to your life.
+              </p>
+            </div>
+          )}
+
           {loading ? (
             <div className="text-center py-20">
-              <div className="inline-block w-12 h-12 border-4 border-gray-200 rounded-full animate-spin" style={{ borderTopColor: p }} />
-              <p className="mt-4 text-gray-500 text-sm">Loading products...</p>
+              <div 
+                className="inline-block w-16 h-16 border-4 border-gray-200 rounded-full animate-spin mb-4" 
+                style={{ borderTopColor: p }} 
+              />
+              <p className="text-gray-600 text-lg font-medium">
+                Finding perfect items for you...
+              </p>
+              <p className="text-gray-500 text-sm mt-2">This won't take long! ✨</p>
             </div>
           ) : filtered.length === 0 ? (
-            <div className="text-center py-20 bg-white rounded-lg border">
-              <div className="text-6xl mb-4">🔍</div>
-              <h3 className="text-lg font-bold mb-2">No products found</h3>
-              <button onClick={() => { setSearch(''); setActiveCategory('All'); }} className="text-sm underline" style={{ color: p }}>Clear filters</button>
+            <div className="text-center py-20 bg-white rounded-2xl border-2 border-dashed border-gray-200">
+              <div className="text-7xl mb-6 animate-bounce">🔍</div>
+              <h3 className="text-2xl font-bold mb-3 text-gray-900">Oops! Nothing found</h3>
+              <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                We couldn't find what you're looking for, but don't worry! 
+                Try adjusting your filters or search terms.
+              </p>
+              <button 
+                onClick={() => { setSearch(''); setActiveCategory('All'); }} 
+                className="text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all"
+                style={{ backgroundColor: p }}
+              >
+                Show All Products
+              </button>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-px bg-gray-200">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-px bg-gray-200 rounded-lg overflow-hidden shadow-sm">
               {(mainProducts.length > 0 ? mainProducts : filtered).map(prod => (
                 <ProductCard 
                   key={prod.id} 
