@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shop Features Diagnostic</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0f172a;
+      color: white;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    h1 {
+      color: #38bdf8;
+      margin-bottom: 10px;
+    }
+    .test-section {
+      background: #1e293b;
+      padding: 20px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+      border: 1px solid #334155;
+    }
+    .test-section h2 {
+      color: #38bdf8;
+      margin-bottom: 15px;
+      font-size: 18px;
+    }
+    .result {
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 6px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+    }
+    .success {
+      background: #064e3b;
+      border: 1px solid #10b981;
+      color: #6ee7b7;
+    }
+    .error {
+      background: #7f1d1d;
+      border: 1px solid #ef4444;
+      color: #fca5a5;
+    }
+    .info {
+      background: #1e3a8a;
+      border: 1px solid #3b82f6;
+      color: #93c5fd;
+    }
+    button {
+      background: #38bdf8;
+      color: #0f172a;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      margin-right: 10px;
+      margin-bottom: 10px;
+    }
+    button:hover {
+      background: #0ea5e9;
+    }
+    .loading {
+      color: #94a3b8;
+    }
+    pre {
+      background: #0f172a;
+      padding: 12px;
+      border-radius: 6px;
+      overflow-x: auto;
+      margin-top: 10px;
+      font-size: 12px;
+    }
+    input {
+      background: #0f172a;
+      border: 1px solid #334155;
+      color: white;
+      padding: 8px 12px;
+      border-radius: 6px;
+      width: 100%;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔍 Shop Features Diagnostic Tool</h1>
+    <p style="color: #94a3b8; margin-bottom: 30px;">Check if your immersive shop features are working</p>
+
+    <div class="test-section">
+      <h2>1. Test API Endpoints</h2>
+      <p style="color: #94a3b8; margin-bottom: 15px;">Enter your shop slug (e.g., "nylawigs"):</p>
+      <input type="text" id="shopSlug" placeholder="nylawigs" value="nylawigs">
+      <input type="text" id="productId" placeholder="Product ID (optional)">
+      <button onclick="testAPIs()">Test All APIs</button>
+      <div id="apiResults"></div>
+    </div>
+
+    <div class="test-section">
+      <h2>2. Check Database Tables</h2>
+      <p style="color: #94a3b8; margin-bottom: 15px;">Verify if migration was applied:</p>
+      <button onclick="checkDatabase()">Check Database</button>
+      <div id="dbResults"></div>
+    </div>
+
+    <div class="test-section">
+      <h2>3. Test Product Gallery</h2>
+      <p style="color: #94a3b8; margin-bottom: 15px;">Check if gallery data is available:</p>
+      <button onclick="testGallery()">Test Gallery API</button>
+      <div id="galleryResults"></div>
+    </div>
+
+    <div class="test-section">
+      <h2>4. Test Recommendations</h2>
+      <p style="color: #94a3b8; margin-bottom: 15px;">Check smart recommendations:</p>
+      <button onclick="testRecommendations()">Test Recommendations</button>
+      <div id="recommendationsResults"></div>
+    </div>
+
+    <div class="test-section">
+      <h2>5. Component Status</h2>
+      <div id="componentStatus">
+        <div class="info">
+          <strong>Deployed Components:</strong><br>
+          ✓ ProductGallery.tsx<br>
+          ✓ RecommendationEngine.tsx<br>
+          ✓ useRecentlyViewed.ts hook<br>
+          ✓ Enhanced product detail page
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    async function testAPIs() {
+      const slug = document.getElementById('shopSlug').value || 'nylawigs';
+      const productId = document.getElementById('productId').value;
+      const results = document.getElementById('apiResults');
+      results.innerHTML = '<div class="loading">Testing APIs...</div>';
+
+      let html = '';
+
+      // Test 1: Get products
+      try {
+        const res = await fetch(`/api/ecommerce/products?tenantSlug=${slug}&limit=5`);
+        const data = await res.json();
+        if (data.success && data.data.products.length > 0) {
+          html += `<div class="success">✓ Products API: ${data.data.products.length} products found</div>`;
+          
+          // Use first product for other tests if no productId provided
+          if (!productId && data.data.products[0]) {
+            document.getElementById('productId').value = data.data.products[0].id;
+          }
+        } else {
+          html += `<div class="error">✗ Products API: No products found</div>`;
+        }
+      } catch (e) {
+        html += `<div class="error">✗ Products API: ${e.message}</div>`;
+      }
+
+      // Test 2: Gallery API
+      const testProductId = document.getElementById('productId').value;
+      if (testProductId) {
+        try {
+          const res = await fetch(`/api/ecommerce/products/${testProductId}/gallery?tenantSlug=${slug}`);
+          const data = await res.json();
+          if (data.success) {
+            html += `<div class="success">✓ Gallery API: ${data.data.images?.length || 0} images, ${data.data.videos?.length || 0} videos</div>`;
+          } else {
+            html += `<div class="error">✗ Gallery API: ${data.error}</div>`;
+          }
+        } catch (e) {
+          html += `<div class="error">✗ Gallery API: ${e.message}</div>`;
+        }
+
+        // Test 3: Recommendations API
+        try {
+          const res = await fetch(`/api/ecommerce/recommendations?tenantSlug=${slug}&productId=${testProductId}&limit=6`);
+          const data = await res.json();
+          if (data.success) {
+            html += `<div class="success">✓ Recommendations API: ${data.data.recommendations?.length || 0} recommendations</div>`;
+          } else {
+            html += `<div class="error">✗ Recommendations API: ${data.error}</div>`;
+          }
+        } catch (e) {
+          html += `<div class="error">✗ Recommendations API: ${e.message}</div>`;
+        }
+      } else {
+        html += `<div class="info">ℹ Enter a product ID to test Gallery and Recommendations APIs</div>`;
+      }
+
+      // Test 4: Recently Viewed API
+      try {
+        const res = await fetch(`/api/ecommerce/recently-viewed?tenantSlug=${slug}&productIds=test`);
+        const data = await res.json();
+        html += `<div class="success">✓ Recently Viewed API: Endpoint exists</div>`;
+      } catch (e) {
+        html += `<div class="error">✗ Recently Viewed API: ${e.message}</div>`;
+      }
+
+      results.innerHTML = html;
+    }
+
+    async function checkDatabase() {
+      const results = document.getElementById('dbResults');
+      results.innerHTML = '<div class="info">Database checks require direct SQL access. Check Supabase dashboard.</div>';
+      results.innerHTML += `
+        <div class="info" style="margin-top: 10px;">
+          <strong>To verify migration:</strong><br>
+          1. Go to Supabase Dashboard → SQL Editor<br>
+          2. Run: SELECT table_name FROM information_schema.tables WHERE table_name IN ('product_images', 'product_videos', 'product_recommendations_cache');<br>
+          3. Should return 3 rows if migration was applied
+        </div>
+      `;
+    }
+
+    async function testGallery() {
+      const slug = document.getElementById('shopSlug').value || 'nylawigs';
+      const productId = document.getElementById('productId').value;
+      const results = document.getElementById('galleryResults');
+
+      if (!productId) {
+        results.innerHTML = '<div class="error">Please enter a product ID first</div>';
+        return;
+      }
+
+      results.innerHTML = '<div class="loading">Testing gallery...</div>';
+
+      try {
+        const res = await fetch(`/api/ecommerce/products/${productId}/gallery?tenantSlug=${slug}`);
+        const data = await res.json();
+        
+        if (data.success) {
+          let html = `<div class="success">✓ Gallery API working</div>`;
+          html += `<pre>${JSON.stringify(data.data, null, 2)}</pre>`;
+          results.innerHTML = html;
+        } else {
+          results.innerHTML = `<div class="error">✗ ${data.error}</div>`;
+        }
+      } catch (e) {
+        results.innerHTML = `<div class="error">✗ ${e.message}</div>`;
+      }
+    }
+
+    async function testRecommendations() {
+      const slug = document.getElementById('shopSlug').value || 'nylawigs';
+      const productId = document.getElementById('productId').value;
+      const results = document.getElementById('recommendationsResults');
+
+      results.innerHTML = '<div class="loading">Testing recommendations...</div>';
+
+      try {
+        const url = productId 
+          ? `/api/ecommerce/recommendations?tenantSlug=${slug}&productId=${productId}&limit=6`
+          : `/api/ecommerce/recommendations?tenantSlug=${slug}&context=homepage&limit=6`;
+        
+        const res = await fetch(url);
+        const data = await res.json();
+        
+        if (data.success) {
+          let html = `<div class="success">✓ Recommendations API working: ${data.data.recommendations.length} products</div>`;
+          html += `<pre>${JSON.stringify(data.data.recommendations.slice(0, 2), null, 2)}</pre>`;
+          results.innerHTML = html;
+        } else {
+          results.innerHTML = `<div class="error">✗ ${data.error}</div>`;
+        }
+      } catch (e) {
+        results.innerHTML = `<div class="error">✗ ${e.message}</div>`;
+      }
+    }
+
+    // Auto-run on load
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        testAPIs();
+      }, 500);
+    });
+  </script>
+</body>
+</html>

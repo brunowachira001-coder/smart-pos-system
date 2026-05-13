@@ -5,6 +5,8 @@ import Head from 'next/head';
 import { GetServerSideProps } from 'next';
 import { createClient } from '@supabase/supabase-js';
 import { useShopTheme } from '@/hooks/useShopTheme';
+import RecommendationEngine from '@/components/Shop/RecommendationEngine';
+import { useRecentlyViewed } from '@/hooks/useRecentlyViewed';
 
 // Server-side: fetch shop info and initial products for SEO
 export const getServerSideProps: GetServerSideProps = async (context) => {
@@ -75,7 +77,8 @@ function seededRandom(seed: string, min: number, max: number) {
   return Math.floor(((h >>> 0) / 0xffffffff) * (max - min + 1)) + min;
 }
 
-function ProductCard({ product, slug, primary }: { product: Product; slug: string; primary: string }) {
+function ProductCard({ product, slug, primary, onHover }: { product: Product; slug: string; primary: string; onHover?: (id: string | null) => void }) {
+  const [isHovered, setIsHovered] = useState(false);
   const discount = seededRandom(product.id, 20, 85);
   const rating = (3.5 + seededRandom(product.id + 'r', 0, 15) / 10).toFixed(1);
   const sold = seededRandom(product.id + 's', 100, 50000);
@@ -93,12 +96,34 @@ function ProductCard({ product, slug, primary }: { product: Product; slug: strin
     window.dispatchEvent(new Event('cart-updated'));
   };
 
+  const handleMouseEnter = () => {
+    setTimeout(() => {
+      setIsHovered(true);
+      onHover?.(product.id);
+    }, 300);
+  };
+
+  const handleMouseLeave = () => {
+    setTimeout(() => {
+      setIsHovered(false);
+      onHover?.(null);
+    }, 150);
+  };
+
   return (
     <Link href={`/shop/${slug}/product/${product.id}`}>
-      <div className="bg-white border border-gray-200 hover:shadow-lg transition-shadow cursor-pointer group relative">
+      <div 
+        className="bg-white border border-gray-200 hover:shadow-lg transition-all cursor-pointer group relative"
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+      >
         <div className="relative aspect-square overflow-hidden bg-gray-50">
           {product.image_url ? (
-            <img src={product.image_url} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+            <img 
+              src={product.image_url} 
+              alt={product.name} 
+              className={`w-full h-full object-cover transition-transform duration-300 ${isHovered ? 'scale-110' : 'scale-105 group-hover:scale-105'}`}
+            />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-5xl bg-gray-100">📦</div>
           )}
@@ -107,15 +132,38 @@ function ProductCard({ product, slug, primary }: { product: Product; slug: strin
               WELCOME DEAL · Free shipping
             </div>
           )}
-          <button
-            onClick={addToCart}
-            className="absolute bottom-2 right-2 text-white rounded-full p-2 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
-            style={{ backgroundColor: primary }}
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-            </svg>
-          </button>
+          
+          {/* Hover overlay with quick actions */}
+          {isHovered && (
+            <div className="absolute inset-0 bg-black bg-opacity-10 flex items-center justify-center transition-opacity duration-200">
+              <button
+                onClick={addToCart}
+                className="text-white px-4 py-2 rounded-lg font-medium text-sm shadow-lg transform hover:scale-105 transition-transform"
+                style={{ backgroundColor: primary }}
+              >
+                Quick Add to Cart
+              </button>
+            </div>
+          )}
+          
+          {!isHovered && (
+            <button
+              onClick={addToCart}
+              className="absolute bottom-2 right-2 text-white rounded-full p-2 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+              style={{ backgroundColor: primary }}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+            </button>
+          )}
+          
+          {/* Stock indicator on hover */}
+          {isHovered && product.stock_quantity > 0 && (
+            <div className="absolute top-2 left-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full font-medium">
+              {product.stock_quantity} in stock
+            </div>
+          )}
         </div>
         <div className="p-2">
           <div className="flex gap-1 mb-1">
@@ -162,6 +210,10 @@ export default function ShopStorefront({ seo }: { seo: any }) {
   const [search, setSearch] = useState((q as string) || '');
   const [activeCategory, setActiveCategory] = useState('All');
   const [cartCount, setCartCount] = useState(0);
+  const [searchSuggestions, setSearchSuggestions] = useState<Product[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [hoveredProduct, setHoveredProduct] = useState<string | null>(null);
+  const { recentlyViewed } = useRecentlyViewed(String(slug));
 
   const updateCartCount = useCallback(() => {
     const cart = JSON.parse(localStorage.getItem(`cart_${slug}`) || '[]');
@@ -196,7 +248,22 @@ export default function ShopStorefront({ seo }: { seo: any }) {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     router.push(`/shop/${slug}?q=${encodeURIComponent(search)}`, undefined, { shallow: true });
+    setShowSuggestions(false);
   };
+
+  // Search autocomplete - trigger after 2 characters
+  useEffect(() => {
+    if (search.length >= 2) {
+      const filtered = products
+        .filter(p => p.name.toLowerCase().includes(search.toLowerCase()))
+        .slice(0, 5);
+      setSearchSuggestions(filtered);
+      setShowSuggestions(true);
+    } else {
+      setSearchSuggestions([]);
+      setShowSuggestions(false);
+    }
+  }, [search, products]);
 
   const p = theme.primary; // shorthand
 
@@ -253,11 +320,13 @@ export default function ShopStorefront({ seo }: { seo: any }) {
                 </span>
               </Link>
 
-              <form onSubmit={handleSearch} className="flex-1 flex max-w-2xl">
+              <form onSubmit={handleSearch} className="flex-1 flex max-w-2xl relative">
                 <input
                   type="text"
                   value={search}
                   onChange={e => setSearch(e.target.value)}
+                  onFocus={() => search.length >= 2 && setShowSuggestions(true)}
+                  onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
                   placeholder="Search products..."
                   className="flex-1 border-2 rounded-l-md px-4 py-2 text-sm focus:outline-none"
                   style={{ borderColor: p }}
@@ -265,6 +334,32 @@ export default function ShopStorefront({ seo }: { seo: any }) {
                 <button type="submit" className="text-white px-5 py-2 rounded-r-md text-sm font-medium" style={{ backgroundColor: p }}>
                   Search
                 </button>
+                
+                {/* Search Autocomplete Dropdown */}
+                {showSuggestions && searchSuggestions.length > 0 && (
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-white border-2 rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto" style={{ borderColor: p }}>
+                    {searchSuggestions.map(suggestion => (
+                      <Link
+                        key={suggestion.id}
+                        href={`/shop/${slug}/product/${suggestion.id}`}
+                        className="flex items-center gap-3 p-3 hover:bg-gray-50 border-b last:border-b-0"
+                      >
+                        <div className="w-12 h-12 bg-gray-100 rounded overflow-hidden flex-shrink-0">
+                          {suggestion.image_url ? (
+                            <img src={suggestion.image_url} alt={suggestion.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-2xl">📦</div>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900 truncate">{suggestion.name}</p>
+                          <p className="text-xs text-gray-500">{suggestion.category}</p>
+                          <p className="text-sm font-bold" style={{ color: p }}>KES {suggestion.retail_price.toLocaleString()}</p>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                )}
               </form>
 
               <div className="flex items-center gap-5 shrink-0">
@@ -377,6 +472,46 @@ export default function ShopStorefront({ seo }: { seo: any }) {
           </section>
         )}
 
+        {/* RECENTLY VIEWED */}
+        {recentlyViewed.length > 0 && (
+          <section className="max-w-7xl mx-auto px-4 py-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-gray-900">Recently Viewed</h2>
+              <Link href="#" className="text-sm font-medium" style={{ color: p }}>View All</Link>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+              {recentlyViewed.slice(0, 6).map(item => (
+                <Link key={item.id} href={`/shop/${slug}/product/${item.id}`}>
+                  <div className="bg-white border rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
+                    <div className="aspect-square bg-gray-50">
+                      {item.image_url ? (
+                        <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-4xl">📦</div>
+                      )}
+                    </div>
+                    <div className="p-2">
+                      <p className="text-xs text-gray-700 line-clamp-2 mb-1">{item.name}</p>
+                      <p className="text-sm font-bold" style={{ color: p }}>KES {item.retail_price.toLocaleString()}</p>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* PERSONALIZED RECOMMENDATIONS */}
+        {!loading && products.length > 0 && (
+          <section className="max-w-7xl mx-auto px-4 py-6">
+            <RecommendationEngine
+              tenantSlug={String(slug)}
+              context="homepage"
+              limit={6}
+            />
+          </section>
+        )}
+
         {/* PRODUCT GRID */}
         <section id="products" className="max-w-7xl mx-auto px-4 pb-12">
           {loading ? (
@@ -393,7 +528,13 @@ export default function ShopStorefront({ seo }: { seo: any }) {
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-px bg-gray-200">
               {(mainProducts.length > 0 ? mainProducts : filtered).map(prod => (
-                <ProductCard key={prod.id} product={prod} slug={slug as string} primary={p} />
+                <ProductCard 
+                  key={prod.id} 
+                  product={prod} 
+                  slug={slug as string} 
+                  primary={p}
+                  onHover={setHoveredProduct}
+                />
               ))}
             </div>
           )}
