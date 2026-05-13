@@ -7,6 +7,8 @@ import { createClient } from '@supabase/supabase-js';
 import { useShopTheme } from '@/hooks/useShopTheme';
 import RecommendationEngine from '@/components/Shop/RecommendationEngine';
 import { useRecentlyViewed } from '@/hooks/useRecentlyViewed';
+import ProductFilters, { ActiveFilters } from '@/components/Shop/ProductFilters';
+import LiveSupport from '@/components/Shop/LiveSupport';
 
 // Server-side: fetch shop info and initial products for SEO
 export const getServerSideProps: GetServerSideProps = async (context) => {
@@ -213,6 +215,7 @@ export default function ShopStorefront({ seo }: { seo: any }) {
   const [searchSuggestions, setSearchSuggestions] = useState<Product[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [hoveredProduct, setHoveredProduct] = useState<string | null>(null);
+  const [activeFilters, setActiveFilters] = useState<ActiveFilters>({});
   const { recentlyViewed } = useRecentlyViewed(String(slug));
 
   const updateCartCount = useCallback(() => {
@@ -235,11 +238,30 @@ export default function ShopStorefront({ seo }: { seo: any }) {
   }, [slug, updateCartCount]);
 
   const categories = ['All', ...Array.from(new Set(products.map(p => p.category).filter(Boolean)))];
+  
+  // Calculate price range
+  const priceRange = products.length > 0 ? {
+    min: Math.floor(Math.min(...products.map(p => p.retail_price))),
+    max: Math.ceil(Math.max(...products.map(p => p.retail_price)))
+  } : { min: 0, max: 10000 };
+  
+  // Apply all filters
   const filtered = products.filter(p => {
-    const matchCat = activeCategory === 'All' || p.category === activeCategory;
+    const matchCat = !activeFilters.category || activeFilters.category === 'All' || p.category === activeFilters.category;
     const matchSearch = !search || p.name.toLowerCase().includes(search.toLowerCase());
-    return matchCat && matchSearch;
+    const matchMinPrice = !activeFilters.minPrice || p.retail_price >= activeFilters.minPrice;
+    const matchMaxPrice = !activeFilters.maxPrice || p.retail_price <= activeFilters.maxPrice;
+    const matchInStock = !activeFilters.inStock || p.stock_quantity > 0;
+    // Note: colors and sizes would need to be in product data to filter properly
+    return matchCat && matchSearch && matchMinPrice && matchMaxPrice && matchInStock;
   });
+
+  const handleFilterChange = (filters: ActiveFilters) => {
+    setActiveFilters(filters);
+    if (filters.category) {
+      setActiveCategory(filters.category);
+    }
+  };
 
   const bundleProducts = filtered.slice(0, 4);
   const superDealProducts = filtered.slice(4, 8);
@@ -723,6 +745,21 @@ export default function ShopStorefront({ seo }: { seo: any }) {
 
         {/* PRODUCT GRID - Enhanced header */}
         <section id="products" className="max-w-7xl mx-auto px-4 pb-12">
+          {/* Product Filters */}
+          {!loading && products.length > 0 && (
+            <div className="mb-8">
+              <ProductFilters
+                tenantSlug={String(slug)}
+                categories={categories}
+                priceRange={priceRange}
+                onFilterChange={handleFilterChange}
+                activeFilters={activeFilters}
+                primaryColor={p}
+                totalProducts={filtered.length}
+              />
+            </div>
+          )}
+
           {!loading && filtered.length > 0 && (
             <div className="text-center mb-8">
               <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
@@ -818,6 +855,15 @@ export default function ShopStorefront({ seo }: { seo: any }) {
             </div>
           </div>
         </footer>
+
+        {/* Live Support Chat Widget */}
+        <LiveSupport
+          tenantSlug={String(slug)}
+          tenantId={String(slug)}
+          customerName={undefined}
+          customerEmail={undefined}
+          primaryColor={p}
+        />
       </div>
     </>
   );
