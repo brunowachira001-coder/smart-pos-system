@@ -64,6 +64,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(500).json({ error: 'Failed to create account' });
     }
 
+    // Award signup bonus (500 coins)
+    try {
+      await supabase.rpc('award_coins', {
+        p_tenant_id: tenant.id,
+        p_customer_id: customer.id,
+        p_amount: 500,
+        p_source: 'signup_bonus',
+        p_source_id: customer.id,
+        p_description: 'Welcome bonus for new customer'
+      });
+      
+      console.log(`✅ Awarded 500 coins to new customer: ${customer.email}`);
+    } catch (coinError) {
+      console.error('⚠️ Failed to award signup bonus:', coinError);
+      // Don't fail registration if coins fail
+    }
+
     // Generate session token (simple JWT-like token)
     const sessionToken = Buffer.from(JSON.stringify({
       customerId: customer.id,
@@ -80,7 +97,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         email: customer.email,
         phone: customer.phone
       },
-      sessionToken
+      sessionToken,
+      signupBonus: 500
     });
   } catch (error: any) {
     console.error('API error:', error);

@@ -474,3 +474,179 @@ export async function getCustomerOrders(tenantId: string, customerId: string) {
     return { success: false, error };
   }
 }
+
+// ============================================================
+// PRODUCT GALLERY SUPPORT
+// ============================================================
+
+/**
+ * Get product with full gallery (images and videos)
+ * Used for product detail pages with immersive visual experience
+ */
+export async function getProductWithGallery(tenantId: string, productId: string) {
+  try {
+    await supabase.rpc('set_config', {
+      setting_name: 'app.current_tenant_id',
+      new_value: tenantId,
+      is_local: true
+    });
+
+    // Get product data
+    const { data: product, error: productError } = await supabase
+      .from('products')
+      .select('*')
+      .eq('id', productId)
+      .eq('tenant_id', tenantId)
+      .single();
+
+    if (productError || !product) {
+      return { success: false, error: 'Product not found' };
+    }
+
+    // Get product images ordered by display_order
+    const { data: images, error: imagesError } = await supabase
+      .from('product_images')
+      .select('*')
+      .eq('product_id', productId)
+      .eq('tenant_id', tenantId)
+      .order('display_order', { ascending: true });
+
+    if (imagesError) {
+      console.error('Error fetching images:', imagesError);
+    }
+
+    // Get product videos ordered by display_order
+    const { data: videos, error: videosError } = await supabase
+      .from('product_videos')
+      .select('*')
+      .eq('product_id', productId)
+      .eq('tenant_id', tenantId)
+      .order('display_order', { ascending: true });
+
+    if (videosError) {
+      console.error('Error fetching videos:', videosError);
+    }
+
+    // Determine primary image
+    const primaryImage = images?.find(img => img.image_type === 'primary') || images?.[0] || null;
+
+    return {
+      success: true,
+      data: {
+        product,
+        images: images || [],
+        videos: videos || [],
+        primaryImage
+      }
+    };
+  } catch (error) {
+    console.error('Error in getProductWithGallery:', error);
+    return { success: false, error };
+  }
+}
+
+/**
+ * Get products with their primary images
+ * Used for product grids on homepage and category pages
+ * Optimized for performance with minimal data fetching
+ */
+export async function getProductsWithPrimaryImages(
+  tenantId: string,
+  filters?: {
+    category?: string;
+    minPrice?: number;
+    maxPrice?: number;
+    inStock?: boolean;
+    search?: string;
+    limit?: number;
+    offset?: number;
+  }
+) {
+  try {
+    await supabase.rpc('set_config', {
+      setting_name: 'app.current_tenant_id',
+      new_value: tenantId,
+      is_local: true
+    });
+
+    // Build query
+    let query = supabase
+      .from('products')
+      .select('*')
+      .eq('tenant_id', tenantId);
+
+    // Apply filters
+    if (filters?.category) {
+      query = query.eq('category', filters.category);
+    }
+
+    if (filters?.minPrice !== undefined) {
+      query = query.gte('retail_price', filters.minPrice);
+    }
+
+    if (filters?.maxPrice !== undefined) {
+      query = query.lte('retail_price', filters.maxPrice);
+    }
+
+    if (filters?.inStock) {
+      query = query.gt('stock_quantity', 0);
+    }
+
+    if (filters?.search) {
+      query = query.or(`name.ilike.%${filters.search}%,description.ilike.%${filters.search}%`);
+    }
+
+    // Apply pagination
+    if (filters?.limit) {
+      query = query.limit(filters.limit);
+    }
+
+    if (filters?.offset) {
+      query = query.range(filters.offset, filters.offset + (filters.limit || 20) - 1);
+    }
+
+    // Order by created_at descending (newest first)
+    query = query.order('created_at', { ascending: false });
+
+    const { data: products, error: productsError } = await query;
+
+    if (productsError) {
+      return { success: false, error: productsError };
+    }
+
+    if (!products || products.length === 0) {
+      return { success: true, data: [] };
+    }
+
+    // Get primary images for all products in one query
+    const productIds = products.map(p => p.id);
+    const { data: allImages } = await supabase
+      .from('product_images')
+      .select('product_id, image_url, image_type, alt_text')
+      .in('product_id', productIds)
+      .eq('tenant_id', tenantId)
+      .order('display_order', { ascending: true });
+
+    // Map primary images to products
+    const productsWithImages = products.map(product => {
+      const productImages = allImages?.filter(img => img.product_id === product.id) || [];
+      const primaryImage = productImages.find(img => img.image_type === 'primary') || productImages[0];
+
+      return {
+        ...product,
+        primaryImage: primaryImage ? {
+          url: primaryImage.image_url,
+          alt: primaryImage.alt_text || product.name
+        } : {
+          url: product.image_url, // Fallback to legacy image_url
+          alt: product.name
+        }
+      };
+    });
+
+    return { success: true, data: productsWithImages };
+  } catch (error) {
+    console.error('Error in getProductsWithPrimaryImages:', error);
+    return { success: false, error };
+  }
+}
